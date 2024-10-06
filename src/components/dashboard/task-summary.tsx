@@ -19,6 +19,7 @@ import {
   Minimize2,
   Trash2,
   CalendarIcon,
+  Ellipsis,
 } from 'lucide-react';
 import { useSession } from 'next-auth/react';
 import { UserAvatar } from '@/components/dashboard/user-avatar';
@@ -29,6 +30,14 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu';
+import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
+import {
+  deleteTask,
+  createTask,
+  fetchTasks,
+  updateTask,
+} from '@/services/task-service';
+import { Task } from '@/types/task';
 
 export function TaskSummary() {
   const [activeTab, setActiveTab] = useState('upcoming');
@@ -38,22 +47,64 @@ export function TaskSummary() {
   const [isCompleted, setIsCompleted] = useState(false);
   const [dueDate, setDueDate] = useState<Date | undefined>(undefined);
 
+  const queryClient = useQueryClient();
+
+  const {
+    data: tasks,
+    isLoading,
+    error,
+  } = useQuery({
+    queryKey: ['tasks', session?.user?.id],
+    queryFn: () => fetchTasks(session?.user?.id as string),
+    enabled: !!session?.user?.id,
+  });
+
+  const createTaskMutation = useMutation({
+    mutationFn: createTask,
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['tasks', session?.user?.id] });
+      setIsCreatingTask(false);
+      setNewTaskName('');
+      setIsCompleted(false);
+      setDueDate(undefined);
+    },
+  });
+
+  const updateTaskMutation = useMutation({
+    mutationFn: updateTask,
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['tasks', session?.user?.id] });
+    },
+  });
+
+  const deleteTaskMutation = useMutation({
+    mutationFn: deleteTask,
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['tasks', session?.user?.id] });
+    },
+  });
+
   const handleCreateTask = () => {
     setIsCreatingTask(true);
   };
 
   const handleSubmitTask = (e: React.FormEvent) => {
     e.preventDefault();
-    // TODO: Implement task creation logic here
-    console.log('Creating task:', {
-      name: newTaskName,
-      completed: isCompleted,
-      dueDate,
+    if (!session?.user?.id) return;
+    createTaskMutation.mutate({
+      title: newTaskName,
+      status: isCompleted ? 'DONE' : 'TODO',
+      dueDate: dueDate,
+      userId: session.user.id,
     });
-    setNewTaskName('');
-    setIsCompleted(false);
-    setDueDate(undefined);
-    setIsCreatingTask(false);
+  };
+
+  const handleUpdateTask = (task: Task) => {
+    updateTaskMutation.mutate(task);
+  };
+
+  const handleDeleteTask = (taskId: string) => {
+    deleteTaskMutation.mutate(taskId);
   };
 
   return (
@@ -66,7 +117,7 @@ export function TaskSummary() {
         <DropdownMenu>
           <DropdownMenuTrigger asChild>
             <Button variant="ghost" size="sm">
-              •••
+              <Ellipsis className="h-4 w-4" />
             </Button>
           </DropdownMenuTrigger>
           <DropdownMenuContent align="end">
@@ -115,10 +166,47 @@ export function TaskSummary() {
           </Button>
         </div>
         <div className="flex-grow">
-          {/* Task list will go here */}
-          <p className="text-sm text-gray-500 dark:text-gray-400">
-            No tasks to display.
-          </p>
+          {isLoading ? (
+            <p className="text-sm text-gray-500 dark:text-gray-400">
+              Loading tasks...
+            </p>
+          ) : error ? (
+            <p className="text-sm text-red-500">
+              Error loading tasks. Please try again.
+            </p>
+          ) : tasks && tasks.length > 0 ? (
+            <ul className="space-y-2">
+              {tasks.map((task) => (
+                <li key={task.id} className="flex items-center space-x-2">
+                  <Checkbox
+                    checked={task.status === 'DONE'}
+                    onCheckedChange={(checked) =>
+                      handleUpdateTask({
+                        ...task,
+                        status: checked ? 'DONE' : 'TODO',
+                      })
+                    }
+                  />
+                  <span
+                    className={task.status === 'DONE' ? 'line-through' : ''}
+                  >
+                    {task.title}
+                  </span>
+                  <Button
+                    variant="ghost"
+                    size="sm"
+                    onClick={() => handleDeleteTask(task.id)}
+                  >
+                    <Trash2 className="h-4 w-4" />
+                  </Button>
+                </li>
+              ))}
+            </ul>
+          ) : (
+            <p className="text-sm text-gray-500 dark:text-gray-400">
+              No tasks to display.
+            </p>
+          )}
         </div>
         {isCreatingTask ? (
           <form onSubmit={handleSubmitTask} className="mt-4">
@@ -162,6 +250,9 @@ export function TaskSummary() {
                 Due: {format(dueDate, 'PPP')}
               </p>
             )}
+            <Button type="submit" className="mt-2">
+              Create Task
+            </Button>
           </form>
         ) : (
           <Button
