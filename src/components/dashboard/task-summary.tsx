@@ -20,6 +20,12 @@ import {
   Trash2,
   CalendarIcon,
   Ellipsis,
+  AlertCircle,
+  ArrowUp,
+  ArrowRight,
+  CheckCircle,
+  ArrowDown,
+  Clock,
 } from 'lucide-react';
 import { useSession } from 'next-auth/react';
 import { UserAvatar } from '@/components/dashboard/user-avatar';
@@ -37,15 +43,33 @@ import {
   fetchTasks,
   updateTask,
 } from '@/services/task-service';
-import { Task } from '@/types/task';
+import { Task, TaskStatus, TaskPriority } from '@/types/task';
+import { toast } from 'sonner';
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from '@/components/ui/select';
 
 export function TaskSummary() {
-  const [activeTab, setActiveTab] = useState('upcoming');
+  const [activeTab, setActiveTab] = useState<
+    'upcoming' | 'overdue' | 'completed'
+  >('upcoming');
   const { data: session } = useSession();
   const [isCreatingTask, setIsCreatingTask] = useState(false);
   const [newTaskName, setNewTaskName] = useState('');
-  const [isCompleted, setIsCompleted] = useState(false);
-  const [dueDate, setDueDate] = useState<Date | undefined>(undefined);
+  const [newTaskDescription, setNewTaskDescription] = useState('');
+  const [newTaskStatus, setNewTaskStatus] = useState<TaskStatus>(
+    TaskStatus.TODO
+  );
+  const [newTaskPriority, setNewTaskPriority] = useState<TaskPriority>(
+    TaskPriority.MEDIUM
+  );
+  const [newTaskDueDate, setNewTaskDueDate] = useState<Date | undefined>(
+    undefined
+  );
 
   const queryClient = useQueryClient();
 
@@ -64,9 +88,12 @@ export function TaskSummary() {
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['tasks', session?.user?.id] });
       setIsCreatingTask(false);
-      setNewTaskName('');
-      setIsCompleted(false);
-      setDueDate(undefined);
+      resetNewTaskForm();
+      toast.success('Task created successfully');
+    },
+    onError: (error) => {
+      toast.error('Failed to create task');
+      console.error('Error creating task:', error);
     },
   });
 
@@ -74,6 +101,11 @@ export function TaskSummary() {
     mutationFn: updateTask,
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['tasks', session?.user?.id] });
+      toast.success('Task updated successfully');
+    },
+    onError: (error) => {
+      toast.error('Failed to update task');
+      console.error('Error updating task:', error);
     },
   });
 
@@ -81,6 +113,11 @@ export function TaskSummary() {
     mutationFn: deleteTask,
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['tasks', session?.user?.id] });
+      toast.success('Task deleted successfully');
+    },
+    onError: (error) => {
+      toast.error('Failed to delete task');
+      console.error('Error deleting task:', error);
     },
   });
 
@@ -93,8 +130,10 @@ export function TaskSummary() {
     if (!session?.user?.id) return;
     createTaskMutation.mutate({
       title: newTaskName,
-      status: isCompleted ? 'DONE' : 'TODO',
-      dueDate: dueDate,
+      description: newTaskDescription,
+      status: newTaskStatus,
+      priority: newTaskPriority,
+      dueDate: newTaskDueDate,
       userId: session.user.id,
     });
   };
@@ -106,6 +145,55 @@ export function TaskSummary() {
   const handleDeleteTask = (taskId: string) => {
     deleteTaskMutation.mutate(taskId);
   };
+
+  const resetNewTaskForm = () => {
+    setNewTaskName('');
+    setNewTaskDescription('');
+    setNewTaskStatus(TaskStatus.TODO);
+    setNewTaskPriority(TaskPriority.MEDIUM);
+    setNewTaskDueDate(undefined);
+  };
+
+  const getPriorityIcon = (priority: TaskPriority) => {
+    switch (priority) {
+      case TaskPriority.HIGH:
+        return <ArrowUp className="h-4 w-4 text-red-500" />;
+      case TaskPriority.MEDIUM:
+        return <ArrowRight className="h-4 w-4 text-yellow-500" />;
+      case TaskPriority.LOW:
+        return <ArrowDown className="h-4 w-4 text-green-500" />;
+    }
+  };
+
+  const getStatusIcon = (status: TaskStatus) => {
+    switch (status) {
+      case TaskStatus.TODO:
+        return <AlertCircle className="h-4 w-4 text-blue-500" />;
+      case TaskStatus.IN_PROGRESS:
+        return <Clock className="h-4 w-4 text-yellow-500" />;
+      case TaskStatus.DONE:
+        return <CheckCircle className="h-4 w-4 text-green-500" />;
+    }
+  };
+
+  const filteredTasks = tasks?.filter((task) => {
+    const now = new Date();
+    switch (activeTab) {
+      case 'upcoming':
+        return (
+          task.status !== TaskStatus.DONE &&
+          (!task.dueDate || new Date(task.dueDate) >= now)
+        );
+      case 'overdue':
+        return (
+          task.status !== TaskStatus.DONE &&
+          task.dueDate &&
+          new Date(task.dueDate) < now
+        );
+      case 'completed':
+        return task.status === TaskStatus.DONE;
+    }
+  });
 
   return (
     <Card className="h-full flex flex-col">
@@ -155,7 +243,7 @@ export function TaskSummary() {
             size="sm"
             onClick={() => setActiveTab('overdue')}
           >
-            Overdue (3)
+            Overdue
           </Button>
           <Button
             variant={activeTab === 'completed' ? 'default' : 'ghost'}
@@ -165,7 +253,7 @@ export function TaskSummary() {
             Completed
           </Button>
         </div>
-        <div className="flex-grow">
+        <div className="flex-grow overflow-y-auto">
           {isLoading ? (
             <p className="text-sm text-gray-500 dark:text-gray-400">
               Loading tasks...
@@ -174,24 +262,47 @@ export function TaskSummary() {
             <p className="text-sm text-red-500">
               Error loading tasks. Please try again.
             </p>
-          ) : tasks && tasks.length > 0 ? (
+          ) : filteredTasks && filteredTasks.length > 0 ? (
             <ul className="space-y-2">
-              {tasks.map((task) => (
-                <li key={task.id} className="flex items-center space-x-2">
+              {filteredTasks.map((task) => (
+                <li
+                  key={task.id}
+                  className="flex items-center space-x-2 bg-gray-50 dark:bg-gray-800 p-2 rounded-md"
+                >
                   <Checkbox
-                    checked={task.status === 'DONE'}
+                    checked={task.status === TaskStatus.DONE}
                     onCheckedChange={(checked) =>
                       handleUpdateTask({
                         ...task,
-                        status: checked ? 'DONE' : 'TODO',
+                        status: checked ? TaskStatus.DONE : TaskStatus.TODO,
                       })
                     }
                   />
-                  <span
-                    className={task.status === 'DONE' ? 'line-through' : ''}
-                  >
-                    {task.title}
-                  </span>
+                  <div className="flex-grow">
+                    <div className="flex items-center space-x-2">
+                      <span
+                        className={
+                          task.status === TaskStatus.DONE
+                            ? 'line-through text-gray-500'
+                            : ''
+                        }
+                      >
+                        {task.title}
+                      </span>
+                      {getPriorityIcon(task.priority)}
+                      {getStatusIcon(task.status)}
+                    </div>
+                    {task.description && (
+                      <p className="text-xs text-gray-500 mt-1">
+                        {task.description}
+                      </p>
+                    )}
+                    {task.dueDate && (
+                      <p className="text-xs text-gray-500 mt-1">
+                        Due: {format(new Date(task.dueDate), 'PPP')}
+                      </p>
+                    )}
+                  </div>
                   <Button
                     variant="ghost"
                     size="sm"
@@ -209,50 +320,89 @@ export function TaskSummary() {
           )}
         </div>
         {isCreatingTask ? (
-          <form onSubmit={handleSubmitTask} className="mt-4">
-            <div className="flex items-center space-x-2">
-              <Checkbox
-                checked={isCompleted}
-                onCheckedChange={(checked) =>
-                  setIsCompleted(checked as boolean)
+          <form onSubmit={handleSubmitTask} className="mt-4 space-y-4">
+            <Input
+              type="text"
+              placeholder="Task name"
+              value={newTaskName}
+              onChange={(e) => setNewTaskName(e.target.value)}
+              className="w-full"
+              required
+            />
+            <Input
+              type="text"
+              placeholder="Task description (optional)"
+              value={newTaskDescription}
+              onChange={(e) => setNewTaskDescription(e.target.value)}
+              className="w-full"
+            />
+            <div className="flex space-x-2">
+              <Select
+                value={newTaskStatus}
+                onValueChange={(value) => setNewTaskStatus(value as TaskStatus)}
+              >
+                <SelectTrigger className="w-full">
+                  <SelectValue placeholder="Status" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value={TaskStatus.TODO}>To Do</SelectItem>
+                  <SelectItem value={TaskStatus.IN_PROGRESS}>
+                    In Progress
+                  </SelectItem>
+                  <SelectItem value={TaskStatus.DONE}>Done</SelectItem>
+                </SelectContent>
+              </Select>
+              <Select
+                value={newTaskPriority}
+                onValueChange={(value) =>
+                  setNewTaskPriority(value as TaskPriority)
                 }
-              />
-              <Input
-                type="text"
-                placeholder="Write a task name"
-                value={newTaskName}
-                onChange={(e) => setNewTaskName(e.target.value)}
-                className="flex-grow"
-                autoFocus
-              />
-              <Popover>
-                <PopoverTrigger asChild>
-                  <Button
-                    variant="outline"
-                    size="icon"
-                    className="w-10 h-10 p-0"
-                  >
-                    <CalendarIcon className="h-4 w-4" />
-                  </Button>
-                </PopoverTrigger>
-                <PopoverContent className="w-auto p-0" align="end">
-                  <Calendar
-                    mode="single"
-                    selected={dueDate}
-                    onSelect={setDueDate}
-                    initialFocus
-                  />
-                </PopoverContent>
-              </Popover>
+              >
+                <SelectTrigger className="w-full">
+                  <SelectValue placeholder="Priority" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value={TaskPriority.LOW}>Low</SelectItem>
+                  <SelectItem value={TaskPriority.MEDIUM}>Medium</SelectItem>
+                  <SelectItem value={TaskPriority.HIGH}>High</SelectItem>
+                </SelectContent>
+              </Select>
             </div>
-            {dueDate && (
-              <p className="text-sm text-muted-foreground mt-1">
-                Due: {format(dueDate, 'PPP')}
-              </p>
-            )}
-            <Button type="submit" className="mt-2">
-              Create Task
-            </Button>
+            <Popover>
+              <PopoverTrigger asChild>
+                <Button
+                  variant="outline"
+                  className="w-full justify-start text-left font-normal"
+                >
+                  <CalendarIcon className="mr-2 h-4 w-4" />
+                  {newTaskDueDate ? (
+                    format(newTaskDueDate, 'PPP')
+                  ) : (
+                    <span>Pick a due date</span>
+                  )}
+                </Button>
+              </PopoverTrigger>
+              <PopoverContent className="w-auto p-0" align="start">
+                <Calendar
+                  mode="single"
+                  selected={newTaskDueDate}
+                  onSelect={setNewTaskDueDate}
+                  initialFocus
+                />
+              </PopoverContent>
+            </Popover>
+            <div className="flex space-x-2">
+              <Button type="submit" className="flex-grow">
+                Create Task
+              </Button>
+              <Button
+                type="button"
+                variant="outline"
+                onClick={() => setIsCreatingTask(false)}
+              >
+                Cancel
+              </Button>
+            </div>
           </form>
         ) : (
           <Button

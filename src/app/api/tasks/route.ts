@@ -1,8 +1,8 @@
 import { NextResponse } from 'next/server';
 import { z } from 'zod';
 import prisma from '@/lib/db';
+import { TaskStatus, TaskPriority } from '@/types/task';
 
-// Schema for task input validation
 const taskSchema = z.object({
   title: z
     .string()
@@ -12,16 +12,17 @@ const taskSchema = z.object({
     .string()
     .max(500, 'Description must be 500 characters or less')
     .optional(),
-  status: z.enum(['TODO', 'IN_PROGRESS', 'DONE']),
+  status: z.nativeEnum(TaskStatus),
+  priority: z.nativeEnum(TaskPriority),
+  dueDate: z.date().optional().nullable(),
   userId: z.string().cuid('Invalid user ID'),
+  projectId: z.string().cuid('Invalid project ID').optional().nullable(),
 });
 
-// Schema for task update validation
 const taskUpdateSchema = taskSchema.partial().extend({
   id: z.string().cuid('Invalid task ID'),
 });
 
-// Helper function to handle errors
 function handleError(error: unknown) {
   console.error(error);
   if (error instanceof z.ZodError) {
@@ -36,17 +37,26 @@ function handleError(error: unknown) {
   );
 }
 
-// GET: Fetch all tasks
-export async function GET() {
+export async function GET(request: Request) {
   try {
-    const tasks = await prisma.task.findMany();
+    const { searchParams } = new URL(request.url);
+    const userId = searchParams.get('userId');
+
+    if (!userId) {
+      throw new Error('User ID is required');
+    }
+
+    const tasks = await prisma.task.findMany({
+      where: { userId },
+      orderBy: { createdAt: 'desc' },
+    });
+
     return NextResponse.json(tasks);
   } catch (error) {
     return handleError(error);
   }
 }
 
-// POST: Create a new task
 export async function POST(request: Request) {
   try {
     const body = await request.json();
@@ -58,7 +68,6 @@ export async function POST(request: Request) {
   }
 }
 
-// PUT: Update a task
 export async function PUT(request: Request) {
   try {
     const body = await request.json();
@@ -74,7 +83,6 @@ export async function PUT(request: Request) {
   }
 }
 
-// DELETE: Delete a task
 export async function DELETE(request: Request) {
   try {
     const { searchParams } = new URL(request.url);
