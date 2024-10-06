@@ -6,10 +6,11 @@ import { TaskChart } from '@/components/dashboard/task-chart';
 import { TaskList } from '@/components/dashboard/task-list';
 import { QuickActions } from '@/components/dashboard/quick-actions';
 import { LoadingSpinner } from '@/components/ui/loading-spinner';
+import { ContentLayout } from '@/components/layouts/content-layout';
 
 export default function DashboardPage() {
   return (
-    <div className="py-6">
+    <ContentLayout title="Dashboard">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 md:px-8">
         <DashboardHeader />
         <div className="py-4">
@@ -34,6 +35,6 @@ export default function DashboardPage() {
           </div>
         </div>
       </div>
-    </div>
+    </ContentLayout>
   );
 }

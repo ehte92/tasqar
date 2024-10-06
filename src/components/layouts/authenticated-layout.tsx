@@ -4,8 +4,10 @@ import { useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import { useSession } from 'next-auth/react';
 import { Sidebar } from '@/components/dashboard/sidebar';
-import { TopBar } from '@/components/dashboard/top-bar';
 import { LoadingSpinner } from '@/components/ui/loading-spinner';
+import { useSidebarToggle } from '@/hooks/use-sidebar-toggle';
+import { useStore } from '@/hooks/use-store';
+import { cn } from '@/lib/utils';
 
 export function AuthenticatedLayout({
   children,
@@ -33,15 +35,21 @@ export function AuthenticatedLayout({
     return null;
   }
 
+  const sidebar = useStore(useSidebarToggle, (state) => state);
+
+  if (!sidebar) return null;
+
   return (
-    <div className="flex h-screen bg-gray-100 dark:bg-gray-900">
+    <>
       <Sidebar />
-      <div className="flex flex-col flex-1 overflow-hidden">
-        <TopBar />
-        <main className="flex-1 overflow-x-hidden overflow-y-auto bg-gray-100 dark:bg-gray-900">
-          {children}
-        </main>
-      </div>
-    </div>
+      <main
+        className={cn(
+          'min-h-[calc(100vh_-_56px)] bg-zinc-50 dark:bg-zinc-900 transition-[margin-left] ease-in-out duration-300',
+          sidebar?.isOpen === false ? 'lg:ml-[90px]' : 'lg:ml-60'
+        )}
+      >
+        {children}
+      </main>
+    </>
   );
 }

@@ -1,77 +1,52 @@
 'use client';
 
 import Link from 'next/link';
-import { usePathname } from 'next/navigation';
-import { signOut } from 'next-auth/react';
 import { cn } from '@/lib/utils';
 import { Button } from '@/components/ui/button';
-import { ScrollArea } from '@/components/ui/scroll-area';
-import {
-  LayoutDashboard,
-  CalendarDays,
-  Users,
-  Settings,
-  LogOut,
-} from 'lucide-react';
-
-const sidebarItems = [
-  { name: 'Dashboard', href: '/dashboard', icon: LayoutDashboard },
-  { name: 'Calendar', href: '/dashboard/calendar', icon: CalendarDays },
-  { name: 'Team', href: '/dashboard/team', icon: Users },
-  { name: 'Settings', href: '/dashboard/settings', icon: Settings },
-];
+import { useStore } from '@/hooks/use-store';
+import { useSidebarToggle } from '@/hooks/use-sidebar-toggle';
+import { SidebarToggle } from '../layouts/sidebar-toggle';
+import { Menu } from '../layouts/menu';
+import { Icons } from '../ui/icons';
 
 export function Sidebar() {
-  const pathname = usePathname();
+  const sidebar = useStore(useSidebarToggle, (state) => state);
 
-  const handleLogout = async () => {
-    await signOut({ callbackUrl: '/login' });
-  };
+  if (!sidebar) return null;
 
   return (
-    <div className="hidden md:flex md:w-64 md:flex-col">
-      <div className="flex flex-col flex-grow pt-5 overflow-y-auto bg-white dark:bg-gray-800 border-r border-gray-200 dark:border-gray-700">
-        <div className="flex items-center flex-shrink-0 px-4">
-          <Link href="/dashboard" className="flex items-center">
-            <LayoutDashboard className="h-8 w-8 text-blue-600" />
-            <span className="ml-2 text-xl font-semibold text-gray-800 dark:text-white">
+    <aside
+      className={cn(
+        'fixed top-0 left-0 z-20 h-screen -translate-x-full lg:translate-x-0 transition-[width] ease-in-out duration-300',
+        sidebar?.isOpen === false ? 'w-[90px]' : 'w-60'
+      )}
+    >
+      <SidebarToggle isOpen={sidebar?.isOpen} setIsOpen={sidebar?.setIsOpen} />
+      <div className="relative h-full flex flex-col px-3 py-4 overflow-y-auto shadow-md dark:shadow-zinc-800">
+        <Button
+          className={cn(
+            'transition-transform ease-in-out duration-300 mb-1',
+            sidebar?.isOpen === false ? 'translate-x-1' : 'translate-x-0'
+          )}
+          variant="link"
+          asChild
+        >
+          <Link href="/dashboard" className="flex items-center gap-2">
+            <Icons.logo className="w-6 h-6 mr-1 text-blue-600" />
+            <h1
+              className={cn(
+                'font-bold text-lg whitespace-nowrap transition-[transform,opacity,display] ease-in-out duration-300',
+                sidebar?.isOpen === false
+                  ? '-translate-x-96 opacity-0 hidden'
+                  : 'translate-x-0 opacity-100'
+              )}
+            >
               Tasqar
-            </span>
+            </h1>
           </Link>
-        </div>
-        <ScrollArea className="flex-1 px-3 mt-6">
-          <nav className="flex-1 space-y-1">
-            {sidebarItems.map((item) => (
-              <Button
-                key={item.name}
-                asChild
-                variant="ghost"
-                className={cn(
-                  'w-full justify-start',
-                  pathname === item.href
-                    ? 'bg-gray-100 dark:bg-gray-700 text-blue-600'
-                    : 'text-gray-600 hover:bg-gray-50 dark:text-gray-300 dark:hover:bg-gray-700'
-                )}
-              >
-                <Link href={item.href} className="flex items-center">
-                  <item.icon className="h-5 w-5 mr-3" />
-                  {item.name}
-                </Link>
-              </Button>
-            ))}
-          </nav>
-        </ScrollArea>
-        <div className="flex-shrink-0 flex border-t border-gray-200 dark:border-gray-700 p-4">
-          <Button
-            variant="outline"
-            className="w-full justify-start text-red-600"
-            onClick={handleLogout}
-          >
-            <LogOut className="h-5 w-5 mr-3" />
-            Logout
-          </Button>
-        </div>
+        </Button>
+        <Menu isOpen={sidebar?.isOpen} />
       </div>
-    </div>
+    </aside>
   );
 }
