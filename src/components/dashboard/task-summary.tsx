@@ -12,6 +12,7 @@ import {
   PopoverTrigger,
 } from '@/components/ui/popover';
 import { format } from 'date-fns';
+import { motion, AnimatePresence } from 'framer-motion';
 import {
   Plus,
   Eye,
@@ -89,6 +90,12 @@ export function TaskSummary() {
     undefined
   );
 
+  const taskVariants = {
+    hidden: { opacity: 0, y: 20 },
+    visible: { opacity: 1, y: 0 },
+    exit: { opacity: 0, x: -20 },
+  };
+
   const queryClient = useQueryClient();
 
   const {
@@ -155,25 +162,79 @@ export function TaskSummary() {
     setIsCreatingTask(true);
   };
 
-  const handleSubmitTask = (e: React.FormEvent) => {
+  const handleSubmitTask = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!session?.user?.id) return;
-    createTaskMutation.mutate({
-      title: newTaskName,
-      description: newTaskDescription,
-      status: newTaskStatus,
-      priority: newTaskPriority,
-      dueDate: newTaskDueDate,
-      userId: session.user.id,
-    });
+
+    try {
+      const newTask = await createTaskMutation.mutateAsync({
+        title: newTaskName,
+        description: newTaskDescription,
+        status: newTaskStatus,
+        priority: newTaskPriority,
+        dueDate: newTaskDueDate,
+        userId: session.user.id,
+      });
+
+      // Optimistically update the UI
+      queryClient.setQueryData(
+        ['tasks', session.user.id],
+        (oldData: Task[] | undefined) => {
+          return oldData ? [newTask, ...oldData] : [newTask];
+        }
+      );
+
+      setIsCreatingTask(false);
+      resetNewTaskForm();
+      toast.success('Task created successfully');
+    } catch (error) {
+      toast.error('Failed to create task');
+      console.error('Error creating task:', error);
+    }
   };
 
-  const handleUpdateTask = (task: Task) => {
-    updateTaskMutation.mutate(task);
+  const handleUpdateTask = async (updatedTask: Task) => {
+    try {
+      await updateTaskMutation.mutateAsync(updatedTask);
+
+      // Optimistically update the UI
+      queryClient.setQueryData(
+        ['tasks', session?.user?.id],
+        (oldData: Task[] | undefined) => {
+          return oldData
+            ? oldData.map((task) =>
+                task.id === updatedTask.id ? updatedTask : task
+              )
+            : oldData;
+        }
+      );
+
+      toast.success('Task updated successfully');
+    } catch (error) {
+      toast.error('Failed to update task');
+      console.error('Error updating task:', error);
+    }
   };
 
-  const handleDeleteTask = (taskId: string) => {
-    deleteTaskMutation.mutate(taskId);
+  const handleDeleteTask = async (taskId: string) => {
+    try {
+      await deleteTaskMutation.mutateAsync(taskId);
+
+      // Optimistically update the UI
+      queryClient.setQueryData(
+        ['tasks', session?.user?.id],
+        (oldData: Task[] | undefined) => {
+          return oldData
+            ? oldData.filter((task) => task.id !== taskId)
+            : oldData;
+        }
+      );
+
+      toast.success('Task deleted successfully');
+    } catch (error) {
+      toast.error('Failed to delete task');
+      console.error('Error deleting task:', error);
+    }
   };
 
   const resetNewTaskForm = () => {
@@ -339,10 +400,17 @@ export function TaskSummary() {
                 items={filteredTasks.map((task) => task.id)}
                 strategy={verticalListSortingStrategy}
               >
-                <ul className="space-y-2">
+                <AnimatePresence>
                   {filteredTasks.map((task) => (
                     <SortableItem key={task.id} id={task.id}>
-                      <li className="flex items-center space-x-2 bg-gray-50 dark:bg-gray-800 p-2 rounded-md">
+                      <motion.li
+                        variants={taskVariants}
+                        initial="hidden"
+                        animate="visible"
+                        exit="exit"
+                        layout
+                        className="flex items-center space-x-2 bg-gray-50 dark:bg-gray-800 p-2 rounded-md mb-2"
+                      >
                         <Checkbox
                           checked={task.status === TaskStatus.DONE}
                           onCheckedChange={(checked) =>
@@ -354,8 +422,11 @@ export function TaskSummary() {
                             })
                           }
                         />
-                        <div className="flex-grow">
-                          <div className="flex items-center space-x-2">
+                        <motion.div className="flex-grow" layout>
+                          <motion.div
+                            className="flex items-center space-x-2"
+                            layout
+                          >
                             <span
                               className={
                                 task.status === TaskStatus.DONE
@@ -367,18 +438,24 @@ export function TaskSummary() {
                             </span>
                             {getPriorityIcon(task.priority)}
                             {getStatusIcon(task.status)}
-                          </div>
+                          </motion.div>
                           {task.description && (
-                            <p className="text-xs text-gray-500 mt-1">
+                            <motion.p
+                              className="text-xs text-gray-500 mt-1"
+                              layout
+                            >
                               {task.description}
-                            </p>
+                            </motion.p>
                           )}
                           {task.dueDate && (
-                            <p className="text-xs text-gray-500 mt-1">
+                            <motion.p
+                              className="text-xs text-gray-500 mt-1"
+                              layout
+                            >
                               Due: {format(new Date(task.dueDate), 'PPP')}
-                            </p>
+                            </motion.p>
                           )}
-                        </div>
+                        </motion.div>
                         <Button
                           variant="ghost"
                           size="sm"
@@ -386,10 +463,10 @@ export function TaskSummary() {
                         >
                           <Trash2 className="h-4 w-4" />
                         </Button>
-                      </li>
+                      </motion.li>
                     </SortableItem>
                   ))}
-                </ul>
+                </AnimatePresence>
               </SortableContext>
             </DndContext>
           ) : (
