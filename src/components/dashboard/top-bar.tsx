@@ -13,7 +13,7 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu';
-import { Sidebar } from './sidebar';
+import { Sidebar } from '../layouts/sidebar';
 
 export function TopBar() {
   const { data: session } = useSession();

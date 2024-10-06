@@ -1,22 +1,19 @@
 import { create } from 'zustand';
-import { persist, createJSONStorage } from 'zustand/middleware';
+import { persist } from 'zustand/middleware';
 
-interface useSidebarToggleStore {
+interface SidebarToggleState {
   isOpen: boolean;
-  setIsOpen: () => void;
+  toggle: () => void;
 }
 
-export const useSidebarToggle = create(
-  persist<useSidebarToggleStore>(
-    (set, get) => ({
+export const useSidebarToggle = create<SidebarToggleState>()(
+  persist(
+    (set) => ({
       isOpen: true,
-      setIsOpen: () => {
-        set({ isOpen: !get().isOpen });
-      }
+      toggle: () => set((state) => ({ isOpen: !state.isOpen })),
     }),
     {
-      name: 'sidebarOpen',
-      storage: createJSONStorage(() => localStorage)
+      name: 'sidebar-toggle',
     }
   )
 );
