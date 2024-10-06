@@ -1,8 +1,13 @@
 'use client';
 
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { Bar, BarChart, ResponsiveContainer, XAxis, YAxis } from 'recharts';
-import { ChartConfig, ChartContainer } from '../ui/chart';
+import { Bar, BarChart, XAxis } from 'recharts';
+import {
+  ChartConfig,
+  ChartContainer,
+  ChartTooltip,
+  ChartTooltipContent,
+} from '@/components/ui/chart';
 
 const data = [
   { name: 'Mon', total: 4 },
@@ -15,13 +20,9 @@ const data = [
 ];
 
 const chartConfig = {
-  desktop: {
-    label: 'Desktop',
+  total: {
+    label: 'Total',
     color: '#2563eb',
-  },
-  mobile: {
-    label: 'Mobile',
-    color: '#60a5fa',
   },
 } satisfies ChartConfig;
 
@@ -32,14 +33,19 @@ export function TaskChart() {
         <CardTitle>Weekly Task Completion</CardTitle>
       </CardHeader>
       <CardContent className="pb-4">
-        <div className="h-[200px]">
-          <ChartContainer config={chartConfig} className="min-h-[200px] w-full">
-            <BarChart accessibilityLayer data={data}>
-              <Bar dataKey="desktop" fill="var(--color-desktop)" radius={4} />
-              <Bar dataKey="mobile" fill="var(--color-mobile)" radius={4} />
-            </BarChart>
-          </ChartContainer>
-        </div>
+        <ChartContainer config={chartConfig} className="min-h-[200px] w-full">
+          <BarChart data={data}>
+            <XAxis
+              dataKey="name"
+              tickLine={false}
+              tickMargin={10}
+              axisLine={false}
+              tickFormatter={(value) => value.slice(0, 3)}
+            />
+            <ChartTooltip content={<ChartTooltipContent />} />
+            <Bar dataKey="total" fill="var(--color-total)" radius={4} />
+          </BarChart>
+        </ChartContainer>
       </CardContent>
     </Card>
   );
