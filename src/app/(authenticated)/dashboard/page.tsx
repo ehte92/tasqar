@@ -1,38 +1,34 @@
 import { Suspense } from 'react';
-import { DashboardHeader } from '@/components/dashboard/dashboard-header';
-import { DashboardSummary } from '@/components/dashboard/dashboard-summary';
-import { RecentActivity } from '@/components/dashboard/recent-activity';
-import { TaskChart } from '@/components/dashboard/task-chart';
-import { TaskList } from '@/components/dashboard/task-list';
-import { QuickActions } from '@/components/dashboard/quick-actions';
-import { LoadingSpinner } from '@/components/ui/loading-spinner';
+import { DashboardGreeting } from '@/components/dashboard/dashboard-greeting';
+import { TaskSummary } from '@/components/dashboard/task-summary';
+import { ProjectOverview } from '@/components/dashboard/project-overview';
+import { CustomizeButton } from '@/components/dashboard/customize-button';
+import { TaskStats } from '@/components/dashboard/task-stats';
 import { ContentLayout } from '@/components/layouts/content-layout';
+import { LoadingSpinner } from '@/components/ui/loading-spinner';
 
 export default function DashboardPage() {
   return (
     <ContentLayout title="Dashboard">
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 md:px-8">
-        <DashboardHeader />
-        <div className="py-4">
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+        <div className="mb-8">
           <Suspense fallback={<LoadingSpinner />}>
-            <DashboardSummary />
+            <DashboardGreeting />
           </Suspense>
         </div>
-        <div className="mt-8 grid grid-cols-1 gap-4 md:grid-cols-2 lg:grid-cols-3">
+        <div className="flex justify-end mb-4">
+          <CustomizeButton />
+        </div>
+        <Suspense fallback={<LoadingSpinner />}>
+          <TaskStats />
+        </Suspense>
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 h-[500px]">
           <Suspense fallback={<LoadingSpinner />}>
-            <TaskChart />
+            <TaskSummary />
           </Suspense>
           <Suspense fallback={<LoadingSpinner />}>
-            <RecentActivity />
+            <ProjectOverview />
           </Suspense>
-          <div className="space-y-4">
-            <Suspense fallback={<LoadingSpinner />}>
-              <TaskList />
-            </Suspense>
-            <Suspense fallback={<LoadingSpinner />}>
-              <QuickActions />
-            </Suspense>
-          </div>
         </div>
       </div>
     </ContentLayout>
