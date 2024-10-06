@@ -42,6 +42,7 @@ import {
   createTask,
   fetchTasks,
   updateTask,
+  reorderTasks,
 } from '@/services/task-service';
 import { Task, TaskStatus, TaskPriority } from '@/types/task';
 import { toast } from 'sonner';
@@ -52,6 +53,23 @@ import {
   SelectTrigger,
   SelectValue,
 } from '@/components/ui/select';
+import {
+  DndContext,
+  closestCenter,
+  KeyboardSensor,
+  PointerSensor,
+  useSensor,
+  useSensors,
+  DragEndEvent,
+} from '@dnd-kit/core';
+import {
+  arrayMove,
+  SortableContext,
+  sortableKeyboardCoordinates,
+  verticalListSortingStrategy,
+} from '@dnd-kit/sortable';
+import { SortableItem } from '@/components/sortable-item';
+import { cn } from '@/lib/utils';
 
 export function TaskSummary() {
   const [activeTab, setActiveTab] = useState<
@@ -118,6 +136,18 @@ export function TaskSummary() {
     onError: (error) => {
       toast.error('Failed to delete task');
       console.error('Error deleting task:', error);
+    },
+  });
+
+  const reorderTasksMutation = useMutation({
+    mutationFn: reorderTasks,
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['tasks', session?.user?.id] });
+      toast.success('Tasks reordered successfully');
+    },
+    onError: (error) => {
+      toast.error('Failed to reorder tasks');
+      console.error('Error reordering tasks:', error);
     },
   });
 
@@ -195,6 +225,43 @@ export function TaskSummary() {
     }
   });
 
+  const sensors = useSensors(
+    useSensor(PointerSensor),
+    useSensor(KeyboardSensor, {
+      coordinateGetter: sortableKeyboardCoordinates,
+    })
+  );
+
+  const handleDragEnd = (event: DragEndEvent) => {
+    const { active, over } = event;
+
+    if (active.id !== over?.id) {
+      const oldIndex = filteredTasks!.findIndex(
+        (task) => task.id === active.id
+      );
+      const newIndex = filteredTasks!.findIndex((task) => task.id === over?.id);
+
+      const newOrder = arrayMove(filteredTasks!, oldIndex, newIndex);
+
+      // Optimistically update the UI
+      queryClient.setQueryData(
+        ['tasks', session?.user?.id],
+        (oldData: Task[] | undefined) => {
+          if (!oldData) return oldData;
+          return newOrder.concat(
+            oldData.filter((task) => !newOrder.includes(task))
+          );
+        }
+      );
+
+      // Send the update to the server
+      reorderTasksMutation.mutate({
+        userId: session?.user?.id as string,
+        taskIds: newOrder.map((task) => task.id),
+      });
+    }
+  };
+
   return (
     <Card className="h-full flex flex-col">
       <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
@@ -263,56 +330,68 @@ export function TaskSummary() {
               Error loading tasks. Please try again.
             </p>
           ) : filteredTasks && filteredTasks.length > 0 ? (
-            <ul className="space-y-2">
-              {filteredTasks.map((task) => (
-                <li
-                  key={task.id}
-                  className="flex items-center space-x-2 bg-gray-50 dark:bg-gray-800 p-2 rounded-md"
-                >
-                  <Checkbox
-                    checked={task.status === TaskStatus.DONE}
-                    onCheckedChange={(checked) =>
-                      handleUpdateTask({
-                        ...task,
-                        status: checked ? TaskStatus.DONE : TaskStatus.TODO,
-                      })
-                    }
-                  />
-                  <div className="flex-grow">
-                    <div className="flex items-center space-x-2">
-                      <span
-                        className={
-                          task.status === TaskStatus.DONE
-                            ? 'line-through text-gray-500'
-                            : ''
-                        }
-                      >
-                        {task.title}
-                      </span>
-                      {getPriorityIcon(task.priority)}
-                      {getStatusIcon(task.status)}
-                    </div>
-                    {task.description && (
-                      <p className="text-xs text-gray-500 mt-1">
-                        {task.description}
-                      </p>
-                    )}
-                    {task.dueDate && (
-                      <p className="text-xs text-gray-500 mt-1">
-                        Due: {format(new Date(task.dueDate), 'PPP')}
-                      </p>
-                    )}
-                  </div>
-                  <Button
-                    variant="ghost"
-                    size="sm"
-                    onClick={() => handleDeleteTask(task.id)}
-                  >
-                    <Trash2 className="h-4 w-4" />
-                  </Button>
-                </li>
-              ))}
-            </ul>
+            <DndContext
+              sensors={sensors}
+              collisionDetection={closestCenter}
+              onDragEnd={handleDragEnd}
+            >
+              <SortableContext
+                items={filteredTasks.map((task) => task.id)}
+                strategy={verticalListSortingStrategy}
+              >
+                <ul className="space-y-2">
+                  {filteredTasks.map((task) => (
+                    <SortableItem key={task.id} id={task.id}>
+                      <li className="flex items-center space-x-2 bg-gray-50 dark:bg-gray-800 p-2 rounded-md">
+                        <Checkbox
+                          checked={task.status === TaskStatus.DONE}
+                          onCheckedChange={(checked) =>
+                            handleUpdateTask({
+                              ...task,
+                              status: checked
+                                ? TaskStatus.DONE
+                                : TaskStatus.TODO,
+                            })
+                          }
+                        />
+                        <div className="flex-grow">
+                          <div className="flex items-center space-x-2">
+                            <span
+                              className={
+                                task.status === TaskStatus.DONE
+                                  ? 'line-through text-gray-500'
+                                  : ''
+                              }
+                            >
+                              {task.title}
+                            </span>
+                            {getPriorityIcon(task.priority)}
+                            {getStatusIcon(task.status)}
+                          </div>
+                          {task.description && (
+                            <p className="text-xs text-gray-500 mt-1">
+                              {task.description}
+                            </p>
+                          )}
+                          {task.dueDate && (
+                            <p className="text-xs text-gray-500 mt-1">
+                              Due: {format(new Date(task.dueDate), 'PPP')}
+                            </p>
+                          )}
+                        </div>
+                        <Button
+                          variant="ghost"
+                          size="sm"
+                          onClick={() => handleDeleteTask(task.id)}
+                        >
+                          <Trash2 className="h-4 w-4" />
+                        </Button>
+                      </li>
+                    </SortableItem>
+                  ))}
+                </ul>
+              </SortableContext>
+            </DndContext>
           ) : (
             <p className="text-sm text-gray-500 dark:text-gray-400">
               No tasks to display.
@@ -372,7 +451,10 @@ export function TaskSummary() {
               <PopoverTrigger asChild>
                 <Button
                   variant="outline"
-                  className="w-full justify-start text-left font-normal"
+                  className={cn(
+                    'w-full justify-start text-left font-normal',
+                    !newTaskDueDate && 'text-muted-foreground'
+                  )}
                 >
                   <CalendarIcon className="mr-2 h-4 w-4" />
                   {newTaskDueDate ? (
@@ -398,7 +480,10 @@ export function TaskSummary() {
               <Button
                 type="button"
                 variant="outline"
-                onClick={() => setIsCreatingTask(false)}
+                onClick={() => {
+                  setIsCreatingTask(false);
+                  resetNewTaskForm();
+                }}
               >
                 Cancel
               </Button>

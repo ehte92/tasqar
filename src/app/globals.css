@@ -76,3 +76,20 @@ body {
     @apply bg-background text-foreground;
   }
 }
+
+.draggable-widget {
+  user-select: none;
+}
+
+.draggable-widget.is-draggable {
+  cursor: move; /* fallback if grab cursor is unsupported */
+  cursor: grab;
+  cursor: -moz-grab;
+  cursor: -webkit-grab;
+}
+
+.draggable-widget.is-draggable:active {
+  cursor: grabbing;
+  cursor: -moz-grabbing;
+  cursor: -webkit-grabbing;
+}
