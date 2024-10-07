@@ -21,4 +21,6 @@ export interface Task {
   updatedAt: Date;
   userId: string;
   projectId?: string | null;
+  columnId: string;
+  content: string;
 }
