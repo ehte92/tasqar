@@ -59,6 +59,8 @@ import {
 } from 'date-fns';
 import { cn } from '@/lib/utils'; // Make sure you have this utility function
 import { MinimalTiptapEditor } from '../minimal-tiptap';
+import { useQuery } from '@tanstack/react-query';
+import { fetchProjects } from '@/services/project-service';
 
 interface TaskDialogProps {
   task: Task;
@@ -83,6 +85,12 @@ export function TaskDialog({
   useEffect(() => {
     setEditedTask(task);
   }, [task]);
+
+  const { data: projects = [], isLoading: isProjectsLoading } = useQuery({
+    queryKey: ['projects', session?.user?.id],
+    queryFn: () => fetchProjects(session?.user?.id as string),
+    enabled: !!session?.user?.id,
+  });
 
   const handleChange = (
     e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>
@@ -126,6 +134,10 @@ export function TaskDialog({
     setIsDeleting(false);
   };
 
+  const handleProjectChange = (value: string) => {
+    setEditedTask({ ...editedTask, projectId: value });
+  };
+
   return (
     <Dialog open={isOpen} onOpenChange={onClose}>
       <DialogContent className="sm:max-w-[600px]" hideCloseButton>
@@ -133,15 +145,15 @@ export function TaskDialog({
           <div className="space-y-4">
             <div className="bg-red-100 p-4 rounded-md">
               <h2 className="text-lg font-semibold text-red-800">
-                This task is deleted.
+                This task will be deleted permanently.
               </h2>
             </div>
             <div className="flex justify-end space-x-2">
               <Button variant="outline" onClick={cancelDelete}>
-                Undelete
+                Cancel
               </Button>
               <Button variant="destructive" onClick={confirmDeleteTask}>
-                Delete permanently
+                Delete
               </Button>
             </div>
           </div>
@@ -175,48 +187,14 @@ export function TaskDialog({
                 <Button variant="ghost" size="icon">
                   <Paperclip size={20} />
                 </Button>
-                <DropdownMenu>
-                  <DropdownMenuTrigger asChild>
-                    <Button variant="ghost" size="icon">
-                      <MoreHorizontal size={20} />
-                    </Button>
-                  </DropdownMenuTrigger>
-                  <DropdownMenuContent className="w-56">
-                    <DropdownMenuItem>
-                      <ClipboardList className="mr-2 h-4 w-4" />
-                      <span>Add to projects</span>
-                    </DropdownMenuItem>
-                    <DropdownMenuItem>
-                      <Tags className="mr-2 h-4 w-4" />
-                      <span>Add tags</span>
-                    </DropdownMenuItem>
-                    <DropdownMenuItem>
-                      <Zap className="mr-2 h-4 w-4" />
-                      <span>Create follow-up task</span>
-                    </DropdownMenuItem>
-                    <DropdownMenuItem>
-                      <ArrowUpDown className="mr-2 h-4 w-4" />
-                      <span>Merge duplicate tasks</span>
-                    </DropdownMenuItem>
-                    <DropdownMenuSeparator />
-                    <DropdownMenuItem>
-                      <Copy className="mr-2 h-4 w-4" />
-                      <span>Duplicate task</span>
-                    </DropdownMenuItem>
-                    <DropdownMenuItem>
-                      <Printer className="mr-2 h-4 w-4" />
-                      <span>Print</span>
-                    </DropdownMenuItem>
-                    <DropdownMenuSeparator />
-                    <DropdownMenuItem
-                      className="text-red-600"
-                      onSelect={handleDeleteTask}
-                    >
-                      <Trash2 className="mr-2 h-4 w-4" />
-                      <span>Delete task</span>
-                    </DropdownMenuItem>
-                  </DropdownMenuContent>
-                </DropdownMenu>
+                <Button
+                  variant="ghost"
+                  size="icon"
+                  onClick={handleDeleteTask}
+                  className="text-red-500 hover:text-red-600"
+                >
+                  <Trash2 size={20} />
+                </Button>
                 <Button variant="ghost" size="icon" onClick={onClose}>
                   <X size={20} />
                 </Button>
@@ -231,7 +209,7 @@ export function TaskDialog({
                 className={cn(
                   'text-2xl font-semibold px-0 focus-visible:ring-0',
                   'border-transparent hover:border-input transition-colors duration-200',
-                  'rounded-md' // Add rounded corners if desired
+                  'rounded-md'
                 )}
               />
               <div className="space-y-4">
@@ -353,14 +331,28 @@ export function TaskDialog({
                 <div className="flex items-center space-x-2">
                   <span className="w-20 text-sm font-medium">Projects</span>
                   <Select
-                    onValueChange={handleSelectChange('projectId')}
-                    defaultValue={editedTask.projectId || ''}
+                    value={editedTask.projectId || ''}
+                    onValueChange={handleProjectChange}
                   >
-                    <SelectTrigger className="w-[140px] h-7 text-xs">
-                      <SelectValue placeholder="Add to projects" />
+                    <SelectTrigger className="w-[200px] border-none hover:bg-accent">
+                      <SelectValue placeholder="Select a project" />
                     </SelectTrigger>
                     <SelectContent>
-                      {/* Add project options here */}
+                      {isProjectsLoading ? (
+                        <SelectItem value="loading">
+                          Loading projects...
+                        </SelectItem>
+                      ) : projects.length === 0 ? (
+                        <SelectItem value="no_projects">
+                          No projects found
+                        </SelectItem>
+                      ) : (
+                        projects.map((project) => (
+                          <SelectItem key={project.id} value={project.id}>
+                            {project.title}
+                          </SelectItem>
+                        ))
+                      )}
                     </SelectContent>
                   </Select>
                 </div>

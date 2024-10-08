@@ -57,10 +57,25 @@ export async function POST(request: Request) {
   try {
     const body = await request.json();
     const validatedData = projectSchema.parse(body);
-    const newProject = await prisma.project.create({ data: validatedData });
+
+    const newProject = await prisma.project.create({
+      data: {
+        title: validatedData.title,
+        userId: validatedData.userId,
+        status: 'ACTIVE', // Set a default status
+      },
+    });
+
     return NextResponse.json(newProject, { status: 201 });
   } catch (error) {
-    return handleError(error);
+    if (error instanceof z.ZodError) {
+      return NextResponse.json({ error: error.errors }, { status: 400 });
+    }
+    console.error('Error creating project:', error);
+    return NextResponse.json(
+      { error: 'An unexpected error occurred' },
+      { status: 500 }
+    );
   }
 }
 

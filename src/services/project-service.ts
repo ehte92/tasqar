@@ -8,17 +8,21 @@ export async function fetchProjects(userId: string): Promise<Project[]> {
   return response.json();
 }
 
-export async function createProject(
-  project: Omit<Project, 'id' | 'createdAt' | 'updatedAt' | 'tasks'>
-): Promise<Project> {
+export async function createProject(project: {
+  title: string;
+  userId: string;
+}): Promise<Project> {
   const response = await fetch('/api/projects', {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
     body: JSON.stringify(project),
   });
+
   if (!response.ok) {
-    throw new Error('Failed to create project');
+    const errorData = await response.json();
+    throw new Error(errorData.error || 'Failed to create project');
   }
+
   return response.json();
 }
 
