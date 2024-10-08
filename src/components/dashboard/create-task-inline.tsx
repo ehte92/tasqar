@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useRef, useEffect } from 'react';
 import { Calendar, ChevronRight } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -9,9 +9,8 @@ import {
 } from '@/components/ui/popover';
 import { Calendar as CalendarComponent } from '@/components/ui/calendar';
 import { CreateTaskDialog } from './create-task-dialog';
-import { Task, TaskStatus, TaskPriority } from '@/types/task';
+import { Task, TaskStatus } from '@/types/task';
 import { cn } from '@/lib/utils';
-import { Checkbox } from '../ui/checkbox';
 
 interface CreateTaskInlineProps {
   onCreateTask: (task: Partial<Task>) => void;
@@ -20,9 +19,15 @@ interface CreateTaskInlineProps {
 export function CreateTaskInline({ onCreateTask }: CreateTaskInlineProps) {
   const [isCreating, setIsCreating] = useState(false);
   const [title, setTitle] = useState('');
-  const [isCompleted, setIsCompleted] = useState(false);
   const [dueDate, setDueDate] = useState<Date | undefined>(undefined);
   const [isDialogOpen, setIsDialogOpen] = useState(false);
+  const inputRef = useRef<HTMLInputElement>(null);
+
+  useEffect(() => {
+    if (isCreating) {
+      inputRef.current?.focus();
+    }
+  }, [isCreating]);
 
   const handleCreate = () => {
     setIsCreating(true);
@@ -32,19 +37,33 @@ export function CreateTaskInline({ onCreateTask }: CreateTaskInlineProps) {
     if (title.trim()) {
       onCreateTask({
         title,
-        status: isCompleted ? TaskStatus.DONE : TaskStatus.TODO,
+        status: TaskStatus.TODO,
         dueDate: dueDate ?? null,
-        priority: TaskPriority.MEDIUM, // Default priority
       });
+      resetForm();
+      setIsCreating(true); // Open a new inline task creation
+    } else {
       resetForm();
     }
   };
 
   const resetForm = () => {
     setTitle('');
-    setIsCompleted(false);
     setDueDate(undefined);
-    setIsCreating(false);
+  };
+
+  const handleBlur = () => {
+    if (!title.trim()) {
+      setIsCreating(false);
+    } else {
+      handleSubmit();
+    }
+  };
+
+  const handleKeyDown = (e: React.KeyboardEvent) => {
+    if (e.key === 'Enter') {
+      handleSubmit();
+    }
   };
 
   if (!isCreating) {
@@ -54,21 +73,20 @@ export function CreateTaskInline({ onCreateTask }: CreateTaskInlineProps) {
         variant="ghost"
         className="w-full justify-start"
       >
-        + Add new task
+        + Create task
       </Button>
     );
   }
 
   return (
     <div className="flex items-center space-x-2 bg-white dark:bg-gray-800 p-2 rounded-md shadow">
-      <Checkbox
-        checked={isCompleted}
-        onCheckedChange={(checked) => setIsCompleted(checked as boolean)}
-      />
       <Input
+        ref={inputRef}
         value={title}
         onChange={(e) => setTitle(e.target.value)}
-        placeholder="Enter task title"
+        onBlur={handleBlur}
+        onKeyDown={handleKeyDown}
+        placeholder="Write a task name"
         className="flex-grow"
       />
       <Popover>
@@ -97,21 +115,12 @@ export function CreateTaskInline({ onCreateTask }: CreateTaskInlineProps) {
         isOpen={isDialogOpen}
         onClose={() => setIsDialogOpen(false)}
         onCreateTask={(taskDetails) => {
-          onCreateTask({
-            ...taskDetails,
-            title,
-            status: isCompleted ? TaskStatus.DONE : TaskStatus.TODO,
-            dueDate,
-          });
+          onCreateTask({ ...taskDetails, title, dueDate });
           resetForm();
+          setIsCreating(false);
         }}
-        initialData={{
-          title,
-          status: isCompleted ? TaskStatus.DONE : TaskStatus.TODO,
-          dueDate,
-        }}
+        initialData={{ title, dueDate }}
       />
-      <Button onClick={handleSubmit}>Create</Button>
     </div>
   );
 }

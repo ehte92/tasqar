@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useState } from 'react';
 import { useSortable } from '@dnd-kit/sortable';
 import { CSS } from '@dnd-kit/utilities';
 import { Task } from '@/types/task';
@@ -17,12 +17,14 @@ import { Calendar } from '@/components/ui/calendar';
 interface TaskCardProps {
   task: Task;
   onUpdateTask: (updatedTask: Task) => void;
+  onDeleteTask: (taskId: string) => void; // Add this prop
 }
 
-export function TaskCard({ task, onUpdateTask }: TaskCardProps) {
-  const [localDueDate, setLocalDueDate] = React.useState<Date | undefined>(
+export function TaskCard({ task, onUpdateTask, onDeleteTask }: TaskCardProps) {
+  const [localDueDate, setLocalDueDate] = useState<Date | undefined>(
     task.dueDate ? new Date(task.dueDate) : undefined
   );
+  const [isDialogOpen, setIsDialogOpen] = useState(false);
 
   const { attributes, listeners, setNodeRef, transform, transition } =
     useSortable({
@@ -43,6 +45,11 @@ export function TaskCard({ task, onUpdateTask }: TaskCardProps) {
     onUpdateTask({ ...task, dueDate: newDate || null });
   };
 
+  const handleTaskUpdate = (updatedTask: Task) => {
+    onUpdateTask(updatedTask);
+    setIsDialogOpen(false);
+  };
+
   return (
     <div
       ref={setNodeRef}
@@ -52,9 +59,19 @@ export function TaskCard({ task, onUpdateTask }: TaskCardProps) {
       <div {...attributes} {...listeners} className="cursor-grab">
         <GripVertical size={16} className="text-gray-400" />
       </div>
-      <TaskDialog task={task} onUpdateTask={onUpdateTask}>
-        <div className="flex-grow cursor-pointer truncate">{task.title}</div>
-      </TaskDialog>
+      <div
+        className="flex-grow cursor-pointer truncate"
+        onClick={() => setIsDialogOpen(true)}
+      >
+        {task.title}
+      </div>
+      <TaskDialog
+        task={task}
+        isOpen={isDialogOpen}
+        onClose={() => setIsDialogOpen(false)}
+        onUpdateTask={handleTaskUpdate}
+        onDeleteTask={onDeleteTask} // Add this prop
+      />
       <Popover>
         <PopoverTrigger asChild>
           <Button

@@ -15,7 +15,10 @@ import {
   SelectTrigger,
   SelectValue,
 } from '@/components/ui/select';
-import { Task, TaskStatus, TaskPriority } from '@/types/task';
+import { Checkbox } from '@/components/ui/checkbox';
+import { Task, TaskStatus } from '@/types/task';
+import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
+import { useSession } from 'next-auth/react';
 
 interface CreateTaskDialogProps {
   isOpen: boolean;
@@ -31,6 +34,7 @@ export function CreateTaskDialog({
   initialData,
 }: CreateTaskDialogProps) {
   const [taskDetails, setTaskDetails] = useState<Partial<Task>>(initialData);
+  const { data: session } = useSession();
 
   const handleChange = (
     e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>
@@ -51,75 +55,79 @@ export function CreateTaskDialog({
     <Dialog open={isOpen} onOpenChange={onClose}>
       <DialogContent className="sm:max-w-[425px]">
         <DialogHeader>
-          <DialogTitle>Create Task</DialogTitle>
+          <DialogTitle>{taskDetails.title || 'New Task'}</DialogTitle>
         </DialogHeader>
         <div className="grid gap-4 py-4">
-          <div className="grid grid-cols-4 items-center gap-4">
-            <label htmlFor="title" className="text-right">
-              Title
-            </label>
-            <Input
-              id="title"
-              name="title"
-              value={taskDetails.title || ''}
-              onChange={handleChange}
-              className="col-span-3"
+          <div className="flex items-center space-x-2">
+            <Checkbox
+              checked={taskDetails.status === TaskStatus.DONE}
+              onCheckedChange={(checked) =>
+                setTaskDetails({
+                  ...taskDetails,
+                  status: checked ? TaskStatus.DONE : TaskStatus.TODO,
+                })
+              }
             />
-          </div>
-          <div className="grid grid-cols-4 items-center gap-4">
-            <label htmlFor="description" className="text-right">
-              Description
-            </label>
-            <Textarea
-              id="description"
-              name="description"
-              value={taskDetails.description || ''}
-              onChange={handleChange}
-              className="col-span-3"
-            />
-          </div>
-          <div className="grid grid-cols-4 items-center gap-4">
-            <label htmlFor="status" className="text-right">
-              Status
-            </label>
-            <Select
-              onValueChange={handleSelectChange('status')}
-              defaultValue={taskDetails.status}
+            <label
+              htmlFor="mark-complete"
+              className="text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70"
             >
-              <SelectTrigger className="col-span-3">
-                <SelectValue placeholder="Select status" />
+              Mark complete
+            </label>
+          </div>
+          <Input
+            name="title"
+            value={taskDetails.title || ''}
+            onChange={handleChange}
+            placeholder="Task name"
+          />
+          <div className="flex items-center space-x-2">
+            <Avatar>
+              <AvatarImage src={session?.user?.image || ''} />
+              <AvatarFallback>{session?.user?.name?.[0]}</AvatarFallback>
+            </Avatar>
+            <Select
+              onValueChange={handleSelectChange('assignee')}
+              defaultValue={session?.user?.id}
+            >
+              <SelectTrigger>
+                <SelectValue placeholder="Assignee" />
               </SelectTrigger>
               <SelectContent>
-                {Object.values(TaskStatus).map((status) => (
-                  <SelectItem key={status} value={status}>
-                    {status}
-                  </SelectItem>
-                ))}
+                <SelectItem value={session?.user?.id || ''}>
+                  {session?.user?.name}
+                </SelectItem>
+                {/* Add more users here */}
               </SelectContent>
             </Select>
           </div>
-          <div className="grid grid-cols-4 items-center gap-4">
-            <label htmlFor="priority" className="text-right">
-              Priority
-            </label>
-            <Select
-              onValueChange={handleSelectChange('priority')}
-              defaultValue={taskDetails.priority || TaskPriority.MEDIUM}
-            >
-              <SelectTrigger className="col-span-3">
-                <SelectValue placeholder="Select priority" />
-              </SelectTrigger>
-              <SelectContent>
-                {Object.values(TaskPriority).map((priority) => (
-                  <SelectItem key={priority} value={priority}>
-                    {priority}
-                  </SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
-          </div>
+          <Input
+            type="date"
+            name="dueDate"
+            value={taskDetails.dueDate?.toString().split('T')[0] || ''}
+            onChange={handleChange}
+            placeholder="Due date"
+          />
+          <Select
+            onValueChange={handleSelectChange('project')}
+            defaultValue={taskDetails.projectId ?? undefined}
+          >
+            <SelectTrigger>
+              <SelectValue placeholder="Add to project" />
+            </SelectTrigger>
+            <SelectContent>{/* Add project options here */}</SelectContent>
+          </Select>
+          <Textarea
+            name="description"
+            value={taskDetails.description || ''}
+            onChange={handleChange}
+            placeholder="What is this task about?"
+          />
         </div>
-        <div className="flex justify-end">
+        <div className="flex justify-between items-center">
+          <Button variant="outline" onClick={onClose}>
+            Cancel
+          </Button>
           <Button onClick={handleSubmit}>Create Task</Button>
         </div>
       </DialogContent>

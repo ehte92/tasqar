@@ -14,7 +14,12 @@ import {
 } from '@dnd-kit/core';
 import { SortableContext, arrayMove } from '@dnd-kit/sortable';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
-import { createTask, fetchTasks, updateTask } from '@/services/task-service';
+import {
+  createTask,
+  fetchTasks,
+  updateTask,
+  deleteTask,
+} from '@/services/task-service';
 import { fetchProjects } from '@/services/project-service';
 import { TaskCard } from './task-card';
 import { BoardColumn } from './board-column';
@@ -150,6 +155,42 @@ export function KanbanBoard() {
     updateTaskMutation.mutate(updatedTask);
   };
 
+  const deleteTaskMutation = useMutation({
+    mutationFn: deleteTask,
+    onMutate: async (taskId) => {
+      await queryClient.cancelQueries({
+        queryKey: ['tasks', session?.user?.id],
+      });
+      const previousTasks = queryClient.getQueryData([
+        'tasks',
+        session?.user?.id,
+      ]);
+      queryClient.setQueryData(
+        ['tasks', session?.user?.id],
+        (old: Task[] | undefined) =>
+          old ? old.filter((task) => task.id !== taskId) : []
+      );
+      return { previousTasks };
+    },
+    onError: (err, taskId, context) => {
+      queryClient.setQueryData(
+        ['tasks', session?.user?.id],
+        context?.previousTasks
+      );
+      toast.error('Failed to delete task');
+    },
+    onSuccess: () => {
+      toast.success('Task deleted successfully');
+    },
+    onSettled: () => {
+      queryClient.invalidateQueries({ queryKey: ['tasks', session?.user?.id] });
+    },
+  });
+
+  const handleDeleteTask = (taskId: string) => {
+    deleteTaskMutation.mutate(taskId);
+  };
+
   const sensors = useSensors(
     useSensor(MouseSensor),
     useSensor(TouchSensor),
@@ -250,18 +291,21 @@ export function KanbanBoard() {
         <SortableContext items={columnsId}>
           {columns.map((col) => (
             <BoardColumn key={col.id} column={col}>
-              {col.id === 'tasks' && !isTasksLoading && (
+              {col.id === 'tasks' && (
                 <>
                   <CreateTaskInline onCreateTask={handleCreateTask} />
-                  <SortableContext items={localTasks.map((task) => task.id)}>
-                    {localTasks.map((task) => (
-                      <TaskCard
-                        key={task.id}
-                        task={task}
-                        onUpdateTask={handleUpdateTask}
-                      />
-                    ))}
-                  </SortableContext>
+                  {!isTasksLoading && (
+                    <SortableContext items={localTasks.map((task) => task.id)}>
+                      {localTasks.map((task) => (
+                        <TaskCard
+                          key={task.id}
+                          task={task}
+                          onUpdateTask={handleUpdateTask}
+                          onDeleteTask={handleDeleteTask}
+                        />
+                      ))}
+                    </SortableContext>
+                  )}
                 </>
               )}
               {col.id === 'projects' && !isProjectsLoading && (
@@ -286,6 +330,7 @@ export function KanbanBoard() {
                       key={task.id}
                       task={task}
                       onUpdateTask={handleUpdateTask}
+                      onDeleteTask={handleDeleteTask}
                     />
                   ))}
                 {activeColumn.id === 'projects' && (
@@ -297,7 +342,11 @@ export function KanbanBoard() {
               </BoardColumn>
             )}
             {activeTask && (
-              <TaskCard task={activeTask} onUpdateTask={handleUpdateTask} />
+              <TaskCard
+                task={activeTask}
+                onUpdateTask={handleUpdateTask}
+                onDeleteTask={handleDeleteTask}
+              />
             )}
           </DragOverlay>,
           document.body
