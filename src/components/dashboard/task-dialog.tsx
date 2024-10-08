@@ -31,6 +31,8 @@ import {
   Copy,
   Printer,
   Trash2,
+  Fullscreen,
+  Check,
 } from 'lucide-react';
 import {
   DropdownMenu,
@@ -45,7 +47,18 @@ import {
   PopoverTrigger,
 } from '@/components/ui/popover';
 import { Calendar } from '@/components/ui/calendar';
-import { format } from 'date-fns';
+import {
+  format,
+  isToday,
+  isTomorrow,
+  isYesterday,
+  isThisYear,
+  differenceInDays,
+  isPast,
+  isFuture,
+} from 'date-fns';
+import { cn } from '@/lib/utils'; // Make sure you have this utility function
+import { MinimalTiptapEditor } from '../minimal-tiptap';
 
 interface TaskDialogProps {
   task: Task;
@@ -63,7 +76,6 @@ export function TaskDialog({
   onDeleteTask,
 }: TaskDialogProps) {
   const [editedTask, setEditedTask] = useState<Task>(task);
-  const [isPrivate, setIsPrivate] = useState(true);
   const [isCalendarOpen, setIsCalendarOpen] = useState(false);
   const [isDeleting, setIsDeleting] = useState(false);
   const { data: session } = useSession();
@@ -135,32 +147,33 @@ export function TaskDialog({
           </div>
         ) : (
           <>
-            <div className="flex justify-between items-center mb-4">
-              <Button variant="outline" className="text-sm">
-                <Checkbox
-                  checked={editedTask.status === TaskStatus.DONE}
-                  onCheckedChange={(checked) =>
-                    setEditedTask({
-                      ...editedTask,
-                      status: checked ? TaskStatus.DONE : TaskStatus.TODO,
-                    })
-                  }
-                  className="mr-2 h-4 w-4"
-                />
-                Mark complete
+            <div className="flex justify-between items-center mb-4 border-b pb-2">
+              <Button
+                variant="outline"
+                size="sm"
+                className={cn(
+                  'text-sm transition-colors duration-200 py-1 px-2',
+                  editedTask.status === TaskStatus.DONE
+                    ? 'bg-green-900 text-green-200 hover:bg-green-700 border-green-500'
+                    : 'bg-gray-800 text-white hover:bg-green-900 hover:text-green-200 border-gray-700 hover:border-green-900'
+                )}
+                onClick={() => {
+                  const newStatus =
+                    editedTask.status === TaskStatus.DONE
+                      ? TaskStatus.TODO
+                      : TaskStatus.DONE;
+                  setEditedTask({ ...editedTask, status: newStatus });
+                  onUpdateTask({ ...editedTask, status: newStatus });
+                }}
+              >
+                <Check className="mr-1 h-4 w-4" />
+                {editedTask.status === TaskStatus.DONE
+                  ? 'Completed'
+                  : 'Mark complete'}
               </Button>
               <div className="flex space-x-1">
                 <Button variant="ghost" size="icon">
-                  <ThumbsUp size={20} />
-                </Button>
-                <Button variant="ghost" size="icon">
                   <Paperclip size={20} />
-                </Button>
-                <Button variant="ghost" size="icon">
-                  <MessageSquare size={20} />
-                </Button>
-                <Button variant="ghost" size="icon">
-                  <ExternalLink size={20} />
                 </Button>
                 <DropdownMenu>
                   <DropdownMenuTrigger asChild>
@@ -209,27 +222,17 @@ export function TaskDialog({
                 </Button>
               </div>
             </div>
-            <div className="flex items-center space-x-2 mb-4">
-              {isPrivate ? <Lock size={16} /> : <Globe size={16} />}
-              <span className="text-sm text-muted-foreground">
-                This task is {isPrivate ? 'private to you' : 'public'}
-              </span>
-              <Button
-                variant="ghost"
-                size="sm"
-                onClick={() => setIsPrivate(!isPrivate)}
-                className="ml-auto"
-              >
-                Make {isPrivate ? 'public' : 'private'}
-              </Button>
-            </div>
             <div className="space-y-6">
               <Input
                 name="title"
                 value={editedTask.title}
                 onChange={handleChange}
                 placeholder="Task name"
-                className="text-2xl font-semibold border-none px-0 focus-visible:ring-0"
+                className={cn(
+                  'text-2xl font-semibold px-0 focus-visible:ring-0',
+                  'border-transparent hover:border-input transition-colors duration-200',
+                  'rounded-md' // Add rounded corners if desired
+                )}
               />
               <div className="space-y-4">
                 <div className="flex items-center space-x-2">
@@ -242,16 +245,6 @@ export function TaskDialog({
                   <Button variant="ghost" size="sm" className="h-6 w-6 p-0">
                     <X size={16} />
                   </Button>
-                  <Select defaultValue="recently">
-                    <SelectTrigger className="w-[140px] h-7 text-xs">
-                      <SelectValue />
-                    </SelectTrigger>
-                    <SelectContent>
-                      <SelectItem value="recently">
-                        Recently assigned
-                      </SelectItem>
-                    </SelectContent>
-                  </Select>
                 </div>
                 <div className="flex items-center space-x-2">
                   <span className="w-20 text-sm font-medium">Due date</span>
@@ -260,18 +253,66 @@ export function TaskDialog({
                     onOpenChange={setIsCalendarOpen}
                   >
                     <PopoverTrigger asChild>
-                      <Button
-                        variant="outline"
-                        className="w-[200px] justify-start text-left font-normal"
-                        onClick={() => setIsCalendarOpen(true)}
-                      >
-                        <CalendarIcon className="mr-2 h-4 w-4" />
-                        {editedTask.dueDate ? (
-                          format(new Date(editedTask.dueDate), 'PPP')
-                        ) : (
-                          <span>No due date</span>
-                        )}
-                      </Button>
+                      {(() => {
+                        const dueDate = editedTask.dueDate
+                          ? new Date(editedTask.dueDate)
+                          : null;
+                        const now = new Date();
+                        const diffInDays = dueDate
+                          ? differenceInDays(dueDate, now)
+                          : null;
+                        const isPastDue = dueDate
+                          ? isPast(dueDate) && !isToday(dueDate)
+                          : false;
+                        const isFutureTask = dueDate
+                          ? isFuture(dueDate)
+                          : false;
+                        const isIncomplete =
+                          editedTask.status !== TaskStatus.DONE;
+
+                        const dateText = (() => {
+                          if (!dueDate) return 'No due date';
+                          if (isToday(dueDate)) return 'Today';
+                          if (isTomorrow(dueDate)) return 'Tomorrow';
+                          if (isYesterday(dueDate)) return 'Yesterday';
+                          if (
+                            diffInDays !== null &&
+                            diffInDays > 0 &&
+                            diffInDays < 7
+                          )
+                            return format(dueDate, 'EEEE');
+                          if (isThisYear(dueDate))
+                            return format(dueDate, 'MMM dd');
+                          return format(dueDate, 'MMM dd, yyyy');
+                        })();
+
+                        return (
+                          <Button
+                            variant="ghost"
+                            className={cn(
+                              'w-[200px] justify-start text-left font-normal',
+                              isPastDue && 'text-red-500 hover:text-red-600',
+                              isFutureTask &&
+                                isIncomplete &&
+                                'text-green-500 hover:text-green-600',
+                              'transition-colors duration-200'
+                            )}
+                            onClick={() => setIsCalendarOpen(true)}
+                          >
+                            <CalendarIcon
+                              className={cn(
+                                'mr-2 h-4 w-4',
+                                isPastDue &&
+                                  'text-red-500 group-hover:text-red-600',
+                                isFutureTask &&
+                                  isIncomplete &&
+                                  'text-green-500 group-hover:text-green-600'
+                              )}
+                            />
+                            {dateText}
+                          </Button>
+                        );
+                      })()}
                     </PopoverTrigger>
                     <PopoverContent className="w-auto p-0" align="start">
                       <Calendar
@@ -326,35 +367,34 @@ export function TaskDialog({
               </div>
               <div className="space-y-2">
                 <span className="text-sm font-medium">Description</span>
-                <Textarea
+                {/* <Textarea
                   name="description"
                   value={editedTask.description || ''}
                   onChange={handleChange}
                   placeholder="What is this task about?"
-                  className="min-h-[100px] focus-visible:ring-0"
-                />
-              </div>
-            </div>
-            <div className="mt-6">
-              <Button variant="outline" size="sm">
-                + Add subtask
-              </Button>
-            </div>
-            <div className="mt-6 space-y-2">
-              <div className="flex justify-between items-center">
-                <h3 className="text-sm font-medium">Comments</h3>
-                <Button variant="ghost" size="sm" className="text-xs">
-                  All activity
-                </Button>
-              </div>
-              <div className="flex items-start space-x-2">
-                <Avatar className="h-6 w-6 mt-1">
-                  <AvatarImage src={session?.user?.image || ''} />
-                  <AvatarFallback>{session?.user?.name?.[0]}</AvatarFallback>
-                </Avatar>
-                <Textarea
-                  placeholder="Add a comment"
-                  className="min-h-[80px] focus-visible:ring-0"
+                  className={cn(
+                    'min-h-[100px] focus-visible:ring-0',
+                    'border-transparent hover:border-input focus:border-input',
+                    'transition-colors duration-200'
+                  )}
+                /> */}
+                <MinimalTiptapEditor
+                  value={editedTask.description || ''}
+                  onChange={(value) =>
+                    handleChange({
+                      target: { name: 'description', value: value as string },
+                    } as React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>)
+                  }
+                  className={cn(
+                    'min-h-[100px] focus-visible:ring-0',
+                    'border-transparent hover:border-input focus:border-input',
+                    'transition-colors duration-200'
+                  )}
+                  editorContentClassName="p-5"
+                  output="html"
+                  placeholder="Type your description here..."
+                  editable={true}
+                  editorClassName="focus:outline-none"
                 />
               </div>
             </div>
