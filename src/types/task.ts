@@ -16,9 +16,9 @@ export interface Task {
   description?: string;
   status: TaskStatus;
   priority: TaskPriority;
-  dueDate?: Date | null;
-  createdAt: Date;
-  updatedAt: Date;
+  dueDate: Date | null; // Changed from string | null to Date | null
+  createdAt: Date; // Changed from string to Date
+  updatedAt: Date; // Changed from string to Date
   userId: string;
   projectId?: string | null;
   columnId: string;

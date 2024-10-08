@@ -4,6 +4,25 @@ import prisma from '@/lib/db';
 import { TaskStatus, TaskPriority } from '@/types/task';
 
 const taskSchema = z.object({
+  id: z.string().cuid('Invalid task ID'),
+  title: z
+    .string()
+    .min(1, 'Title is required')
+    .max(100, 'Title must be 100 characters or less')
+    .optional(),
+  description: z
+    .string()
+    .max(500, 'Description must be 500 characters or less')
+    .optional()
+    .nullable(),
+  status: z.nativeEnum(TaskStatus).optional(),
+  priority: z.nativeEnum(TaskPriority).optional(),
+  dueDate: z.string().datetime().nullable().optional(),
+  userId: z.string().cuid('Invalid user ID'),
+  projectId: z.string().cuid('Invalid project ID').optional().nullable(),
+});
+
+const taskCreateSchema = z.object({
   title: z
     .string()
     .min(1, 'Title is required')
@@ -11,12 +30,13 @@ const taskSchema = z.object({
   description: z
     .string()
     .max(500, 'Description must be 500 characters or less')
+    .nullable()
     .optional(),
-  status: z.nativeEnum(TaskStatus),
-  priority: z.nativeEnum(TaskPriority),
-  dueDate: z.date().optional().nullable(),
+  status: z.nativeEnum(TaskStatus).default(TaskStatus.TODO),
+  priority: z.nativeEnum(TaskPriority).default(TaskPriority.MEDIUM),
+  dueDate: z.string().datetime().nullable().optional(),
   userId: z.string().cuid('Invalid user ID'),
-  projectId: z.string().cuid('Invalid project ID').optional().nullable(),
+  projectId: z.string().cuid('Invalid project ID').nullable().optional(),
 });
 
 const taskUpdateSchema = taskSchema.partial().extend({
@@ -60,11 +80,31 @@ export async function GET(request: Request) {
 export async function POST(request: Request) {
   try {
     const body = await request.json();
-    const validatedData = taskSchema.parse(body);
-    const newTask = await prisma.task.create({ data: validatedData });
+    const validatedData = taskCreateSchema.parse(body);
+
+    const newTask = await prisma.task.create({
+      data: {
+        title: validatedData.title,
+        description: validatedData.description ?? null,
+        status: validatedData.status,
+        priority: validatedData.priority,
+        dueDate: validatedData.dueDate ? new Date(validatedData.dueDate) : null,
+        userId: validatedData.userId,
+        projectId: validatedData.projectId ?? null,
+        order: 0, // Assuming you want to set a default order
+      },
+    });
+
     return NextResponse.json(newTask, { status: 201 });
   } catch (error) {
-    return handleError(error);
+    if (error instanceof z.ZodError) {
+      return NextResponse.json({ error: error.errors }, { status: 400 });
+    }
+    console.error('Error creating task:', error);
+    return NextResponse.json(
+      { error: 'An unexpected error occurred' },
+      { status: 500 }
+    );
   }
 }
 
@@ -72,14 +112,23 @@ export async function PUT(request: Request) {
   try {
     const body = await request.json();
     const validatedData = taskUpdateSchema.parse(body);
+
     const { id, ...updateData } = validatedData;
+
     const updatedTask = await prisma.task.update({
       where: { id },
       data: updateData,
     });
+
     return NextResponse.json(updatedTask);
   } catch (error) {
-    return handleError(error);
+    if (error instanceof z.ZodError) {
+      return NextResponse.json({ error: error.errors }, { status: 400 });
+    }
+    return NextResponse.json(
+      { error: 'An unexpected error occurred' },
+      { status: 500 }
+    );
   }
 }
 

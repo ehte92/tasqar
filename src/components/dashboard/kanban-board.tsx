@@ -23,6 +23,7 @@ import { hasDraggableData } from './utils';
 import { coordinateGetter } from './multipleContainersKeyboardPreset';
 import { useSession } from 'next-auth/react';
 import { Task, TaskStatus, TaskPriority } from '@/types/task';
+import { toast } from 'sonner';
 
 export type ColumnId = 'tasks' | 'projects' | 'collaborators';
 
@@ -87,10 +88,42 @@ export function KanbanBoard() {
 
   const updateTaskMutation = useMutation({
     mutationFn: updateTask,
-    onSuccess: () => {
+    onMutate: async (updatedTask) => {
+      await queryClient.cancelQueries({
+        queryKey: ['tasks', session?.user?.id],
+      });
+      const previousTasks = queryClient.getQueryData([
+        'tasks',
+        session?.user?.id,
+      ]);
+      queryClient.setQueryData(
+        ['tasks', session?.user?.id],
+        (old: Task[] | undefined) =>
+          old
+            ? old.map((task) =>
+                task.id === updatedTask.id ? updatedTask : task
+              )
+            : []
+      );
+      return { previousTasks };
+    },
+    onError: (err, newTask, context) => {
+      queryClient.setQueryData(
+        ['tasks', session?.user?.id],
+        context?.previousTasks
+      );
+    },
+    onSettled: () => {
       queryClient.invalidateQueries({ queryKey: ['tasks', session?.user?.id] });
     },
   });
+
+  const handleUpdateTask = (updatedTask: Task) => {
+    setLocalTasks((tasks) =>
+      tasks.map((task) => (task.id === updatedTask.id ? updatedTask : task))
+    );
+    updateTaskMutation.mutate(updatedTask);
+  };
 
   const sensors = useSensors(
     useSensor(MouseSensor),
@@ -195,7 +228,11 @@ export function KanbanBoard() {
               {col.id === 'tasks' && !isTasksLoading && (
                 <SortableContext items={localTasks.map((task) => task.id)}>
                   {localTasks.map((task) => (
-                    <TaskCard key={task.id} task={task} />
+                    <TaskCard
+                      key={task.id}
+                      task={task}
+                      onUpdateTask={handleUpdateTask}
+                    />
                   ))}
                 </SortableContext>
               )}
@@ -217,7 +254,11 @@ export function KanbanBoard() {
               <BoardColumn column={activeColumn}>
                 {activeColumn.id === 'tasks' &&
                   localTasks.map((task) => (
-                    <TaskCard key={task.id} task={task} />
+                    <TaskCard
+                      key={task.id}
+                      task={task}
+                      onUpdateTask={handleUpdateTask}
+                    />
                   ))}
                 {activeColumn.id === 'projects' && (
                   <ProjectOverview projects={projects} />
@@ -227,7 +268,9 @@ export function KanbanBoard() {
                 )}
               </BoardColumn>
             )}
-            {activeTask && <TaskCard task={activeTask} />}
+            {activeTask && (
+              <TaskCard task={activeTask} onUpdateTask={handleUpdateTask} />
+            )}
           </DragOverlay>,
           document.body
         )}

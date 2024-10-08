@@ -1,5 +1,15 @@
 import { Task, TaskStatus, TaskPriority } from '@/types/task';
 
+type CreateTaskInput = {
+  title: string;
+  description?: string | null;
+  status?: TaskStatus;
+  priority?: TaskPriority;
+  dueDate?: string | null;
+  userId: string;
+  projectId?: string | null;
+};
+
 export async function fetchTasks(userId: string): Promise<Task[]> {
   const response = await fetch(`/api/tasks?userId=${userId}`);
   if (!response.ok) {
@@ -8,20 +18,18 @@ export async function fetchTasks(userId: string): Promise<Task[]> {
   return response.json();
 }
 
-export async function createTask(
-  task: Omit<Task, 'id' | 'createdAt' | 'updatedAt'>
-): Promise<Task> {
+export async function createTask(task: CreateTaskInput): Promise<Task> {
   const response = await fetch('/api/tasks', {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify({
-      ...task,
-      dueDate: task.dueDate ? task.dueDate.toISOString() : null,
-    }),
+    body: JSON.stringify(task),
   });
+
   if (!response.ok) {
-    throw new Error('Failed to create task');
+    const errorData = await response.json();
+    throw new Error(errorData.error || 'Failed to create task');
   }
+
   return response.json();
 }
 
@@ -31,7 +39,7 @@ export async function updateTask(task: Task): Promise<Task> {
     headers: { 'Content-Type': 'application/json' },
     body: JSON.stringify({
       ...task,
-      dueDate: task.dueDate ? task.dueDate.toISOString() : null,
+      dueDate: task.dueDate,
     }),
   });
   if (!response.ok) {
