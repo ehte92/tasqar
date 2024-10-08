@@ -14,7 +14,7 @@ import {
 } from '@dnd-kit/core';
 import { SortableContext, arrayMove } from '@dnd-kit/sortable';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
-import { fetchTasks, updateTask } from '@/services/task-service';
+import { createTask, fetchTasks, updateTask } from '@/services/task-service';
 import { fetchProjects } from '@/services/project-service';
 import { TaskCard } from './task-card';
 import { BoardColumn } from './board-column';
@@ -24,6 +24,7 @@ import { coordinateGetter } from './multipleContainersKeyboardPreset';
 import { useSession } from 'next-auth/react';
 import { Task, TaskStatus, TaskPriority } from '@/types/task';
 import { toast } from 'sonner';
+import { CreateTaskInline } from './create-task-inline';
 
 export type ColumnId = 'tasks' | 'projects' | 'collaborators';
 
@@ -85,6 +86,30 @@ export function KanbanBoard() {
       setLocalTasks(formattedTasks);
     }
   }, [tasksData]);
+
+  const createTaskMutation = useMutation({
+    mutationFn: createTask,
+    onSuccess: (newTask) => {
+      queryClient.setQueryData<Task[]>(
+        ['tasks', session?.user?.id],
+        (oldTasks = []) => [...oldTasks, newTask]
+      );
+      toast.success('Task created successfully');
+    },
+    onError: (error) => {
+      toast.error('Failed to create task');
+      console.error('Error creating task:', error);
+    },
+  });
+
+  const handleCreateTask = (newTask: Partial<Task>) => {
+    if (session?.user?.id) {
+      createTaskMutation.mutate({
+        ...newTask,
+        userId: session.user.id,
+      });
+    }
+  };
 
   const updateTaskMutation = useMutation({
     mutationFn: updateTask,
@@ -226,15 +251,18 @@ export function KanbanBoard() {
           {columns.map((col) => (
             <BoardColumn key={col.id} column={col}>
               {col.id === 'tasks' && !isTasksLoading && (
-                <SortableContext items={localTasks.map((task) => task.id)}>
-                  {localTasks.map((task) => (
-                    <TaskCard
-                      key={task.id}
-                      task={task}
-                      onUpdateTask={handleUpdateTask}
-                    />
-                  ))}
-                </SortableContext>
+                <>
+                  <CreateTaskInline onCreateTask={handleCreateTask} />
+                  <SortableContext items={localTasks.map((task) => task.id)}>
+                    {localTasks.map((task) => (
+                      <TaskCard
+                        key={task.id}
+                        task={task}
+                        onUpdateTask={handleUpdateTask}
+                      />
+                    ))}
+                  </SortableContext>
+                </>
               )}
               {col.id === 'projects' && !isProjectsLoading && (
                 <ProjectOverview projects={projects} />

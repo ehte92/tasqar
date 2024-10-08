@@ -18,7 +18,7 @@ export async function fetchTasks(userId: string): Promise<Task[]> {
   return response.json();
 }
 
-export async function createTask(task: CreateTaskInput): Promise<Task> {
+export async function createTask(task: Partial<Task>): Promise<Task> {
   const response = await fetch('/api/tasks', {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
