@@ -1,11 +1,15 @@
-import { ToolbarButton } from '../toolbar-button'
-import { TrashIcon } from '@radix-ui/react-icons'
+import { ToolbarButton } from '../toolbar-button';
+import { TrashIcon } from '@radix-ui/react-icons';
 
-const ImagePopoverBlock = ({ onRemove }: { onRemove: (e: React.MouseEvent<HTMLButtonElement>) => void }) => {
+const ImagePopoverBlock = ({
+  onRemove,
+}: {
+  onRemove: (e: React.MouseEvent<HTMLButtonElement>) => void;
+}) => {
   const handleRemove = (e: React.MouseEvent<HTMLButtonElement>) => {
-    e.preventDefault()
-    onRemove(e)
-  }
+    e.preventDefault();
+    onRemove(e);
+  };
 
   return (
     <div className="flex h-10 overflow-hidden rounded bg-background p-2 shadow-lg">
@@ -15,7 +19,7 @@ const ImagePopoverBlock = ({ onRemove }: { onRemove: (e: React.MouseEvent<HTMLBu
         </ToolbarButton>
       </div>
     </div>
-  )
-}
+  );
+};
 
-export { ImagePopoverBlock }
+export { ImagePopoverBlock };

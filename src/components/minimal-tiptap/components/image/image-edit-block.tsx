@@ -1,50 +1,55 @@
-import * as React from 'react'
-import type { Editor } from '@tiptap/react'
-import { Button } from '@/components/ui/button'
-import { Label } from '@/components/ui/label'
-import { Input } from '@/components/ui/input'
-import { cn } from '@/lib/utils'
+import * as React from 'react';
+import type { Editor } from '@tiptap/react';
+import { Button } from '@/components/ui/button';
+import { Label } from '@/components/ui/label';
+import { Input } from '@/components/ui/input';
+import { cn } from '@/lib/utils';
 
 interface ImageEditBlockProps extends React.HTMLAttributes<HTMLDivElement> {
-  editor: Editor
-  close: () => void
+  editor: Editor;
+  close: () => void;
 }
 
-const ImageEditBlock = ({ editor, className, close, ...props }: ImageEditBlockProps) => {
-  const fileInputRef = React.useRef<HTMLInputElement>(null)
-  const [link, setLink] = React.useState<string>('')
+const ImageEditBlock = ({
+  editor,
+  className,
+  close,
+  ...props
+}: ImageEditBlockProps) => {
+  const fileInputRef = React.useRef<HTMLInputElement>(null);
+  const [link, setLink] = React.useState<string>('');
 
   const handleClick = (e: React.MouseEvent) => {
-    e.preventDefault()
-    e.stopPropagation()
-    fileInputRef.current?.click()
-  }
+    e.preventDefault();
+    e.stopPropagation();
+    fileInputRef.current?.click();
+  };
 
   const handleLink = () => {
-    editor.chain().focus().setImage({ src: link }).run()
-    close()
-  }
+    editor.chain().focus().setImage({ src: link }).run();
+    close();
+  };
 
   const handleFile = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const files = e.target.files
-    if (!files) return
+    const files = e.target.files;
+    if (!files) return;
 
-    const reader = new FileReader()
-    reader.onload = e => {
-      const src = e.target?.result as string
-      editor.chain().focus().setImage({ src }).run()
-    }
+    const reader = new FileReader();
+    reader.onload = (e) => {
+      const src = e.target?.result as string;
+      editor.chain().focus().setImage({ src }).run();
+    };
 
-    reader.readAsDataURL(files[0])
+    reader.readAsDataURL(files[0]);
 
-    close()
-  }
+    close();
+  };
 
   const handleSubmit = (e: React.FormEvent) => {
-    e.preventDefault()
-    e.stopPropagation()
-    handleLink()
-  }
+    e.preventDefault();
+    e.stopPropagation();
+    handleLink();
+  };
 
   return (
     <form onSubmit={handleSubmit}>
@@ -58,7 +63,7 @@ const ImageEditBlock = ({ editor, className, close, ...props }: ImageEditBlockPr
               placeholder="https://example.com"
               value={link}
               className="grow"
-              onChange={e => setLink(e.target.value)}
+              onChange={(e) => setLink(e.target.value)}
             />
             <Button type="submit" className="ml-2 inline-block">
               Submit
@@ -68,10 +73,17 @@ const ImageEditBlock = ({ editor, className, close, ...props }: ImageEditBlockPr
         <Button className="w-full" onClick={handleClick}>
           Upload from your computer
         </Button>
-        <input type="file" accept="image/*" ref={fileInputRef} multiple className="hidden" onChange={handleFile} />
+        <input
+          type="file"
+          accept="image/*"
+          ref={fileInputRef}
+          multiple
+          className="hidden"
+          onChange={handleFile}
+        />
       </div>
     </form>
-  )
-}
+  );
+};
 
-export { ImageEditBlock }
+export { ImageEditBlock };

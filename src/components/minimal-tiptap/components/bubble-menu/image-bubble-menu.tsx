@@ -1,26 +1,26 @@
-import type { Editor } from '@tiptap/react'
-import { BubbleMenu } from '@tiptap/react'
-import { ImagePopoverBlock } from '../image/image-popover-block'
-import { ShouldShowProps } from '../../types'
+import type { Editor } from '@tiptap/react';
+import { BubbleMenu } from '@tiptap/react';
+import { ImagePopoverBlock } from '../image/image-popover-block';
+import { ShouldShowProps } from '../../types';
 
 const ImageBubbleMenu = ({ editor }: { editor: Editor }) => {
   const shouldShow = ({ editor, from, to }: ShouldShowProps) => {
     if (from === to) {
-      return false
+      return false;
     }
 
-    const img = editor.getAttributes('image')
+    const img = editor.getAttributes('image');
 
     if (img.src) {
-      return true
+      return true;
     }
 
-    return false
-  }
+    return false;
+  };
 
   const unSetImage = () => {
-    editor.commands.deleteSelection()
-  }
+    editor.commands.deleteSelection();
+  };
 
   return (
     <BubbleMenu
@@ -28,12 +28,12 @@ const ImageBubbleMenu = ({ editor }: { editor: Editor }) => {
       shouldShow={shouldShow}
       tippyOptions={{
         placement: 'bottom',
-        offset: [0, 8]
+        offset: [0, 8],
       }}
     >
       <ImagePopoverBlock onRemove={unSetImage} />
     </BubbleMenu>
-  )
-}
+  );
+};
 
-export { ImageBubbleMenu }
+export { ImageBubbleMenu };

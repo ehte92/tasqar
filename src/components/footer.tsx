@@ -24,8 +24,8 @@ const Footer = () => {
               </span>
             </Link>
             <p className="text-sm text-gray-600 dark:text-gray-400">
-              Boost your team's productivity with our intuitive task management
-              platform.
+              Boost your team&apos;s productivity with our intuitive task
+              management platform.
             </p>
           </div>
           <div>

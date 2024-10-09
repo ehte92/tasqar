@@ -375,7 +375,9 @@ export function TaskDialog({
                   onChange={(value) =>
                     handleChange({
                       target: { name: 'description', value: value as string },
-                    } as React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>)
+                    } as React.ChangeEvent<
+                      HTMLInputElement | HTMLTextAreaElement
+                    >)
                   }
                   className={cn(
                     'min-h-[100px] focus-visible:ring-0',

@@ -50,8 +50,8 @@ const Header = () => {
                             Tasqar
                           </div>
                           <p className="text-sm leading-tight text-white/90">
-                            Boost your team's productivity with our intuitive
-                            task management platform.
+                            Boost your team&apos;s productivity with our
+                            intuitive task management platform.
                           </p>
                         </a>
                       </NavigationMenuLink>
@@ -72,7 +72,7 @@ const Header = () => {
                       href="/features/analytics"
                       title="Analytics & Insights"
                     >
-                      Gain valuable insights into your team's performance.
+                      Gain valuable insights into your team&apos;s performance.
                     </ListItem>
                   </ul>
                 </NavigationMenuContent>

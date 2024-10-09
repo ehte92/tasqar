@@ -1,9 +1,9 @@
-import { Extension } from '@tiptap/core'
+import { Extension } from '@tiptap/core';
 
 export const UnsetAllMarks = Extension.create({
   addKeyboardShortcuts() {
     return {
-      'Mod-\\': () => this.editor.commands.unsetAllMarks()
-    }
-  }
-})
+      'Mod-\\': () => this.editor.commands.unsetAllMarks(),
+    };
+  },
+});
