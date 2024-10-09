@@ -1,16 +1,19 @@
 # Use Node.js 20 as the base image
 FROM node:20-alpine AS base
 
+# Install Yarn 4
+RUN corepack enable && corepack prepare yarn@stable --activate
+
 # Install dependencies only when needed
 FROM base AS deps
 RUN apk add --no-cache libc6-compat
 WORKDIR /app
 
 # Copy package.json and yarn.lock
-COPY package.json yarn.lock ./
+COPY package.json yarn.lock .yarnrc.yml ./
 
 # Install dependencies
-RUN yarn install --frozen-lockfile
+RUN yarn install
 
 # Rebuild the source code only when needed
 FROM base AS builder
