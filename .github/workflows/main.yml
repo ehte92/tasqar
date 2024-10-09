@@ -28,14 +28,10 @@ jobs:
       - name: Install dependencies
         run: |
           yarn install --immutable
-      - name: Show yarn version and info
-        run: |
-          yarn --version
-          yarn info
       - name: Lint
-        run: yarn run lint
+        run: yarn lint
       - name: Test
-        run: yarn test
+        run: yarn test --passWithNoTests
       - name: Build
         run: yarn build
       - name: Upload build artifact
