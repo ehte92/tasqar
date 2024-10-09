@@ -1,4 +1,4 @@
-import React, { useMemo, useState, useEffect } from 'react';
+import React, { useMemo, useState, useEffect, useCallback } from 'react';
 import { createPortal } from 'react-dom';
 import {
   DndContext,
@@ -39,30 +39,21 @@ export interface Column {
 }
 
 const defaultCols: Column[] = [
-  {
-    id: 'tasks',
-    title: 'My Tasks',
-  },
-  {
-    id: 'projects',
-    title: 'Project Overview',
-  },
-  {
-    id: 'collaborators',
-    title: 'Collaborators',
-  },
+  { id: 'tasks', title: 'My Tasks' },
+  { id: 'projects', title: 'Project Overview' },
+  { id: 'collaborators', title: 'Collaborators' },
 ];
 
 export function KanbanBoard() {
-  const [columns, setColumns] = useState<Column[]>(defaultCols);
-  const columnsId = useMemo(() => columns.map((col) => col.id), [columns]);
-
+  const [columns] = useState<Column[]>(defaultCols);
   const [activeColumn, setActiveColumn] = useState<Column | null>(null);
   const [activeTask, setActiveTask] = useState<Task | null>(null);
   const [localTasks, setLocalTasks] = useState<Task[]>([]);
 
   const { data: session } = useSession();
   const queryClient = useQueryClient();
+
+  const columnsId = useMemo(() => columns.map((col) => col.id), [columns]);
 
   const { data: tasksData = [], isLoading: isTasksLoading } = useQuery({
     queryKey: ['tasks', session?.user?.id],
@@ -107,14 +98,17 @@ export function KanbanBoard() {
     },
   });
 
-  const handleCreateTask = (newTask: Partial<Task>) => {
-    if (session?.user?.id) {
-      createTaskMutation.mutate({
-        ...newTask,
-        userId: session.user.id,
-      });
-    }
-  };
+  const handleCreateTask = useCallback(
+    (newTask: Partial<Task>) => {
+      if (session?.user?.id) {
+        createTaskMutation.mutate({
+          ...newTask,
+          userId: session.user.id,
+        });
+      }
+    },
+    [createTaskMutation, session?.user?.id]
+  );
 
   const updateTaskMutation = useMutation({
     mutationFn: updateTask,
@@ -148,12 +142,17 @@ export function KanbanBoard() {
     },
   });
 
-  const handleUpdateTask = (updatedTask: Task) => {
-    setLocalTasks((tasks) =>
-      tasks.map((task) => (task.id === updatedTask.id ? updatedTask : task))
-    );
-    updateTaskMutation.mutate(updatedTask);
-  };
+  const handleUpdateTask = useCallback(
+    (updatedTask: Task) => {
+      setLocalTasks((prevTasks) =>
+        prevTasks.map((task) =>
+          task.id === updatedTask.id ? updatedTask : task
+        )
+      );
+      updateTaskMutation.mutate(updatedTask);
+    },
+    [updateTaskMutation]
+  );
 
   const deleteTaskMutation = useMutation({
     mutationFn: deleteTask,
@@ -187,19 +186,22 @@ export function KanbanBoard() {
     },
   });
 
-  const handleDeleteTask = (taskId: string) => {
-    deleteTaskMutation.mutate(taskId);
-  };
+  const handleDeleteTask = useCallback(
+    (taskId: string) => {
+      deleteTaskMutation.mutate(taskId);
+    },
+    [deleteTaskMutation]
+  );
 
   const sensors = useSensors(
     useSensor(MouseSensor),
     useSensor(TouchSensor),
     useSensor(KeyboardSensor, {
-      coordinateGetter: coordinateGetter,
+      coordinateGetter,
     })
   );
 
-  const onDragStart = (event: DragStartEvent) => {
+  const onDragStart = useCallback((event: DragStartEvent) => {
     if (!hasDraggableData(event.active)) return;
     const data = event.active.data.current;
     if (data?.type === 'Column') {
@@ -207,9 +209,9 @@ export function KanbanBoard() {
     } else if (data?.type === 'Task') {
       setActiveTask(data.task);
     }
-  };
+  }, []);
 
-  const onDragEnd = (event: DragEndEvent) => {
+  const onDragEnd = useCallback((event: DragEndEvent) => {
     setActiveColumn(null);
     setActiveTask(null);
 
@@ -221,35 +223,23 @@ export function KanbanBoard() {
 
     if (activeId === overId) return;
 
-    const isActiveAColumn = active.data.current?.type === 'Column';
     const isActiveATask = active.data.current?.type === 'Task';
 
-    if (isActiveAColumn) {
-      setColumns((columns) => {
-        const activeIndex = columns.findIndex((col) => col.id === activeId);
-        const overIndex = columns.findIndex((col) => col.id === overId);
+    if (isActiveATask) {
+      setLocalTasks((prevTasks) => {
+        const activeIndex = prevTasks.findIndex((t) => t.id === activeId);
+        const overIndex = prevTasks.findIndex((t) => t.id === overId);
 
         if (activeIndex !== -1 && overIndex !== -1) {
-          return arrayMove(columns, activeIndex, overIndex);
+          return arrayMove(prevTasks, activeIndex, overIndex);
         }
 
-        return columns;
-      });
-    } else if (isActiveATask) {
-      setLocalTasks((tasks) => {
-        const activeIndex = tasks.findIndex((t) => t.id === activeId);
-        const overIndex = tasks.findIndex((t) => t.id === overId);
-
-        if (activeIndex !== -1 && overIndex !== -1) {
-          return arrayMove(tasks, activeIndex, overIndex);
-        }
-
-        return tasks;
+        return prevTasks;
       });
     }
-  };
+  }, []);
 
-  const onDragOver = (event: DragOverEvent) => {
+  const onDragOver = useCallback((event: DragOverEvent) => {
     const { active, over } = event;
     if (!over) return;
 
@@ -263,22 +253,35 @@ export function KanbanBoard() {
 
     if (!isActiveATask) return;
 
-    // Dropping a Task over another Task
     if (isActiveATask && isOverATask) {
-      setLocalTasks((tasks) => {
-        const activeIndex = tasks.findIndex((t) => t.id === activeId);
-        const overIndex = tasks.findIndex((t) => t.id === overId);
+      setLocalTasks((prevTasks) => {
+        const activeIndex = prevTasks.findIndex((t) => t.id === activeId);
+        const overIndex = prevTasks.findIndex((t) => t.id === overId);
 
         if (activeIndex !== -1 && overIndex !== -1) {
-          return arrayMove(tasks, activeIndex, overIndex);
+          return arrayMove(prevTasks, activeIndex, overIndex);
         }
 
-        return tasks;
+        return prevTasks;
       });
     }
+  }, []);
 
-    // Implement logic for dropping a Task into a different column if needed
-  };
+  const memoizedTaskCards = useMemo(
+    () => (
+      <SortableContext items={localTasks.map((task) => task.id)}>
+        {localTasks.map((task) => (
+          <TaskCard
+            key={task.id}
+            task={task}
+            onUpdateTask={handleUpdateTask}
+            onDeleteTask={handleDeleteTask}
+          />
+        ))}
+      </SortableContext>
+    ),
+    [localTasks, handleUpdateTask, handleDeleteTask]
+  );
 
   return (
     <DndContext
@@ -294,18 +297,7 @@ export function KanbanBoard() {
               {col.id === 'tasks' && (
                 <>
                   <CreateTaskInline onCreateTask={handleCreateTask} />
-                  {!isTasksLoading && (
-                    <SortableContext items={localTasks.map((task) => task.id)}>
-                      {localTasks.map((task) => (
-                        <TaskCard
-                          key={task.id}
-                          task={task}
-                          onUpdateTask={handleUpdateTask}
-                          onDeleteTask={handleDeleteTask}
-                        />
-                      ))}
-                    </SortableContext>
-                  )}
+                  {!isTasksLoading && memoizedTaskCards}
                 </>
               )}
               {col.id === 'projects' && !isProjectsLoading && (
@@ -324,15 +316,7 @@ export function KanbanBoard() {
           <DragOverlay>
             {activeColumn && (
               <BoardColumn column={activeColumn}>
-                {activeColumn.id === 'tasks' &&
-                  localTasks.map((task) => (
-                    <TaskCard
-                      key={task.id}
-                      task={task}
-                      onUpdateTask={handleUpdateTask}
-                      onDeleteTask={handleDeleteTask}
-                    />
-                  ))}
+                {activeColumn.id === 'tasks' && memoizedTaskCards}
                 {activeColumn.id === 'projects' && (
                   <ProjectOverview projects={projects} />
                 )}
