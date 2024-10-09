@@ -30,8 +30,8 @@ export default function Home() {
           </span>
         </h1>
         <p className="text-xl text-gray-600 dark:text-gray-300 max-w-2xl mx-auto mb-8">
-          Collaborate on tasks efficiently and boost your team's productivity
-          with our intuitive task management platform.
+          Collaborate on tasks efficiently and boost your team&apos;s
+          productivity with our intuitive task management platform.
         </p>
         <motion.div
           initial={{ opacity: 0, y: 20 }}

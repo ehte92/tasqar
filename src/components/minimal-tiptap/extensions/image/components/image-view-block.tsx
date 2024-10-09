@@ -1,3 +1,4 @@
+/* eslint-disable @next/next/no-img-element */
 import { isNumber, NodeViewProps, NodeViewWrapper } from '@tiptap/react';
 import { useMemo } from 'react';
 import { useImageLoad } from '../../../hooks/use-image-load';
