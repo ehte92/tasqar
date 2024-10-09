@@ -27,13 +27,13 @@ jobs:
             ${{ runner.os }}-yarn-
       - name: Install dependencies
         run: |
-          yarn install --mode=update-lockfile
-          git config --global user.email "github-actions[bot]@users.noreply.github.com"
-          git config --global user.name "github-actions[bot]"
-          git add yarn.lock
-          git commit -m "Update yarn.lock" || echo "No changes to commit"
+          yarn install --immutable
+      - name: Show yarn version and info
+        run: |
+          yarn --version
+          yarn info
       - name: Lint
-        run: yarn lint
+        run: yarn run lint
       - name: Test
         run: yarn test
       - name: Build
