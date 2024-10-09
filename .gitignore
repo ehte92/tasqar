@@ -6,6 +6,15 @@
 .pnp.js
 .yarn/install-state.gz
 
+# Yarn
+.yarn/*
+!.yarn/patches
+!.yarn/plugins
+!.yarn/releases
+!.yarn/sdks
+!.yarn/versions
+.pnp.*
+
 # Testing
 /coverage
 
