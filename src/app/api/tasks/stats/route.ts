@@ -3,18 +3,21 @@ import prisma from '@/lib/db';
 
 export async function GET(request: Request) {
   try {
+    // Instead of using request.url, we'll use query parameters
     const { searchParams } = new URL(request.url);
     const userId = searchParams.get('userId');
 
     if (!userId) {
-      throw new Error('User ID is required');
+      return NextResponse.json(
+        { error: 'User ID is required' },
+        { status: 400 }
+      );
     }
 
     const completedTasks = await prisma.task.count({
       where: { userId, status: 'DONE' },
     });
 
-    // For simplicity, we'll just count users. In a real app, you'd implement a proper collaboration system.
     const collaborators = await prisma.user.count();
 
     return NextResponse.json({ completedTasks, collaborators });
@@ -26,3 +29,6 @@ export async function GET(request: Request) {
     );
   }
 }
+
+// Add this export to make the route dynamic
+export const dynamic = 'force-dynamic';

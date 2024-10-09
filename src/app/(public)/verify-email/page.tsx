@@ -13,7 +13,8 @@ import {
 import { Button } from '@/components/ui/button';
 import { Icons } from '@/components/ui/icons';
 import Link from 'next/link';
-import { useEffect } from 'react';
+import { Suspense, useEffect } from 'react';
+import { LoadingSpinner } from '@/components/ui/loading-spinner';
 
 const verifyEmail = async (token: string) => {
   const response = await fetch(`/api/auth/verify-email?token=${token}`);
@@ -23,7 +24,7 @@ const verifyEmail = async (token: string) => {
   return response.json();
 };
 
-export default function VerifyEmail() {
+function VerifyEmailContent() {
   const router = useRouter();
   const searchParams = useSearchParams();
   const token = searchParams.get('token');
@@ -123,5 +124,13 @@ export default function VerifyEmail() {
         </Card>
       </motion.div>
     </div>
+  );
+}
+
+export default function VerifyEmail() {
+  return (
+    <Suspense fallback={<LoadingSpinner />}>
+      <VerifyEmailContent />
+    </Suspense>
   );
 }
