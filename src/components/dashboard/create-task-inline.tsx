@@ -1,5 +1,5 @@
 import React, { useState, useRef, useEffect } from 'react';
-import { Calendar, ChevronRight } from 'lucide-react';
+import { Plus, Calendar, ChevronRight, X, MoreHorizontal } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import {
@@ -9,8 +9,9 @@ import {
 } from '@/components/ui/popover';
 import { Calendar as CalendarComponent } from '@/components/ui/calendar';
 import { CreateTaskDialog } from './create-task-dialog';
-import { Task, TaskStatus } from '@/types/task';
+import { Task, TaskStatus, TaskPriority } from '@/types/task';
 import { cn } from '@/lib/utils';
+import { format } from 'date-fns';
 
 interface CreateTaskInlineProps {
   onCreateTask: (task: Partial<Task>) => void;
@@ -38,10 +39,10 @@ export function CreateTaskInline({ onCreateTask }: CreateTaskInlineProps) {
       onCreateTask({
         title,
         status: TaskStatus.TODO,
+        priority: TaskPriority.MEDIUM,
         dueDate: dueDate ?? null,
       });
       resetForm();
-      setIsCreating(true); // Open a new inline task creation
     } else {
       resetForm();
     }
@@ -50,19 +51,14 @@ export function CreateTaskInline({ onCreateTask }: CreateTaskInlineProps) {
   const resetForm = () => {
     setTitle('');
     setDueDate(undefined);
-  };
-
-  const handleBlur = () => {
-    if (!title.trim()) {
-      setIsCreating(false);
-    } else {
-      handleSubmit();
-    }
+    setIsCreating(false);
   };
 
   const handleKeyDown = (e: React.KeyboardEvent) => {
     if (e.key === 'Enter') {
       handleSubmit();
+    } else if (e.key === 'Escape') {
+      resetForm();
     }
   };
 
@@ -71,53 +67,99 @@ export function CreateTaskInline({ onCreateTask }: CreateTaskInlineProps) {
       <Button
         onClick={handleCreate}
         variant="ghost"
-        className="w-full justify-start"
+        className="w-full justify-start text-muted-foreground hover:text-foreground hover:bg-accent/50 transition-all duration-200"
       >
-        + Create task
+        <Plus className="mr-2 h-4 w-4" />
+        Add new task
       </Button>
     );
   }
 
   return (
-    <div className="flex items-center space-x-2 bg-white dark:bg-gray-800 p-2 rounded-md shadow">
-      <Input
-        ref={inputRef}
-        value={title}
-        onChange={(e) => setTitle(e.target.value)}
-        onBlur={handleBlur}
-        onKeyDown={handleKeyDown}
-        placeholder="Write a task name"
-        className="flex-grow"
-      />
-      <Popover>
-        <PopoverTrigger asChild>
-          <Button
-            variant="outline"
-            size="icon"
-            className={cn(dueDate && 'text-blue-500')}
-          >
-            <Calendar className="h-4 w-4" />
-          </Button>
-        </PopoverTrigger>
-        <PopoverContent className="w-auto p-0" align="end">
-          <CalendarComponent
-            mode="single"
-            selected={dueDate}
-            onSelect={setDueDate}
-            initialFocus
+    <div className="space-y-3 bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60 p-4 rounded-lg border border-input shadow-sm transition-all duration-300 animate-in fade-in-50">
+      <div className="flex items-center space-x-2">
+        <div className="relative flex-grow">
+          <Input
+            ref={inputRef}
+            value={title}
+            onChange={(e) => setTitle(e.target.value)}
+            onKeyDown={handleKeyDown}
+            placeholder="What needs to be done?"
+            className="pr-10"
           />
-        </PopoverContent>
-      </Popover>
-      <Button variant="ghost" size="icon" onClick={() => setIsDialogOpen(true)}>
-        <ChevronRight className="h-4 w-4" />
-      </Button>
+          {title && (
+            <Button
+              variant="ghost"
+              size="icon"
+              className="absolute right-1 top-1/2 -translate-y-1/2 h-8 w-8 text-muted-foreground hover:text-foreground"
+              onClick={() => setTitle('')}
+            >
+              <X className="h-4 w-4" />
+            </Button>
+          )}
+        </div>
+        <Popover>
+          <PopoverTrigger asChild>
+            <Button
+              variant="outline"
+              size="icon"
+              className={cn(
+                'w-10 h-10 p-0 transition-colors duration-200',
+                dueDate && 'text-primary border-primary hover:bg-primary/10'
+              )}
+            >
+              <Calendar className="h-4 w-4" />
+            </Button>
+          </PopoverTrigger>
+          <PopoverContent className="w-auto p-0" align="end">
+            <CalendarComponent
+              mode="single"
+              selected={dueDate}
+              onSelect={setDueDate}
+              initialFocus
+            />
+          </PopoverContent>
+        </Popover>
+        <Button
+          variant="default"
+          size="icon"
+          onClick={handleSubmit}
+          className="w-10 h-10"
+        >
+          <ChevronRight className="h-4 w-4" />
+        </Button>
+      </div>
+      {dueDate && (
+        <p className="text-sm text-muted-foreground flex items-center">
+          <Calendar className="h-4 w-4 mr-2" />
+          Due: {format(dueDate, 'PPP')}
+        </p>
+      )}
+      <div className="flex justify-between items-center text-sm">
+        <Button
+          variant="ghost"
+          size="sm"
+          className="text-muted-foreground hover:text-foreground hover:bg-accent/50 transition-colors duration-200"
+          onClick={() => setIsDialogOpen(true)}
+        >
+          <MoreHorizontal className="h-4 w-4 mr-2" />
+          Add more details
+        </Button>
+        <Button
+          variant="ghost"
+          size="sm"
+          className="text-muted-foreground hover:text-foreground hover:bg-accent/50 transition-colors duration-200"
+          onClick={resetForm}
+        >
+          Cancel
+        </Button>
+      </div>
       <CreateTaskDialog
         isOpen={isDialogOpen}
         onClose={() => setIsDialogOpen(false)}
         onCreateTask={(taskDetails) => {
           onCreateTask({ ...taskDetails, title, dueDate });
           resetForm();
-          setIsCreating(false);
         }}
         initialData={{ title, dueDate }}
       />
