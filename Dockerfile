@@ -6,8 +6,11 @@ FROM base AS deps
 RUN apk add --no-cache libc6-compat
 WORKDIR /app
 
+# Enable Corepack and prepare Yarn
+RUN corepack enable && corepack prepare yarn@4.5.0 --activate
+
 # Copy package.json and yarn.lock
-COPY package.json yarn.lock ./
+COPY package.json yarn.lock .yarnrc.yml ./
 
 # Install dependencies
 RUN yarn install --frozen-lockfile
@@ -15,6 +18,10 @@ RUN yarn install --frozen-lockfile
 # Rebuild the source code only when needed
 FROM base AS builder
 WORKDIR /app
+
+# Enable Corepack and prepare Yarn (needed for the build stage as well)
+RUN corepack enable && corepack prepare yarn@4.5.0 --activate
+
 COPY --from=deps /app/node_modules ./node_modules
 COPY . .
 
