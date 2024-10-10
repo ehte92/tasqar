@@ -14,23 +14,41 @@ import {
 
 export function ModeToggle() {
   const { setTheme, theme } = useTheme();
+  const [mounted, setMounted] = React.useState(false);
+
+  React.useEffect(() => setMounted(true), []);
+
+  if (!mounted) return null;
+
+  const isDarkMode = theme === 'dark';
+  const toggleTheme = () => setTheme(isDarkMode ? 'light' : 'dark');
 
   return (
-    <TooltipProvider disableHoverableContent>
-      <Tooltip delayDuration={100}>
+    <TooltipProvider>
+      <Tooltip delayDuration={300}>
         <TooltipTrigger asChild>
           <Button
-            className="rounded-full w-8 h-8 bg-background mr-2"
             variant="outline"
             size="icon"
-            onClick={() => setTheme(theme === 'dark' ? 'light' : 'dark')}
+            onClick={toggleTheme}
+            className="rounded-full w-8 h-8 bg-background mr-2 relative"
+            aria-label={`Switch to ${isDarkMode ? 'light' : 'dark'} theme`}
           >
-            <SunIcon className="w-[1.2rem] h-[1.2rem] rotate-90 scale-0 transition-transform ease-in-out duration-500 dark:rotate-0 dark:scale-100" />
-            <MoonIcon className="absolute w-[1.2rem] h-[1.2rem] rotate-0 scale-1000 transition-transform ease-in-out duration-500 dark:-rotate-90 dark:scale-0" />
-            <span className="sr-only">Switch Theme</span>
+            <SunIcon
+              className={`w-[1.2rem] h-[1.2rem] transition-all duration-300 ${
+                isDarkMode ? 'scale-0 rotate-90' : 'scale-100 rotate-0'
+              }`}
+            />
+            <MoonIcon
+              className={`w-[1.2rem] h-[1.2rem] transition-all duration-300 absolute ${
+                isDarkMode ? 'scale-100 rotate-0' : 'scale-0 -rotate-90'
+              }`}
+            />
           </Button>
         </TooltipTrigger>
-        <TooltipContent side="bottom">Switch Theme</TooltipContent>
+        <TooltipContent side="bottom" align="center">
+          Switch to {isDarkMode ? 'light' : 'dark'} theme
+        </TooltipContent>
       </Tooltip>
     </TooltipProvider>
   );
