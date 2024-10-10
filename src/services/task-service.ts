@@ -1,11 +1,11 @@
 import { Task, TaskStatus, TaskPriority } from '@/types/task';
 
-type CreateTaskInput = {
+export type CreateTaskInput = {
   title: string;
   description?: string | null;
   status?: TaskStatus;
   priority?: TaskPriority;
-  dueDate?: string | null;
+  dueDate?: Date | null;
   userId: string;
   projectId?: string | null;
 };
@@ -18,7 +18,7 @@ export async function fetchTasks(userId: string): Promise<Task[]> {
   return response.json();
 }
 
-export async function createTask(task: Partial<Task>): Promise<Task> {
+export async function createTask(task: CreateTaskInput): Promise<Task> {
   const response = await fetch('/api/tasks', {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
@@ -33,14 +33,13 @@ export async function createTask(task: Partial<Task>): Promise<Task> {
   return response.json();
 }
 
-export async function updateTask(task: Task): Promise<Task> {
+export async function updateTask(
+  task: Partial<Task> & { id: string }
+): Promise<Task> {
   const response = await fetch('/api/tasks', {
     method: 'PUT',
     headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify({
-      ...task,
-      dueDate: task.dueDate,
-    }),
+    body: JSON.stringify(task),
   });
   if (!response.ok) {
     throw new Error('Failed to update task');

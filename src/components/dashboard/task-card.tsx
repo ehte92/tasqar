@@ -143,7 +143,7 @@ export function TaskCard({ task, onUpdateTask, onDeleteTask }: TaskCardProps) {
         getStatusStyles(),
         'hover:shadow-md',
         isDragging ? 'opacity-50 scale-105' : 'opacity-100',
-        'mb-3' // Add margin-bottom for spacing between tasks
+        'mb-3'
       )}
       whileHover={{ y: -2, scale: 1.02 }}
       onHoverStart={() => setIsHovered(true)}
@@ -196,22 +196,6 @@ export function TaskCard({ task, onUpdateTask, onDeleteTask }: TaskCardProps) {
           )}
         </div>
       </div>
-      {/* <AnimatePresence>
-        {isHovered && (
-          <motion.div
-            initial={{ opacity: 0, y: 10 }}
-            animate={{ opacity: 1, y: 0 }}
-            exit={{ opacity: 0, y: 10 }}
-            transition={{ duration: 0.2 }}
-            className="mt-3"
-          >
-            <Progress
-              value={task.status === TaskStatus.DONE ? 100 : 0}
-              className="h-1"
-            />
-          </motion.div>
-        )}
-      </AnimatePresence> */}
       <TaskDialog
         task={task}
         isOpen={isDialogOpen}

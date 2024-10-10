@@ -44,6 +44,16 @@ const defaultCols: Column[] = [
   { id: 'collaborators', title: 'Collaborators' },
 ];
 
+type CreateTaskInput = {
+  title: string;
+  description?: string | null;
+  status?: TaskStatus;
+  priority?: TaskPriority;
+  dueDate?: Date | null;
+  userId: string;
+  projectId?: string | null;
+};
+
 export function KanbanBoard() {
   const [columns] = useState<Column[]>(defaultCols);
   const [activeColumn, setActiveColumn] = useState<Column | null>(null);
@@ -100,11 +110,19 @@ export function KanbanBoard() {
 
   const handleCreateTask = useCallback(
     (newTask: Partial<Task>) => {
-      if (session?.user?.id) {
-        createTaskMutation.mutate({
-          ...newTask,
+      if (session?.user?.id && newTask.title) {
+        const taskInput: CreateTaskInput = {
+          title: newTask.title,
+          description: newTask.description || null,
+          status: newTask.status || TaskStatus.TODO,
+          priority: newTask.priority || TaskPriority.MEDIUM,
+          dueDate: newTask.dueDate || null,
           userId: session.user.id,
-        });
+          projectId: newTask.projectId || null,
+        };
+        createTaskMutation.mutate(taskInput);
+      } else {
+        toast.error('Unable to create task: Missing required fields');
       }
     },
     [createTaskMutation, session?.user?.id]
