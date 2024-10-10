@@ -6,8 +6,11 @@ FROM base AS deps
 RUN apk add --no-cache libc6-compat
 WORKDIR /app
 
+# Enable Corepack for Yarn version management
+RUN corepack enable
+
 # Copy package.json and yarn.lock
-COPY package.json yarn.lock ./
+COPY package.json yarn.lock .yarnrc.yml ./
 
 # Install dependencies
 RUN yarn install --immutable
@@ -15,6 +18,10 @@ RUN yarn install --immutable
 # Rebuild the source code only when needed
 FROM base AS builder
 WORKDIR /app
+
+# Enable Corepack for Yarn version management
+RUN corepack enable
+
 COPY --from=deps /app/node_modules ./node_modules
 COPY . .
 
