@@ -1,9 +1,9 @@
-import React from 'react';
+import React, { useRef, useState, useEffect } from 'react';
 import { useSortable } from '@dnd-kit/sortable';
 import { CSS } from '@dnd-kit/utilities';
 import { Card, CardContent, CardHeader } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
-import { GripVertical } from 'lucide-react';
+import { GripVertical, ArrowUp } from 'lucide-react';
 import { Column } from './kanban-board';
 
 interface BoardColumnProps {
@@ -32,16 +32,40 @@ export function BoardColumn({ column, children }: BoardColumnProps) {
     transition,
   };
 
+  const contentRef = useRef<HTMLDivElement>(null);
+  const [showScrollShadow, setShowScrollShadow] = useState(false);
+  const [showScrollToTop, setShowScrollToTop] = useState(false);
+
+  const handleScroll = () => {
+    if (contentRef.current) {
+      const { scrollTop, scrollHeight, clientHeight } = contentRef.current;
+      setShowScrollShadow(scrollTop > 0);
+      setShowScrollToTop(scrollTop > clientHeight);
+    }
+  };
+
+  const scrollToTop = () => {
+    contentRef.current?.scrollTo({ top: 0, behavior: 'smooth' });
+  };
+
+  useEffect(() => {
+    const content = contentRef.current;
+    if (content) {
+      content.addEventListener('scroll', handleScroll);
+      return () => content.removeEventListener('scroll', handleScroll);
+    }
+  }, []);
+
   return (
     <Card
       ref={setNodeRef}
       style={style}
-      className={`w-[350px] max-w-full bg-background flex flex-col flex-shrink-0 ${
+      className={`w-[350px] max-w-full bg-background flex flex-col h-full ${
         isDragging ? 'opacity-50' : ''
       }`}
       {...attributes}
     >
-      <CardHeader className="p-4 font-semibold border-b-2 text-left flex flex-row items-center">
+      <CardHeader className="p-4 font-semibold border-b-2 text-left flex flex-row items-center shrink-0">
         <Button
           variant="ghost"
           {...listeners}
@@ -52,9 +76,24 @@ export function BoardColumn({ column, children }: BoardColumnProps) {
         </Button>
         <span className="ml-2">{column.title}</span>
       </CardHeader>
-      <CardContent className="flex-grow overflow-auto p-2">
+      <CardContent
+        ref={contentRef}
+        className={`flex-grow overflow-y-auto p-2 transition-shadow duration-200 ${
+          showScrollShadow ? 'shadow-inner' : ''
+        }`}
+      >
         {children}
       </CardContent>
+      {showScrollToTop && (
+        <Button
+          variant="outline"
+          size="sm"
+          className="absolute bottom-4 right-4 rounded-full"
+          onClick={scrollToTop}
+        >
+          <ArrowUp className="h-4 w-4" />
+        </Button>
+      )}
     </Card>
   );
 }

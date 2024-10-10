@@ -306,36 +306,39 @@ export function KanbanBoard() {
       onDragEnd={onDragEnd}
       onDragOver={onDragOver}
     >
-      <div className="flex gap-4 items-start">
-        <SortableContext items={columnsId}>
-          <AnimatePresence>
-            {columns.map((col) => (
-              <motion.div
-                key={col.id}
-                layout
-                initial={{ opacity: 0 }}
-                animate={{ opacity: 1 }}
-                exit={{ opacity: 0 }}
-                transition={{ duration: 0.2 }}
-              >
-                <BoardColumn column={col}>
-                  {col.id === 'tasks' && (
-                    <>
-                      <CreateTaskInline onCreateTask={handleCreateTask} />
-                      {!isTasksLoading && memoizedTaskCards}
-                    </>
-                  )}
-                  {col.id === 'projects' && !isProjectsLoading && (
-                    <ProjectOverview projects={projects} />
-                  )}
-                  {col.id === 'collaborators' && (
-                    <div>Collaborators feature coming soon...</div>
-                  )}
-                </BoardColumn>
-              </motion.div>
-            ))}
-          </AnimatePresence>
-        </SortableContext>
+      <div className="h-[calc(100vh-64px)] overflow-x-auto">
+        <div className="flex gap-4 items-start h-full p-4">
+          <SortableContext items={columnsId}>
+            <AnimatePresence>
+              {columns.map((col) => (
+                <motion.div
+                  key={col.id}
+                  layout
+                  initial={{ opacity: 0 }}
+                  animate={{ opacity: 1 }}
+                  exit={{ opacity: 0 }}
+                  transition={{ duration: 0.2 }}
+                  className="h-full"
+                >
+                  <BoardColumn column={col}>
+                    {col.id === 'tasks' && (
+                      <>
+                        <CreateTaskInline onCreateTask={handleCreateTask} />
+                        {!isTasksLoading && memoizedTaskCards}
+                      </>
+                    )}
+                    {col.id === 'projects' && !isProjectsLoading && (
+                      <ProjectOverview projects={projects} />
+                    )}
+                    {col.id === 'collaborators' && (
+                      <div>Collaborators feature coming soon...</div>
+                    )}
+                  </BoardColumn>
+                </motion.div>
+              ))}
+            </AnimatePresence>
+          </SortableContext>
+        </div>
       </div>
 
       {typeof document !== 'undefined' &&
