@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useRef } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Task, TaskStatus } from '@/types/task';
 import { Dialog, DialogContent } from '@/components/ui/dialog';
 import { Button } from '@/components/ui/button';
@@ -12,7 +12,14 @@ import {
 } from '@/components/ui/select';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { useSession } from 'next-auth/react';
-import { CalendarIcon, X, Paperclip, Trash2, Check } from 'lucide-react';
+import {
+  CalendarIcon,
+  X,
+  Paperclip,
+  Trash2,
+  Check,
+  AlertCircle,
+} from 'lucide-react';
 import {
   Popover,
   PopoverContent,
@@ -33,32 +40,31 @@ import { cn } from '@/lib/utils';
 import { MinimalTiptapEditor } from '../minimal-tiptap';
 import { useQuery } from '@tanstack/react-query';
 import { fetchProjects } from '@/services/project-service';
-import { Content } from '@tiptap/react';
 
-interface TaskDialogProps {
-  task: Task;
+interface TaskFormDialogProps {
+  task: Partial<Task>;
   isOpen: boolean;
   onClose: () => void;
-  onUpdateTask: (updatedTask: Task) => void;
-  onDeleteTask: (taskId: string) => void;
+  onSaveTask: (task: Partial<Task>) => void;
+  onDeleteTask?: (taskId: string) => void;
+  mode: 'create' | 'edit';
 }
 
-export function TaskDialog({
+export function TaskFormDialog({
   task,
   isOpen,
   onClose,
-  onUpdateTask,
+  onSaveTask,
   onDeleteTask,
-}: TaskDialogProps) {
-  const [editedTask, setEditedTask] = useState<Task>(task);
+  mode,
+}: TaskFormDialogProps) {
+  const [editedTask, setEditedTask] = useState<Partial<Task>>(task);
   const [isCalendarOpen, setIsCalendarOpen] = useState(false);
   const [isDeleting, setIsDeleting] = useState(false);
   const { data: session } = useSession();
-  const originalDescriptionRef = useRef(task.description);
 
   useEffect(() => {
     setEditedTask(task);
-    originalDescriptionRef.current = task.description;
   }, [task]);
 
   const { data: projects = [], isLoading: isProjectsLoading } = useQuery({
@@ -74,20 +80,24 @@ export function TaskDialog({
   };
 
   const handleDueDateChange = (date: Date | undefined) => {
-    const updatedTask = { ...editedTask, dueDate: date || null };
-    setEditedTask(updatedTask);
-    onUpdateTask(updatedTask);
+    setEditedTask({ ...editedTask, dueDate: date || null });
   };
 
   const clearDueDate = () => {
-    const updatedTask = { ...editedTask, dueDate: null };
-    setEditedTask(updatedTask);
-    onUpdateTask(updatedTask);
+    setEditedTask({ ...editedTask, dueDate: null });
     setIsCalendarOpen(false);
   };
 
   const handleSubmit = () => {
-    onUpdateTask(editedTask);
+    const taskToSave: Partial<Task> = {
+      id: editedTask.id,
+      title: editedTask.title || '',
+      description: editedTask.description || '',
+      status: editedTask.status || TaskStatus.TODO,
+      dueDate: editedTask.dueDate,
+      projectId: editedTask.projectId,
+    };
+    onSaveTask(taskToSave);
     onClose();
   };
 
@@ -96,7 +106,9 @@ export function TaskDialog({
   };
 
   const confirmDeleteTask = () => {
-    onDeleteTask(task.id);
+    if (onDeleteTask && editedTask.id) {
+      onDeleteTask(editedTask.id);
+    }
     onClose();
   };
 
@@ -108,35 +120,24 @@ export function TaskDialog({
     setEditedTask({ ...editedTask, projectId: value });
   };
 
-  const handleDescriptionChange = (value: Content) => {
-    setEditedTask((prevTask) => ({
-      ...prevTask,
-      description: value as string,
-    }));
-  };
-
-  const handleDescriptionBlur = () => {
-    if (editedTask.description !== originalDescriptionRef.current) {
-      onUpdateTask(editedTask);
-      originalDescriptionRef.current = editedTask.description;
-    }
-  };
-
   return (
     <Dialog open={isOpen} onOpenChange={onClose}>
       <DialogContent className="sm:max-w-[600px]" hideCloseButton>
         {isDeleting ? (
           <div className="space-y-4">
             <div className="bg-red-100 p-4 rounded-md">
-              <h2 className="text-lg font-semibold text-red-800">
+              <h2 className="text-lg font-semibold text-red-800 flex items-center">
+                <AlertCircle className="mr-2 h-5 w-5" />
                 This task will be deleted permanently.
               </h2>
             </div>
             <div className="flex justify-end space-x-2">
               <Button variant="outline" onClick={cancelDelete}>
+                <X className="mr-2 h-4 w-4" />
                 Cancel
               </Button>
               <Button variant="destructive" onClick={confirmDeleteTask}>
+                <Trash2 className="mr-2 h-4 w-4" />
                 Delete
               </Button>
             </div>
@@ -159,7 +160,6 @@ export function TaskDialog({
                       ? TaskStatus.TODO
                       : TaskStatus.DONE;
                   setEditedTask({ ...editedTask, status: newStatus });
-                  onUpdateTask({ ...editedTask, status: newStatus });
                 }}
               >
                 <Check className="mr-1 h-4 w-4" />
@@ -171,14 +171,16 @@ export function TaskDialog({
                 <Button variant="ghost" size="icon">
                   <Paperclip size={20} />
                 </Button>
-                <Button
-                  variant="ghost"
-                  size="icon"
-                  onClick={handleDeleteTask}
-                  className="text-red-500 hover:text-red-600"
-                >
-                  <Trash2 size={20} />
-                </Button>
+                {mode === 'edit' && onDeleteTask && (
+                  <Button
+                    variant="ghost"
+                    size="icon"
+                    onClick={handleDeleteTask}
+                    className="text-red-500 hover:text-red-600"
+                  >
+                    <Trash2 size={20} />
+                  </Button>
+                )}
                 <Button variant="ghost" size="icon" onClick={onClose}>
                   <X size={20} />
                 </Button>
@@ -187,7 +189,7 @@ export function TaskDialog({
             <div className="space-y-6">
               <Input
                 name="title"
-                value={editedTask.title}
+                value={editedTask.title || ''}
                 onChange={handleChange}
                 placeholder="Task name"
                 className={cn(
@@ -344,8 +346,12 @@ export function TaskDialog({
                 <span className="text-sm font-medium">Description</span>
                 <MinimalTiptapEditor
                   value={editedTask.description || ''}
-                  onChange={handleDescriptionChange}
-                  onBlur={handleDescriptionBlur}
+                  onChange={(value) =>
+                    setEditedTask({
+                      ...editedTask,
+                      description: value as string,
+                    })
+                  }
                   className={cn(
                     'min-h-[100px] focus-visible:ring-0',
                     'border-transparent hover:border-input focus:border-input',
@@ -358,6 +364,15 @@ export function TaskDialog({
                   editorClassName="focus:outline-none"
                 />
               </div>
+            </div>
+            <div className="flex justify-end space-x-2 mt-4">
+              <Button variant="outline" onClick={onClose}>
+                <X className="mr-2 h-4 w-4" />
+                Cancel
+              </Button>
+              <Button variant={'ringHover'} onClick={handleSubmit}>
+                {mode === 'create' ? 'Create Task' : 'Save Changes'}
+              </Button>
             </div>
           </>
         )}
