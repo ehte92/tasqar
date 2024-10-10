@@ -1,12 +1,13 @@
 'use client';
 
-import React, { useState, useCallback } from 'react';
+import React, { useState, useCallback, Suspense } from 'react';
 import { useSortable } from '@dnd-kit/sortable';
 import { CSS } from '@dnd-kit/utilities';
 import { Task } from '@/types/task';
 import { GripVertical } from 'lucide-react';
 import { motion } from 'framer-motion';
 import { TaskDialog } from './task-dialog';
+import { LoadingSpinner } from '../ui/loading-spinner';
 
 export interface TaskDragData {
   type: 'Task';
@@ -92,13 +93,15 @@ export function TaskCardInteractive({
         </div>
       </div>
       {isDialogOpen && (
-        <TaskDialog
-          task={task}
-          isOpen={isDialogOpen}
-          onClose={() => setIsDialogOpen(false)}
-          onUpdateTask={handleTaskUpdate}
-          onDeleteTask={onDeleteTask}
-        />
+        <Suspense fallback={<LoadingSpinner />}>
+          <TaskDialog
+            task={task}
+            isOpen={isDialogOpen}
+            onClose={() => setIsDialogOpen(false)}
+            onUpdateTask={handleTaskUpdate}
+            onDeleteTask={onDeleteTask}
+          />
+        </Suspense>
       )}
     </motion.div>
   );
