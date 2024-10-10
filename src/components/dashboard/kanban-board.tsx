@@ -30,6 +30,7 @@ import { useSession } from 'next-auth/react';
 import { Task, TaskStatus, TaskPriority } from '@/types/task';
 import { toast } from 'sonner';
 import { CreateTaskInline } from './create-task-inline';
+import { AnimatePresence, motion } from 'framer-motion';
 
 export type ColumnId = 'tasks' | 'projects' | 'collaborators';
 
@@ -55,7 +56,7 @@ type CreateTaskInput = {
 };
 
 export function KanbanBoard() {
-  const [columns] = useState<Column[]>(defaultCols);
+  const [columns, setColumns] = useState<Column[]>(defaultCols);
   const [activeColumn, setActiveColumn] = useState<Column | null>(null);
   const [activeTask, setActiveTask] = useState<Task | null>(null);
   const [localTasks, setLocalTasks] = useState<Task[]>([]);
@@ -241,18 +242,20 @@ export function KanbanBoard() {
 
     if (activeId === overId) return;
 
+    const isActiveAColumn = active.data.current?.type === 'Column';
     const isActiveATask = active.data.current?.type === 'Task';
 
-    if (isActiveATask) {
-      setLocalTasks((prevTasks) => {
-        const activeIndex = prevTasks.findIndex((t) => t.id === activeId);
-        const overIndex = prevTasks.findIndex((t) => t.id === overId);
-
-        if (activeIndex !== -1 && overIndex !== -1) {
-          return arrayMove(prevTasks, activeIndex, overIndex);
-        }
-
-        return prevTasks;
+    if (isActiveAColumn) {
+      setColumns((columns) => {
+        const activeIndex = columns.findIndex((col) => col.id === activeId);
+        const overIndex = columns.findIndex((col) => col.id === overId);
+        return arrayMove(columns, activeIndex, overIndex);
+      });
+    } else if (isActiveATask) {
+      setLocalTasks((tasks) => {
+        const activeIndex = tasks.findIndex((t) => t.id === activeId);
+        const overIndex = tasks.findIndex((t) => t.id === overId);
+        return arrayMove(tasks, activeIndex, overIndex);
       });
     }
   }, []);
@@ -272,15 +275,10 @@ export function KanbanBoard() {
     if (!isActiveATask) return;
 
     if (isActiveATask && isOverATask) {
-      setLocalTasks((prevTasks) => {
-        const activeIndex = prevTasks.findIndex((t) => t.id === activeId);
-        const overIndex = prevTasks.findIndex((t) => t.id === overId);
-
-        if (activeIndex !== -1 && overIndex !== -1) {
-          return arrayMove(prevTasks, activeIndex, overIndex);
-        }
-
-        return prevTasks;
+      setLocalTasks((tasks) => {
+        const activeIndex = tasks.findIndex((t) => t.id === activeId);
+        const overIndex = tasks.findIndex((t) => t.id === overId);
+        return arrayMove(tasks, activeIndex, overIndex);
       });
     }
   }, []);
@@ -310,22 +308,33 @@ export function KanbanBoard() {
     >
       <div className="flex gap-4 items-start">
         <SortableContext items={columnsId}>
-          {columns.map((col) => (
-            <BoardColumn key={col.id} column={col}>
-              {col.id === 'tasks' && (
-                <>
-                  <CreateTaskInline onCreateTask={handleCreateTask} />
-                  {!isTasksLoading && memoizedTaskCards}
-                </>
-              )}
-              {col.id === 'projects' && !isProjectsLoading && (
-                <ProjectOverview projects={projects} />
-              )}
-              {col.id === 'collaborators' && (
-                <div>Collaborators feature coming soon...</div>
-              )}
-            </BoardColumn>
-          ))}
+          <AnimatePresence>
+            {columns.map((col) => (
+              <motion.div
+                key={col.id}
+                layout
+                initial={{ opacity: 0 }}
+                animate={{ opacity: 1 }}
+                exit={{ opacity: 0 }}
+                transition={{ duration: 0.2 }}
+              >
+                <BoardColumn column={col}>
+                  {col.id === 'tasks' && (
+                    <>
+                      <CreateTaskInline onCreateTask={handleCreateTask} />
+                      {!isTasksLoading && memoizedTaskCards}
+                    </>
+                  )}
+                  {col.id === 'projects' && !isProjectsLoading && (
+                    <ProjectOverview projects={projects} />
+                  )}
+                  {col.id === 'collaborators' && (
+                    <div>Collaborators feature coming soon...</div>
+                  )}
+                </BoardColumn>
+              </motion.div>
+            ))}
+          </AnimatePresence>
         </SortableContext>
       </div>
 
