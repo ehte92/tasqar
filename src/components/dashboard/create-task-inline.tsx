@@ -14,6 +14,13 @@ import { Task, TaskStatus, TaskPriority } from '@/types/task';
 import { cn } from '@/lib/utils';
 import { format } from 'date-fns';
 
+import {
+  Tooltip,
+  TooltipContent,
+  TooltipTrigger,
+} from '@radix-ui/react-tooltip';
+import { Badge } from '@/components/ui/badge';
+
 interface CreateTaskInlineProps {
   onCreateTask: (task: Partial<Task>) => void;
 }
@@ -106,59 +113,72 @@ export function CreateTaskInline({ onCreateTask }: CreateTaskInlineProps) {
               initial={{ width: 0, opacity: 0 }}
               animate={{ width: 'auto', opacity: 1 }}
               transition={{ duration: 0.2 }}
+              className="flex space-x-2"
             >
-              <Popover>
-                <PopoverTrigger asChild>
+              <Tooltip>
+                <TooltipTrigger asChild>
+                  <Popover>
+                    <PopoverTrigger asChild>
+                      <Button
+                        variant="outline"
+                        size="icon"
+                        className={cn(
+                          'w-10 h-10 p-0 transition-colors duration-200',
+                          dueDate &&
+                            'text-primary border-primary hover:bg-primary/10'
+                        )}
+                      >
+                        <Calendar className="h-4 w-4" />
+                      </Button>
+                    </PopoverTrigger>
+                    <PopoverContent className="w-auto p-0" align="end">
+                      <CalendarComponent
+                        mode="single"
+                        selected={dueDate}
+                        onSelect={setDueDate}
+                        initialFocus
+                      />
+                    </PopoverContent>
+                  </Popover>
+                </TooltipTrigger>
+                <TooltipContent>Set due date</TooltipContent>
+              </Tooltip>
+
+              <Tooltip>
+                <TooltipTrigger asChild>
                   <Button
-                    variant="outline"
+                    variant="default"
                     size="icon"
-                    className={cn(
-                      'w-10 h-10 p-0 transition-colors duration-200',
-                      dueDate &&
-                        'text-primary border-primary hover:bg-primary/10'
-                    )}
+                    onClick={handleSubmit}
+                    className="w-10 h-10"
+                    disabled={!title.trim()}
                   >
-                    <Calendar className="h-4 w-4" />
+                    <ArrowRight className="h-4 w-4" />
                   </Button>
-                </PopoverTrigger>
-                <PopoverContent className="w-auto p-0" align="end">
-                  <CalendarComponent
-                    mode="single"
-                    selected={dueDate}
-                    onSelect={setDueDate}
-                    initialFocus
-                  />
-                </PopoverContent>
-              </Popover>
-            </motion.div>
-            <motion.div
-              initial={{ width: 0, opacity: 0 }}
-              animate={{ width: 'auto', opacity: 1 }}
-              transition={{ duration: 0.2 }}
-            >
-              <Button
-                variant="default"
-                size="icon"
-                onClick={handleSubmit}
-                className="w-10 h-10"
-                disabled={!title.trim()}
-              >
-                <ArrowRight className="h-4 w-4" />
-              </Button>
+                </TooltipTrigger>
+                <TooltipContent>Create task</TooltipContent>
+              </Tooltip>
             </motion.div>
           </div>
           <AnimatePresence>
             {dueDate && (
-              <motion.p
+              <motion.div
                 initial={{ opacity: 0, y: -10 }}
                 animate={{ opacity: 1, y: 0 }}
                 exit={{ opacity: 0, y: -10 }}
                 transition={{ duration: 0.2 }}
-                className="text-sm text-muted-foreground flex items-center"
+                className="flex items-center space-x-2 text-sm text-muted-foreground"
               >
-                <Calendar className="h-4 w-4 mr-2" />
-                Due: {format(dueDate, 'PPP')}
-              </motion.p>
+                {dueDate && (
+                  <Badge
+                    variant="outline"
+                    className="flex items-center space-x-1"
+                  >
+                    <Calendar className="h-3 w-3" />
+                    <span>{format(dueDate, 'MMM d, yyyy')}</span>
+                  </Badge>
+                )}
+              </motion.div>
             )}
           </AnimatePresence>
           <motion.div
@@ -167,22 +187,32 @@ export function CreateTaskInline({ onCreateTask }: CreateTaskInlineProps) {
             transition={{ delay: 0.1, duration: 0.2 }}
             className="flex justify-between items-center text-sm"
           >
-            <Button
-              variant="ghost"
-              size="sm"
-              className="text-muted-foreground hover:text-foreground hover:bg-accent/50 transition-colors duration-200"
-              onClick={() => setIsDialogOpen(true)}
-            >
-              <Pencil className="h-4 w-4" />
-            </Button>
-            <Button
-              variant="ghost"
-              size="sm"
-              className="text-muted-foreground hover:text-foreground hover:bg-accent/50 transition-colors duration-200"
-              onClick={resetForm}
-            >
-              <X className="h-4 w-4" />
-            </Button>
+            <Tooltip>
+              <TooltipTrigger asChild>
+                <Button
+                  variant="ghost"
+                  size="sm"
+                  className="text-muted-foreground hover:text-foreground hover:bg-accent/50 transition-colors duration-200"
+                  onClick={() => setIsDialogOpen(true)}
+                >
+                  <Pencil className="h-4 w-4" />
+                </Button>
+              </TooltipTrigger>
+              <TooltipContent>Open detailed task creation</TooltipContent>
+            </Tooltip>
+            <Tooltip>
+              <TooltipTrigger asChild>
+                <Button
+                  variant="ghost"
+                  size="sm"
+                  className="text-muted-foreground hover:text-foreground hover:bg-accent/50 transition-colors duration-200"
+                  onClick={resetForm}
+                >
+                  <X className="h-4 w-4" />
+                </Button>
+              </TooltipTrigger>
+              <TooltipContent>Cancel</TooltipContent>
+            </Tooltip>
           </motion.div>
         </motion.div>
       )}
