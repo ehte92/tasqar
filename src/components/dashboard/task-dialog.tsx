@@ -1,9 +1,8 @@
 import React, { useState, useEffect } from 'react';
 import { Task, TaskStatus } from '@/types/task';
-import { Dialog, DialogContent, DialogHeader } from '@/components/ui/dialog';
+import { Dialog, DialogContent } from '@/components/ui/dialog';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
-import { Textarea } from '@/components/ui/textarea';
 import {
   Select,
   SelectContent,
@@ -11,36 +10,9 @@ import {
   SelectTrigger,
   SelectValue,
 } from '@/components/ui/select';
-import { Checkbox } from '@/components/ui/checkbox';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { useSession } from 'next-auth/react';
-import {
-  CalendarIcon,
-  Lock,
-  Globe,
-  X,
-  ThumbsUp,
-  Paperclip,
-  MessageSquare,
-  ExternalLink,
-  MoreHorizontal,
-  ClipboardList,
-  Tags,
-  Zap,
-  ArrowUpDown,
-  Copy,
-  Printer,
-  Trash2,
-  Fullscreen,
-  Check,
-} from 'lucide-react';
-import {
-  DropdownMenu,
-  DropdownMenuContent,
-  DropdownMenuItem,
-  DropdownMenuSeparator,
-  DropdownMenuTrigger,
-} from '../ui/dropdown-menu';
+import { CalendarIcon, X, Paperclip, Trash2, Check } from 'lucide-react';
 import {
   Popover,
   PopoverContent,
@@ -57,7 +29,7 @@ import {
   isPast,
   isFuture,
 } from 'date-fns';
-import { cn } from '@/lib/utils'; // Make sure you have this utility function
+import { cn } from '@/lib/utils';
 import { MinimalTiptapEditor } from '../minimal-tiptap';
 import { useQuery } from '@tanstack/react-query';
 import { fetchProjects } from '@/services/project-service';
@@ -98,22 +70,17 @@ export function TaskDialog({
     setEditedTask({ ...editedTask, [e.target.name]: e.target.value });
   };
 
-  const handleSelectChange = (name: keyof Task) => (value: string) => {
-    setEditedTask({ ...editedTask, [name]: value });
-  };
-
   const handleDueDateChange = (date: Date | undefined) => {
     const updatedTask = { ...editedTask, dueDate: date || null };
     setEditedTask(updatedTask);
     onUpdateTask(updatedTask);
-    // Don't close the calendar popover here
   };
 
   const clearDueDate = () => {
     const updatedTask = { ...editedTask, dueDate: null };
     setEditedTask(updatedTask);
     onUpdateTask(updatedTask);
-    setIsCalendarOpen(false); // Close the popover after clearing the date
+    setIsCalendarOpen(false);
   };
 
   const handleSubmit = () => {
@@ -302,7 +269,6 @@ export function TaskDialog({
                         }
                         onSelect={(date) => {
                           handleDueDateChange(date);
-                          // Don't close the popover here
                         }}
                         initialFocus
                       />
