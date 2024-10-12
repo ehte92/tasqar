@@ -26,6 +26,7 @@ import { useQuery } from '@tanstack/react-query';
 import { fetchProjects } from '@/services/project-service';
 import { Badge } from '@/components/ui/badge';
 import { VisuallyHidden } from '@/components/ui/visually-hidden';
+import { motion, AnimatePresence } from 'framer-motion';
 
 interface CreateTaskDialogProps {
   isOpen: boolean;
@@ -90,9 +91,24 @@ export function CreateTaskDialog({
 
   const priorityOptions = useMemo(
     () => [
-      { value: TaskPriority.LOW, label: 'Low', color: 'bg-blue-500' },
-      { value: TaskPriority.MEDIUM, label: 'Medium', color: 'bg-yellow-500' },
-      { value: TaskPriority.HIGH, label: 'High', color: 'bg-red-500' },
+      {
+        value: TaskPriority.LOW,
+        label: 'Low',
+        color: 'bg-blue-500',
+        icon: '🔽',
+      },
+      {
+        value: TaskPriority.MEDIUM,
+        label: 'Medium',
+        color: 'bg-yellow-500',
+        icon: '➡️',
+      },
+      {
+        value: TaskPriority.HIGH,
+        label: 'High',
+        color: 'bg-red-500',
+        icon: '🔼',
+      },
     ],
     []
   );
@@ -134,7 +150,13 @@ export function CreateTaskDialog({
         <VisuallyHidden>
           <DialogTitle>Create New Task</DialogTitle>
         </VisuallyHidden>
-        <div className="space-y-6">
+        <motion.div
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
+          exit={{ opacity: 0, y: 20 }}
+          transition={{ duration: 0.3 }}
+          className="space-y-6"
+        >
           <div className="flex justify-between items-center mb-4 border-b pb-2">
             <Button
               variant="outline"
@@ -167,103 +189,120 @@ export function CreateTaskDialog({
               'rounded-md'
             )}
           />
-          <div className="space-y-4">
-            <div className="flex items-center space-x-2">
-              <span className="w-20 text-sm font-medium">Assignee</span>
-              <Avatar className="h-6 w-6">
-                <AvatarImage src={session?.user?.image || ''} />
-                <AvatarFallback>{session?.user?.name?.[0]}</AvatarFallback>
-              </Avatar>
-              <span className="text-sm">{session?.user?.name}</span>
-            </div>
-            <div className="flex items-center space-x-2">
-              <span className="w-20 text-sm font-medium">Due date</span>
-              <Popover open={isCalendarOpen} onOpenChange={setIsCalendarOpen}>
-                <PopoverTrigger asChild>{memoizedDueDateButton}</PopoverTrigger>
-                <PopoverContent className="w-auto p-0" align="start">
-                  <Calendar
-                    mode="single"
-                    selected={
-                      taskDetails.dueDate
-                        ? new Date(taskDetails.dueDate)
-                        : undefined
-                    }
-                    onSelect={handleDueDateChange}
-                    initialFocus
-                  />
-                  <div className="p-2 border-t">
-                    <Button variant="ghost" size="sm" onClick={clearDueDate}>
-                      Clear due date
-                    </Button>
-                  </div>
-                </PopoverContent>
-              </Popover>
-              {taskDetails.dueDate && (
-                <Button
-                  variant="ghost"
-                  size="icon"
-                  onClick={clearDueDate}
-                  className="h-8 w-8 p-0"
-                >
-                  <X className="h-4 w-4" />
-                </Button>
-              )}
-            </div>
-            <div className="flex items-center space-x-2">
-              <span className="w-20 text-sm font-medium">Project</span>
-              <Select
-                value={taskDetails.projectId || ''}
-                onValueChange={handleProjectChange}
-              >
-                <SelectTrigger className="w-[200px] border-none hover:bg-accent">
-                  <SelectValue placeholder="Select a project" />
-                </SelectTrigger>
-                <SelectContent>
-                  {isProjectsLoading ? (
-                    <SelectItem value="loading">Loading projects...</SelectItem>
-                  ) : projects.length === 0 ? (
-                    <SelectItem value="no_projects">
-                      No projects found
-                    </SelectItem>
-                  ) : (
-                    projects.map((project) => (
-                      <SelectItem key={project.id} value={project.id}>
-                        {project.title}
-                      </SelectItem>
-                    ))
+          <div className="grid grid-cols-2 gap-4">
+            <div className="space-y-4">
+              <div className="flex items-center space-x-2">
+                <span className="w-20 text-sm font-medium">Assignee</span>
+                <Avatar className="h-6 w-6">
+                  <AvatarImage src={session?.user?.image || ''} />
+                  <AvatarFallback>{session?.user?.name?.[0]}</AvatarFallback>
+                </Avatar>
+                <span className="text-sm">{session?.user?.name}</span>
+              </div>
+              <div className="flex items-center space-x-2">
+                <span className="w-20 text-sm font-medium">Due date</span>
+                <Popover open={isCalendarOpen} onOpenChange={setIsCalendarOpen}>
+                  <PopoverTrigger asChild>
+                    {memoizedDueDateButton}
+                  </PopoverTrigger>
+                  <PopoverContent className="w-auto p-0" align="start">
+                    <Calendar
+                      mode="single"
+                      selected={
+                        taskDetails.dueDate
+                          ? new Date(taskDetails.dueDate)
+                          : undefined
+                      }
+                      onSelect={handleDueDateChange}
+                      initialFocus
+                    />
+                    <div className="p-2 border-t">
+                      <Button variant="ghost" size="sm" onClick={clearDueDate}>
+                        Clear due date
+                      </Button>
+                    </div>
+                  </PopoverContent>
+                </Popover>
+                <AnimatePresence>
+                  {taskDetails.dueDate && (
+                    <motion.div
+                      initial={{ opacity: 0, scale: 0.8 }}
+                      animate={{ opacity: 1, scale: 1 }}
+                      exit={{ opacity: 0, scale: 0.8 }}
+                      transition={{ duration: 0.2 }}
+                    >
+                      <Button
+                        variant="ghost"
+                        size="icon"
+                        onClick={clearDueDate}
+                        className="h-8 w-8 p-0"
+                      >
+                        <X className="h-4 w-4" />
+                      </Button>
+                    </motion.div>
                   )}
-                </SelectContent>
-              </Select>
+                </AnimatePresence>
+              </div>
             </div>
-            <div className="flex items-center space-x-2">
-              <span className="w-20 text-sm font-medium">Priority</span>
-              <Select
-                value={taskDetails.priority || TaskPriority.MEDIUM}
-                onValueChange={handlePriorityChange}
-              >
-                <SelectTrigger className="w-[200px] border-none hover:bg-accent">
-                  <SelectValue placeholder="Select priority">
-                    {priorityOptions.find(
-                      (option) => option.value === taskDetails.priority
-                    )?.label || 'Select priority'}
-                  </SelectValue>
-                </SelectTrigger>
-                <SelectContent>
-                  {priorityOptions.map((option) => (
-                    <SelectItem key={option.value} value={option.value}>
-                      <div className="flex items-center">
-                        <Badge
-                          variant="secondary"
-                          className={`mr-2 ${option.color} text-white`}
-                        >
-                          <Flag className="h-3 w-3 mr-1" />
-                          {option.label}
-                        </Badge>
-                      </div>
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
+            <div className="space-y-4">
+              <div className="flex items-center space-x-2">
+                <span className="w-20 text-sm font-medium">Project</span>
+                <Select
+                  value={taskDetails.projectId || ''}
+                  onValueChange={handleProjectChange}
+                >
+                  <SelectTrigger className="w-full border-none hover:bg-accent">
+                    <SelectValue placeholder="Select a project" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {isProjectsLoading ? (
+                      <SelectItem value="loading">
+                        Loading projects...
+                      </SelectItem>
+                    ) : projects.length === 0 ? (
+                      <SelectItem value="no_projects">
+                        No projects found
+                      </SelectItem>
+                    ) : (
+                      projects.map((project) => (
+                        <SelectItem key={project.id} value={project.id}>
+                          {project.title}
+                        </SelectItem>
+                      ))
+                    )}
+                  </SelectContent>
+                </Select>
+              </div>
+              <div className="flex items-center space-x-2">
+                <span className="w-20 text-sm font-medium">Priority</span>
+                <Select
+                  value={taskDetails.priority || TaskPriority.MEDIUM}
+                  onValueChange={handlePriorityChange}
+                >
+                  <SelectTrigger className="w-full border-none hover:bg-accent">
+                    <SelectValue placeholder="Select priority">
+                      {priorityOptions.find(
+                        (option) => option.value === taskDetails.priority
+                      )?.label || 'Select priority'}
+                    </SelectValue>
+                  </SelectTrigger>
+                  <SelectContent>
+                    {priorityOptions.map((option) => (
+                      <SelectItem key={option.value} value={option.value}>
+                        <div className="flex items-center">
+                          <Badge
+                            variant="secondary"
+                            className={`mr-2 ${option.color} text-white`}
+                          >
+                            <span className="mr-1">{option.icon}</span>
+                            {option.label}
+                          </Badge>
+                        </div>
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              </div>
             </div>
           </div>
           <div className="space-y-2">
@@ -276,7 +315,7 @@ export function CreateTaskDialog({
                 } as React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>)
               }
               className={cn(
-                'min-h-[100px] focus-visible:ring-0',
+                'min-h-[150px] focus-visible:ring-0',
                 'border-transparent hover:border-input focus:border-input',
                 'transition-colors duration-200'
               )}
@@ -290,7 +329,7 @@ export function CreateTaskDialog({
           <div className="flex justify-end">
             <Button onClick={handleSubmit}>Create Task</Button>
           </div>
-        </div>
+        </motion.div>
       </DialogContent>
     </Dialog>
   );

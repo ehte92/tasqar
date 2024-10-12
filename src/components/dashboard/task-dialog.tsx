@@ -1,4 +1,10 @@
-import React, { useState, useEffect, useMemo, useCallback } from 'react';
+import React, {
+  useState,
+  useEffect,
+  useMemo,
+  useCallback,
+  useRef,
+} from 'react';
 import { Task, TaskStatus, TaskPriority } from '@/types/task';
 import { Dialog, DialogContent, DialogTitle } from '@/components/ui/dialog';
 import { Button } from '@/components/ui/button';
@@ -12,7 +18,15 @@ import {
 } from '@/components/ui/select';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { useSession } from 'next-auth/react';
-import { CalendarIcon, X, Paperclip, Trash2, Check, Flag } from 'lucide-react';
+import {
+  CalendarIcon,
+  X,
+  Paperclip,
+  Trash2,
+  Check,
+  Flag,
+  Loader2,
+} from 'lucide-react';
 import {
   Popover,
   PopoverContent,
@@ -36,6 +50,8 @@ import { fetchProjects } from '@/services/project-service';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Badge } from '@/components/ui/badge';
 import { VisuallyHidden } from '@/components/ui/visually-hidden';
+import { Content } from '@tiptap/react';
+import { toast } from 'sonner';
 
 interface TaskDialogProps {
   task: Task;
@@ -55,10 +71,14 @@ export function TaskDialog({
   const [editedTask, setEditedTask] = useState<Task>(task);
   const [isCalendarOpen, setIsCalendarOpen] = useState(false);
   const [isDeleting, setIsDeleting] = useState(false);
+  const [isUpdating, setIsUpdating] = useState(false);
+  const [isTogglingStatus, setIsTogglingStatus] = useState(false);
   const { data: session } = useSession();
+  const descriptionRef = useRef<string>(task.description || '');
 
   useEffect(() => {
     setEditedTask(task);
+    descriptionRef.current = task.description || '';
   }, [task]);
 
   const { data: projects = [], isLoading: isProjectsLoading } = useQuery({
@@ -74,25 +94,15 @@ export function TaskDialog({
     []
   );
 
-  const handleDueDateChange = useCallback(
-    (date: Date | undefined) => {
-      setEditedTask((prev) => {
-        const updatedTask = { ...prev, dueDate: date || null };
-        onUpdateTask(updatedTask);
-        return updatedTask;
-      });
-    },
-    [onUpdateTask]
-  );
+  const handleDueDateChange = useCallback((date: Date | undefined) => {
+    setEditedTask((prev) => ({ ...prev, dueDate: date || null }));
+    setIsCalendarOpen(false);
+  }, []);
 
   const clearDueDate = useCallback(() => {
-    setEditedTask((prev) => {
-      const updatedTask = { ...prev, dueDate: null };
-      onUpdateTask(updatedTask);
-      return updatedTask;
-    });
+    setEditedTask((prev) => ({ ...prev, dueDate: null }));
     setIsCalendarOpen(false);
-  }, [onUpdateTask]);
+  }, []);
 
   const handleDeleteTask = useCallback(() => {
     setIsDeleting(true);
@@ -108,29 +118,35 @@ export function TaskDialog({
   }, []);
 
   const handleProjectChange = useCallback((value: string) => {
-    setEditedTask((prev) => ({ ...prev, projectId: value }));
+    setEditedTask((prev) => ({
+      ...prev,
+      projectId: value === 'no_project' ? null : value,
+    }));
   }, []);
 
-  const toggleTaskStatus = useCallback(() => {
-    setEditedTask((prev) => {
-      const newStatus =
-        prev.status === TaskStatus.DONE ? TaskStatus.TODO : TaskStatus.DONE;
-      const updatedTask = { ...prev, status: newStatus };
-      onUpdateTask(updatedTask);
-      return updatedTask;
-    });
-  }, [onUpdateTask]);
+  const toggleTaskStatus = useCallback(async () => {
+    setIsTogglingStatus(true);
+    const newStatus =
+      editedTask.status === TaskStatus.DONE ? TaskStatus.TODO : TaskStatus.DONE;
+    const updatedTask = { ...editedTask, status: newStatus };
 
-  const handlePriorityChange = useCallback(
-    (value: TaskPriority) => {
-      setEditedTask((prev) => {
-        const updatedTask = { ...prev, priority: value };
-        onUpdateTask(updatedTask);
-        return updatedTask;
-      });
-    },
-    [onUpdateTask]
-  );
+    try {
+      await onUpdateTask(updatedTask);
+      setEditedTask(updatedTask);
+      toast.success(
+        `Task marked as ${newStatus === TaskStatus.DONE ? 'complete' : 'incomplete'}`
+      );
+    } catch (error) {
+      console.error('Error updating task status:', error);
+      toast.error('Failed to update task status');
+    } finally {
+      setIsTogglingStatus(false);
+    }
+  }, [editedTask, onUpdateTask]);
+
+  const handlePriorityChange = useCallback((value: TaskPriority) => {
+    setEditedTask((prev) => ({ ...prev, priority: value }));
+  }, []);
 
   const priorityOptions = useMemo(
     () => [
@@ -185,8 +201,36 @@ export function TaskDialog({
     );
   }, [editedTask.dueDate, editedTask.status]);
 
+  const handleDescriptionChange = useCallback((value: Content) => {
+    descriptionRef.current =
+      typeof value === 'string' ? value : (value ?? '').toString();
+  }, []);
+
+  const handleUpdateTask = useCallback(async () => {
+    setIsUpdating(true);
+    const updatedTask = {
+      ...editedTask,
+      description: descriptionRef.current,
+    };
+    try {
+      await onUpdateTask(updatedTask);
+      toast.success('Task updated');
+      onClose();
+    } catch (error) {
+      console.error('Error updating task:', error);
+      toast.error('Update failed');
+    } finally {
+      setIsUpdating(false);
+    }
+  }, [editedTask, onUpdateTask, onClose]);
+
+  const handleCancelEdit = useCallback(() => {
+    if (isUpdating) return; // Prevent closing while updating
+    onClose();
+  }, [onClose, isUpdating]);
+
   return (
-    <Dialog open={isOpen} onOpenChange={onClose}>
+    <Dialog open={isOpen} onOpenChange={handleCancelEdit}>
       <DialogContent
         className="sm:max-w-[600px] overflow-y-auto max-h-[90vh]"
         hideCloseButton
@@ -238,8 +282,13 @@ export function TaskDialog({
                       : 'bg-gray-800 text-white hover:bg-green-900 hover:text-green-200 border-gray-700 hover:border-green-900'
                   )}
                   onClick={toggleTaskStatus}
+                  disabled={isTogglingStatus}
                 >
-                  <Check className="mr-1 h-4 w-4" />
+                  {isTogglingStatus ? (
+                    <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                  ) : (
+                    <Check className="mr-1 h-4 w-4" />
+                  )}
                   {editedTask.status === TaskStatus.DONE
                     ? 'Completed'
                     : 'Mark complete'}
@@ -331,11 +380,16 @@ export function TaskDialog({
                 <div className="flex items-center space-x-2">
                   <span className="w-20 text-sm font-medium">Projects</span>
                   <Select
-                    value={editedTask.projectId || ''}
+                    value={editedTask.projectId || 'no_project'}
                     onValueChange={handleProjectChange}
                   >
                     <SelectTrigger className="w-[200px] border-none hover:bg-accent">
-                      <SelectValue placeholder="Select a project" />
+                      <SelectValue placeholder="Select a project">
+                        {editedTask.projectId
+                          ? projects.find((p) => p.id === editedTask.projectId)
+                              ?.title
+                          : 'No project'}
+                      </SelectValue>
                     </SelectTrigger>
                     <SelectContent>
                       {isProjectsLoading ? (
@@ -347,11 +401,14 @@ export function TaskDialog({
                           No projects found
                         </SelectItem>
                       ) : (
-                        projects.map((project) => (
-                          <SelectItem key={project.id} value={project.id}>
-                            {project.title}
-                          </SelectItem>
-                        ))
+                        <>
+                          <SelectItem value="no_project">No project</SelectItem>
+                          {projects.map((project) => (
+                            <SelectItem key={project.id} value={project.id}>
+                              {project.title}
+                            </SelectItem>
+                          ))}
+                        </>
                       )}
                     </SelectContent>
                   </Select>
@@ -390,14 +447,8 @@ export function TaskDialog({
               <div className="space-y-2">
                 <span className="text-sm font-medium">Description</span>
                 <MinimalTiptapEditor
-                  value={editedTask.description || ''}
-                  onChange={(value) =>
-                    handleChange({
-                      target: { name: 'description', value: value as string },
-                    } as React.ChangeEvent<
-                      HTMLInputElement | HTMLTextAreaElement
-                    >)
-                  }
+                  value={descriptionRef.current}
+                  onChange={handleDescriptionChange}
                   className={cn(
                     'min-h-[100px] focus-visible:ring-0',
                     'border-transparent hover:border-input focus:border-input',
@@ -409,6 +460,29 @@ export function TaskDialog({
                   editable={true}
                   editorClassName="focus:outline-none"
                 />
+              </div>
+              <div className="flex justify-end space-x-2 mt-4">
+                <Button
+                  variant="outline"
+                  onClick={handleCancelEdit}
+                  disabled={isUpdating}
+                >
+                  Cancel
+                </Button>
+                <Button
+                  variant="default"
+                  onClick={handleUpdateTask}
+                  disabled={isUpdating}
+                >
+                  {isUpdating ? (
+                    <>
+                      <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                      Updating...
+                    </>
+                  ) : (
+                    'Update'
+                  )}
+                </Button>
               </div>
             </motion.div>
           )}
