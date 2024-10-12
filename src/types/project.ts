@@ -13,8 +13,12 @@ export interface Project {
   description: string;
   status: ProjectStatus;
   startDate?: string;
+  endDate?: string | null;
   tasks?: Array<Task>;
   createdAt: Date;
   updatedAt: Date;
   userId: string;
+  user?: {
+    name: string;
+  };
 }

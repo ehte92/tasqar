@@ -1,7 +1,6 @@
 import React from 'react';
 import { format } from 'date-fns';
-import { useQuery } from '@tanstack/react-query';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { useQuery, useQueryClient } from '@tanstack/react-query';
 import { Button } from '@/components/ui/button';
 import { Plus, FileText, MoreHorizontal } from 'lucide-react';
 import { Project } from '@/types/project';
@@ -9,15 +8,23 @@ import { fetchProjects } from '@/services/project-service';
 import { toast } from 'sonner';
 import dynamic from 'next/dynamic';
 import { useSession } from 'next-auth/react';
-import { cn } from '@/lib/utils';
 import {
   DropdownMenu,
   DropdownMenuContent,
   DropdownMenuItem,
-  DropdownMenuLabel,
-  DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from '../ui/dropdown-menu';
+import { useDeleteProject } from '@/hooks/use-delete-project';
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from '@/components/ui/alert-dialog';
 
 const CreateProjectDialog = dynamic(() => import('./create-project-dialog'), {
   ssr: false,
@@ -37,9 +44,11 @@ const ProjectSkeleton = () => (
 const ProjectCard = ({
   project,
   onEdit,
+  onDelete,
 }: {
   project: Project;
   onEdit: (project: Project) => void;
+  onDelete: (projectId: string) => void;
 }) => (
   <div className="flex items-center space-x-3 p-2 hover:bg-gray-50 dark:hover:bg-gray-800 rounded-md transition-colors duration-200">
     <div className="flex-shrink-0 w-10 h-10 bg-gray-100 dark:bg-gray-800 rounded-md flex items-center justify-center">
@@ -63,7 +72,12 @@ const ProjectCard = ({
         <DropdownMenuItem onClick={() => onEdit(project)}>
           Edit Project Details
         </DropdownMenuItem>
-        <DropdownMenuItem>Delete</DropdownMenuItem>
+        <DropdownMenuItem
+          onClick={() => onDelete(project.id)}
+          className="text-red-600 dark:text-red-400"
+        >
+          Delete
+        </DropdownMenuItem>
       </DropdownMenuContent>
     </DropdownMenu>
   </div>
@@ -74,11 +88,17 @@ export function ProjectOverview() {
   const [editingProject, setEditingProject] = React.useState<Project | null>(
     null
   );
+  const [deletingProjectId, setDeletingProjectId] = React.useState<
+    string | null
+  >(null);
   const { data: session } = useSession();
+  const queryClient = useQueryClient();
+
+  const { mutate: deleteProject, isPending: isDeleting } = useDeleteProject();
 
   const {
     data: projects,
-    isLoading,
+    isPending: isLoading,
     isError,
     error,
   } = useQuery({
@@ -96,6 +116,26 @@ export function ProjectOverview() {
 
   const handleEditProject = (project: Project) => {
     setEditingProject(project);
+  };
+
+  const handleDeleteProject = (projectId: string) => {
+    setDeletingProjectId(projectId);
+  };
+
+  const confirmDelete = () => {
+    if (deletingProjectId) {
+      deleteProject(deletingProjectId, {
+        onSuccess: () => {
+          toast.success('Project deleted successfully');
+          queryClient.invalidateQueries({ queryKey: ['projects'] });
+          setDeletingProjectId(null);
+        },
+        onError: (error) => {
+          toast.error(`Error deleting project: ${(error as Error).message}`);
+          setDeletingProjectId(null);
+        },
+      });
+    }
   };
 
   return (
@@ -117,6 +157,7 @@ export function ProjectOverview() {
               key={project.id}
               project={project}
               onEdit={handleEditProject}
+              onDelete={handleDeleteProject}
             />
           ))}
         </div>
@@ -132,6 +173,31 @@ export function ProjectOverview() {
           onClose={() => setEditingProject(null)}
         />
       )}
+      <AlertDialog
+        open={!!deletingProjectId}
+        onOpenChange={() => setDeletingProjectId(null)}
+      >
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>
+              Are you sure you want to delete this project?
+            </AlertDialogTitle>
+            <AlertDialogDescription>
+              This action cannot be undone. This will permanently delete the
+              project and all associated data.
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel>Cancel</AlertDialogCancel>
+            <AlertDialogAction
+              onClick={confirmDelete}
+              className="bg-red-600 hover:bg-red-700"
+            >
+              {isDeleting ? 'Deleting...' : 'Delete'}
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
     </>
   );
 }

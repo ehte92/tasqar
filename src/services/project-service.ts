@@ -37,7 +37,7 @@ export async function createProject(project: {
 
 export async function updateProject(
   projectId: string,
-  data: { title: string; description?: string }
+  data: { title: string; description?: string; endDate?: string | null }
 ): Promise<Project> {
   const response = await fetch(`/api/projects/${projectId}`, {
     method: 'PUT',
@@ -55,11 +55,16 @@ export async function updateProject(
 }
 
 export async function deleteProject(projectId: string): Promise<void> {
-  const response = await fetch(`/api/projects?id=${projectId}`, {
+  const response = await fetch(`/api/projects/${projectId}`, {
     method: 'DELETE',
+    headers: {
+      'Content-Type': 'application/json',
+    },
   });
+
   if (!response.ok) {
-    throw new Error('Failed to delete project');
+    const errorData = await response.json();
+    throw new Error(errorData.message || 'Failed to delete project');
   }
 }
 

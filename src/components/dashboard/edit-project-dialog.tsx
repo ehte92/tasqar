@@ -23,6 +23,15 @@ import {
 import { Project } from '@/types/project';
 import { updateProject } from '@/services/project-service';
 import { toast } from 'sonner';
+import { CalendarIcon } from 'lucide-react';
+import { Calendar } from '@/components/ui/calendar';
+import {
+  Popover,
+  PopoverContent,
+  PopoverTrigger,
+} from '@/components/ui/popover';
+import { format, parseISO } from 'date-fns';
+import { Skeleton } from '@/components/ui/skeleton';
 
 const formSchema = z.object({
   title: z
@@ -33,6 +42,7 @@ const formSchema = z.object({
     .string()
     .max(500, 'Description must be 500 characters or less')
     .optional(),
+  endDate: z.date().optional(),
 });
 
 type FormData = z.infer<typeof formSchema>;
@@ -55,11 +65,19 @@ export default function EditProjectDialog({
     defaultValues: {
       title: project.title,
       description: project.description || '',
+      endDate: project.endDate ? parseISO(project.endDate) : undefined,
     },
   });
 
   const mutation = useMutation({
-    mutationFn: (data: FormData) => updateProject(project.id, data),
+    mutationFn: (data: FormData) => {
+      // Convert Date to ISO string before sending to the server
+      const formattedData = {
+        ...data,
+        endDate: data.endDate ? data.endDate.toISOString() : undefined,
+      };
+      return updateProject(project.id, formattedData);
+    },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['projects'] });
       toast.success('Project updated successfully');
@@ -76,22 +94,24 @@ export default function EditProjectDialog({
 
   return (
     <Dialog open={isOpen} onOpenChange={onClose}>
-      <DialogContent>
+      <DialogContent className="sm:max-w-[500px]">
         <DialogHeader>
-          <DialogTitle>Edit Project</DialogTitle>
+          <DialogTitle className="text-2xl font-bold">Edit Project</DialogTitle>
         </DialogHeader>
         <Form {...form}>
-          <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
+          <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6">
             <FormField
               control={form.control}
               name="title"
               render={({ field }) => (
                 <FormItem>
-                  <FormLabel>Project Title</FormLabel>
+                  <FormLabel className="text-sm font-medium">
+                    Project Title
+                  </FormLabel>
                   <FormControl>
-                    <Input {...field} />
+                    <Input {...field} className="w-full" />
                   </FormControl>
-                  <FormMessage />
+                  <FormMessage className="text-xs text-red-500" />
                 </FormItem>
               )}
             />
@@ -100,15 +120,61 @@ export default function EditProjectDialog({
               name="description"
               render={({ field }) => (
                 <FormItem>
-                  <FormLabel>Description</FormLabel>
+                  <FormLabel className="text-sm font-medium">
+                    Description
+                  </FormLabel>
                   <FormControl>
-                    <Textarea {...field} />
+                    <Textarea {...field} className="w-full min-h-[100px]" />
                   </FormControl>
+                  <FormMessage className="text-xs text-red-500" />
+                </FormItem>
+              )}
+            />
+            <FormField
+              control={form.control}
+              name="endDate"
+              render={({ field }) => (
+                <FormItem className="flex flex-col">
+                  <FormLabel>Due Date</FormLabel>
+                  <Popover>
+                    <PopoverTrigger asChild>
+                      <FormControl>
+                        <Button
+                          variant="outline"
+                          className={
+                            !field.value ? 'text-muted-foreground' : ''
+                          }
+                        >
+                          {field.value ? (
+                            format(field.value, 'PPP')
+                          ) : (
+                            <span>Pick a date</span>
+                          )}
+                          <CalendarIcon className="ml-auto h-4 w-4 opacity-50" />
+                        </Button>
+                      </FormControl>
+                    </PopoverTrigger>
+                    <PopoverContent className="w-auto p-0" align="start">
+                      <Calendar
+                        mode="single"
+                        selected={field.value}
+                        onSelect={field.onChange}
+                        disabled={(date) =>
+                          date < new Date() || date < new Date('1900-01-01')
+                        }
+                        initialFocus
+                      />
+                    </PopoverContent>
+                  </Popover>
                   <FormMessage />
                 </FormItem>
               )}
             />
-            <div className="flex justify-end space-x-2">
+            <div className="text-sm text-muted-foreground space-y-1">
+              <p>Project Owner: {project.user?.name || 'Unknown'}</p>
+              <p>Created: {format(new Date(project.createdAt), 'PPP')}</p>
+            </div>
+            <div className="flex justify-end space-x-2 pt-4">
               <Button type="button" variant="outline" onClick={onClose}>
                 Cancel
               </Button>
