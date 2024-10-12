@@ -83,7 +83,11 @@ const ProjectCard = ({
   </div>
 );
 
-export function ProjectOverview() {
+export interface ProjectOverviewProps {
+  projects: Project[];
+}
+
+export function ProjectOverview({ projects }: ProjectOverviewProps) {
   const [isCreateDialogOpen, setIsCreateDialogOpen] = React.useState(false);
   const [editingProject, setEditingProject] = React.useState<Project | null>(
     null
@@ -97,7 +101,7 @@ export function ProjectOverview() {
   const { mutate: deleteProject, isPending: isDeleting } = useDeleteProject();
 
   const {
-    data: projects,
+    data: projectsData,
     isPending: isLoading,
     isError,
     error,
@@ -152,7 +156,7 @@ export function ProjectOverview() {
             <Plus className="mr-2 h-5 w-5" />
             <span className="font-normal">Create project</span>
           </Button>
-          {projects?.map((project) => (
+          {projectsData?.map((project) => (
             <ProjectCard
               key={project.id}
               project={project}

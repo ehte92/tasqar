@@ -23,13 +23,14 @@ import {
 import { fetchProjects } from '@/services/project-service';
 import { TaskCard } from './task-card';
 import { BoardColumn } from './board-column';
-import { ProjectOverview } from './project-overview';
+import { ProjectOverview, ProjectOverviewProps } from './project-overview';
 import { hasDraggableData } from './utils';
 import { coordinateGetter } from './multipleContainersKeyboardPreset';
 import { useSession } from 'next-auth/react';
 import { Task, TaskStatus, TaskPriority } from '@/types/task';
 import { toast } from 'sonner';
 import { CreateTaskInline } from './create-task-inline';
+import { Project } from '@/types/project';
 
 export type ColumnId = 'tasks' | 'projects' | 'collaborators';
 
@@ -273,7 +274,7 @@ export function KanbanBoard() {
       onDragEnd={onDragEnd}
       onDragOver={onDragOver}
     >
-      <div className="flex gap-4 items-start">
+      <div className="flex gap-28 items-start">
         <SortableContext items={columnsId}>
           {columns.map((col) => (
             <BoardColumn key={col.id} column={col}>
@@ -297,7 +298,9 @@ export function KanbanBoard() {
                 </>
               )}
               {col.id === 'projects' && !isProjectsLoading && (
-                <ProjectOverview projects={projects} />
+                <ProjectOverview
+                  projects={projects as ProjectOverviewProps['projects']}
+                />
               )}
               {col.id === 'collaborators' && (
                 <div>Collaborators feature coming soon...</div>
@@ -322,7 +325,9 @@ export function KanbanBoard() {
                     />
                   ))}
                 {activeColumn.id === 'projects' && (
-                  <ProjectOverview projects={projects} />
+                  <ProjectOverview
+                    projects={projects as ProjectOverviewProps['projects']}
+                  />
                 )}
                 {activeColumn.id === 'collaborators' && (
                   <div>Collaborators feature coming soon...</div>
