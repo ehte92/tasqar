@@ -6,11 +6,6 @@ import { Button } from '@/components/ui/button';
 import { GripVertical, ArrowUp } from 'lucide-react';
 import { Column } from './kanban-board';
 
-export interface ColumnDragData {
-  type: 'Column';
-  column: Column;
-}
-
 interface BoardColumnProps {
   column: Column;
   children: React.ReactNode;
@@ -29,7 +24,7 @@ export function BoardColumn({ column, children }: BoardColumnProps) {
     data: {
       type: 'Column',
       column,
-    } as ColumnDragData,
+    },
   });
 
   const style = {

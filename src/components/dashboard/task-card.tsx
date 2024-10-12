@@ -30,11 +30,6 @@ import {
 } from '@/components/ui/tooltip';
 import { Progress } from '@/components/ui/progress';
 
-export interface TaskDragData {
-  type: 'Task';
-  task: Task;
-}
-
 interface TaskCardProps {
   task: Task;
   onUpdateTask: (updatedTask: Task) => void;
@@ -57,7 +52,7 @@ export function TaskCard({ task, onUpdateTask, onDeleteTask }: TaskCardProps) {
     data: {
       type: 'Task',
       task,
-    } as TaskDragData,
+    },
   });
 
   const style = {
