@@ -1,9 +1,8 @@
-import React, { useState, useEffect } from 'react';
-import { Task, TaskStatus } from '@/types/task';
-import { Dialog, DialogContent, DialogHeader } from '@/components/ui/dialog';
+import React, { useState, useEffect, useMemo, useCallback } from 'react';
+import { Task, TaskStatus, TaskPriority } from '@/types/task';
+import { Dialog, DialogContent, DialogTitle } from '@/components/ui/dialog';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
-import { Textarea } from '@/components/ui/textarea';
 import {
   Select,
   SelectContent,
@@ -11,36 +10,9 @@ import {
   SelectTrigger,
   SelectValue,
 } from '@/components/ui/select';
-import { Checkbox } from '@/components/ui/checkbox';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { useSession } from 'next-auth/react';
-import {
-  CalendarIcon,
-  Lock,
-  Globe,
-  X,
-  ThumbsUp,
-  Paperclip,
-  MessageSquare,
-  ExternalLink,
-  MoreHorizontal,
-  ClipboardList,
-  Tags,
-  Zap,
-  ArrowUpDown,
-  Copy,
-  Printer,
-  Trash2,
-  Fullscreen,
-  Check,
-} from 'lucide-react';
-import {
-  DropdownMenu,
-  DropdownMenuContent,
-  DropdownMenuItem,
-  DropdownMenuSeparator,
-  DropdownMenuTrigger,
-} from '../ui/dropdown-menu';
+import { CalendarIcon, X, Paperclip, Trash2, Check, Flag } from 'lucide-react';
 import {
   Popover,
   PopoverContent,
@@ -57,10 +29,13 @@ import {
   isPast,
   isFuture,
 } from 'date-fns';
-import { cn } from '@/lib/utils'; // Make sure you have this utility function
+import { cn } from '@/lib/utils';
 import { MinimalTiptapEditor } from '../minimal-tiptap';
 import { useQuery } from '@tanstack/react-query';
 import { fetchProjects } from '@/services/project-service';
+import { motion, AnimatePresence } from 'framer-motion';
+import { Badge } from '@/components/ui/badge';
+import { VisuallyHidden } from '@/components/ui/visually-hidden';
 
 interface TaskDialogProps {
   task: Task;
@@ -92,115 +67,200 @@ export function TaskDialog({
     enabled: !!session?.user?.id,
   });
 
-  const handleChange = (
-    e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>
-  ) => {
-    setEditedTask({ ...editedTask, [e.target.name]: e.target.value });
-  };
+  const handleChange = useCallback(
+    (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
+      setEditedTask((prev) => ({ ...prev, [e.target.name]: e.target.value }));
+    },
+    []
+  );
 
-  const handleSelectChange = (name: keyof Task) => (value: string) => {
-    setEditedTask({ ...editedTask, [name]: value });
-  };
+  const handleDueDateChange = useCallback(
+    (date: Date | undefined) => {
+      setEditedTask((prev) => {
+        const updatedTask = { ...prev, dueDate: date || null };
+        onUpdateTask(updatedTask);
+        return updatedTask;
+      });
+    },
+    [onUpdateTask]
+  );
 
-  const handleDueDateChange = (date: Date | undefined) => {
-    const updatedTask = { ...editedTask, dueDate: date || null };
-    setEditedTask(updatedTask);
-    onUpdateTask(updatedTask);
-    // Don't close the calendar popover here
-  };
+  const clearDueDate = useCallback(() => {
+    setEditedTask((prev) => {
+      const updatedTask = { ...prev, dueDate: null };
+      onUpdateTask(updatedTask);
+      return updatedTask;
+    });
+    setIsCalendarOpen(false);
+  }, [onUpdateTask]);
 
-  const clearDueDate = () => {
-    const updatedTask = { ...editedTask, dueDate: null };
-    setEditedTask(updatedTask);
-    onUpdateTask(updatedTask);
-    setIsCalendarOpen(false); // Close the popover after clearing the date
-  };
-
-  const handleSubmit = () => {
-    onUpdateTask(editedTask);
-    onClose();
-  };
-
-  const handleDeleteTask = () => {
+  const handleDeleteTask = useCallback(() => {
     setIsDeleting(true);
-  };
+  }, []);
 
-  const confirmDeleteTask = () => {
+  const confirmDeleteTask = useCallback(() => {
     onDeleteTask(task.id);
     onClose();
-  };
+  }, [onDeleteTask, task.id, onClose]);
 
-  const cancelDelete = () => {
+  const cancelDelete = useCallback(() => {
     setIsDeleting(false);
-  };
+  }, []);
 
-  const handleProjectChange = (value: string) => {
-    setEditedTask({ ...editedTask, projectId: value });
-  };
+  const handleProjectChange = useCallback((value: string) => {
+    setEditedTask((prev) => ({ ...prev, projectId: value }));
+  }, []);
+
+  const toggleTaskStatus = useCallback(() => {
+    setEditedTask((prev) => {
+      const newStatus =
+        prev.status === TaskStatus.DONE ? TaskStatus.TODO : TaskStatus.DONE;
+      const updatedTask = { ...prev, status: newStatus };
+      onUpdateTask(updatedTask);
+      return updatedTask;
+    });
+  }, [onUpdateTask]);
+
+  const handlePriorityChange = useCallback(
+    (value: TaskPriority) => {
+      setEditedTask((prev) => {
+        const updatedTask = { ...prev, priority: value };
+        onUpdateTask(updatedTask);
+        return updatedTask;
+      });
+    },
+    [onUpdateTask]
+  );
+
+  const priorityOptions = useMemo(
+    () => [
+      { value: TaskPriority.LOW, label: 'Low', color: 'bg-blue-500' },
+      { value: TaskPriority.MEDIUM, label: 'Medium', color: 'bg-yellow-500' },
+      { value: TaskPriority.HIGH, label: 'High', color: 'bg-red-500' },
+    ],
+    []
+  );
+
+  const memoizedDueDateButton = useMemo(() => {
+    const dueDate = editedTask.dueDate ? new Date(editedTask.dueDate) : null;
+    const now = new Date();
+    const diffInDays = dueDate ? differenceInDays(dueDate, now) : null;
+    const isPastDue = dueDate ? isPast(dueDate) && !isToday(dueDate) : false;
+    const isFutureTask = dueDate ? isFuture(dueDate) : false;
+    const isIncomplete = editedTask.status !== TaskStatus.DONE;
+
+    const dateText = (() => {
+      if (!dueDate) return 'No due date';
+      if (isToday(dueDate)) return 'Today';
+      if (isTomorrow(dueDate)) return 'Tomorrow';
+      if (isYesterday(dueDate)) return 'Yesterday';
+      if (diffInDays !== null && diffInDays > 0 && diffInDays < 7)
+        return format(dueDate, 'EEEE');
+      if (isThisYear(dueDate)) return format(dueDate, 'MMM dd');
+      return format(dueDate, 'MMM dd, yyyy');
+    })();
+
+    return (
+      <Button
+        variant="ghost"
+        className={cn(
+          'w-[200px] justify-start text-left font-normal',
+          isPastDue && 'text-red-500 hover:text-red-600',
+          isFutureTask && isIncomplete && 'text-green-500 hover:text-green-600',
+          'transition-colors duration-200'
+        )}
+        onClick={() => setIsCalendarOpen(true)}
+      >
+        <CalendarIcon
+          className={cn(
+            'mr-2 h-4 w-4',
+            isPastDue && 'text-red-500 group-hover:text-red-600',
+            isFutureTask &&
+              isIncomplete &&
+              'text-green-500 group-hover:text-green-600'
+          )}
+        />
+        {dateText}
+      </Button>
+    );
+  }, [editedTask.dueDate, editedTask.status]);
 
   return (
     <Dialog open={isOpen} onOpenChange={onClose}>
-      <DialogContent className="sm:max-w-[600px]" hideCloseButton>
-        {isDeleting ? (
-          <div className="space-y-4">
-            <div className="bg-red-100 p-4 rounded-md">
-              <h2 className="text-lg font-semibold text-red-800">
-                This task will be deleted permanently.
-              </h2>
-            </div>
-            <div className="flex justify-end space-x-2">
-              <Button variant="outline" onClick={cancelDelete}>
-                Cancel
-              </Button>
-              <Button variant="destructive" onClick={confirmDeleteTask}>
-                Delete
-              </Button>
-            </div>
-          </div>
-        ) : (
-          <>
-            <div className="flex justify-between items-center mb-4 border-b pb-2">
-              <Button
-                variant="outline"
-                size="sm"
-                className={cn(
-                  'text-sm transition-colors duration-200 py-1 px-2',
-                  editedTask.status === TaskStatus.DONE
-                    ? 'bg-green-900 text-green-200 hover:bg-green-700 border-green-500'
-                    : 'bg-gray-800 text-white hover:bg-green-900 hover:text-green-200 border-gray-700 hover:border-green-900'
-                )}
-                onClick={() => {
-                  const newStatus =
-                    editedTask.status === TaskStatus.DONE
-                      ? TaskStatus.TODO
-                      : TaskStatus.DONE;
-                  setEditedTask({ ...editedTask, status: newStatus });
-                  onUpdateTask({ ...editedTask, status: newStatus });
-                }}
-              >
-                <Check className="mr-1 h-4 w-4" />
-                {editedTask.status === TaskStatus.DONE
-                  ? 'Completed'
-                  : 'Mark complete'}
-              </Button>
-              <div className="flex space-x-1">
-                <Button variant="ghost" size="icon">
-                  <Paperclip size={20} />
+      <DialogContent
+        className="sm:max-w-[600px] overflow-y-auto max-h-[90vh]"
+        hideCloseButton
+      >
+        <VisuallyHidden>
+          <DialogTitle>Task Details</DialogTitle>
+        </VisuallyHidden>
+        <AnimatePresence mode="wait">
+          {isDeleting ? (
+            <motion.div
+              key="delete-confirmation"
+              initial={{ opacity: 0, y: 20 }}
+              animate={{ opacity: 1, y: 0 }}
+              exit={{ opacity: 0, y: -20 }}
+              transition={{ duration: 0.2 }}
+              className="space-y-4"
+            >
+              <div className="bg-red-100 p-4 rounded-md">
+                <h2 className="text-lg font-semibold text-red-800">
+                  This task will be deleted permanently.
+                </h2>
+              </div>
+              <div className="flex justify-end space-x-2">
+                <Button variant="outline" onClick={cancelDelete}>
+                  Cancel
                 </Button>
-                <Button
-                  variant="ghost"
-                  size="icon"
-                  onClick={handleDeleteTask}
-                  className="text-red-500 hover:text-red-600"
-                >
-                  <Trash2 size={20} />
-                </Button>
-                <Button variant="ghost" size="icon" onClick={onClose}>
-                  <X size={20} />
+                <Button variant="destructive" onClick={confirmDeleteTask}>
+                  Delete
                 </Button>
               </div>
-            </div>
-            <div className="space-y-6">
+            </motion.div>
+          ) : (
+            <motion.div
+              key="task-edit"
+              initial={{ opacity: 0, y: 20 }}
+              animate={{ opacity: 1, y: 0 }}
+              exit={{ opacity: 0, y: -20 }}
+              transition={{ duration: 0.2 }}
+              className="space-y-6"
+            >
+              <div className="flex justify-between items-center mb-4 border-b pb-2">
+                <Button
+                  variant="outline"
+                  size="sm"
+                  className={cn(
+                    'text-sm transition-colors duration-200 py-1 px-2',
+                    editedTask.status === TaskStatus.DONE
+                      ? 'bg-green-900 text-green-200 hover:bg-green-700 border-green-500'
+                      : 'bg-gray-800 text-white hover:bg-green-900 hover:text-green-200 border-gray-700 hover:border-green-900'
+                  )}
+                  onClick={toggleTaskStatus}
+                >
+                  <Check className="mr-1 h-4 w-4" />
+                  {editedTask.status === TaskStatus.DONE
+                    ? 'Completed'
+                    : 'Mark complete'}
+                </Button>
+                <div className="flex space-x-1">
+                  <Button variant="ghost" size="icon">
+                    <Paperclip size={20} />
+                  </Button>
+                  <Button
+                    variant="ghost"
+                    size="icon"
+                    onClick={handleDeleteTask}
+                    className="text-red-500 hover:text-red-600"
+                  >
+                    <Trash2 size={20} />
+                  </Button>
+                  <Button variant="ghost" size="icon" onClick={onClose}>
+                    <X size={20} />
+                  </Button>
+                </div>
+              </div>
               <Input
                 name="title"
                 value={editedTask.title}
@@ -231,66 +291,7 @@ export function TaskDialog({
                     onOpenChange={setIsCalendarOpen}
                   >
                     <PopoverTrigger asChild>
-                      {(() => {
-                        const dueDate = editedTask.dueDate
-                          ? new Date(editedTask.dueDate)
-                          : null;
-                        const now = new Date();
-                        const diffInDays = dueDate
-                          ? differenceInDays(dueDate, now)
-                          : null;
-                        const isPastDue = dueDate
-                          ? isPast(dueDate) && !isToday(dueDate)
-                          : false;
-                        const isFutureTask = dueDate
-                          ? isFuture(dueDate)
-                          : false;
-                        const isIncomplete =
-                          editedTask.status !== TaskStatus.DONE;
-
-                        const dateText = (() => {
-                          if (!dueDate) return 'No due date';
-                          if (isToday(dueDate)) return 'Today';
-                          if (isTomorrow(dueDate)) return 'Tomorrow';
-                          if (isYesterday(dueDate)) return 'Yesterday';
-                          if (
-                            diffInDays !== null &&
-                            diffInDays > 0 &&
-                            diffInDays < 7
-                          )
-                            return format(dueDate, 'EEEE');
-                          if (isThisYear(dueDate))
-                            return format(dueDate, 'MMM dd');
-                          return format(dueDate, 'MMM dd, yyyy');
-                        })();
-
-                        return (
-                          <Button
-                            variant="ghost"
-                            className={cn(
-                              'w-[200px] justify-start text-left font-normal',
-                              isPastDue && 'text-red-500 hover:text-red-600',
-                              isFutureTask &&
-                                isIncomplete &&
-                                'text-green-500 hover:text-green-600',
-                              'transition-colors duration-200'
-                            )}
-                            onClick={() => setIsCalendarOpen(true)}
-                          >
-                            <CalendarIcon
-                              className={cn(
-                                'mr-2 h-4 w-4',
-                                isPastDue &&
-                                  'text-red-500 group-hover:text-red-600',
-                                isFutureTask &&
-                                  isIncomplete &&
-                                  'text-green-500 group-hover:text-green-600'
-                              )}
-                            />
-                            {dateText}
-                          </Button>
-                        );
-                      })()}
+                      {memoizedDueDateButton}
                     </PopoverTrigger>
                     <PopoverContent className="w-auto p-0" align="start">
                       <Calendar
@@ -302,7 +303,6 @@ export function TaskDialog({
                         }
                         onSelect={(date) => {
                           handleDueDateChange(date);
-                          // Don't close the popover here
                         }}
                         initialFocus
                       />
@@ -356,20 +356,39 @@ export function TaskDialog({
                     </SelectContent>
                   </Select>
                 </div>
+                <div className="flex items-center space-x-2">
+                  <span className="w-20 text-sm font-medium">Priority</span>
+                  <Select
+                    value={editedTask.priority}
+                    onValueChange={handlePriorityChange}
+                  >
+                    <SelectTrigger className="w-[200px] border-none hover:bg-accent">
+                      <SelectValue placeholder="Select priority">
+                        {priorityOptions.find(
+                          (option) => option.value === editedTask.priority
+                        )?.label || 'Select priority'}
+                      </SelectValue>
+                    </SelectTrigger>
+                    <SelectContent>
+                      {priorityOptions.map((option) => (
+                        <SelectItem key={option.value} value={option.value}>
+                          <div className="flex items-center">
+                            <Badge
+                              variant="secondary"
+                              className={`mr-2 ${option.color} text-white`}
+                            >
+                              <Flag className="h-3 w-3 mr-1" />
+                              {option.label}
+                            </Badge>
+                          </div>
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                </div>
               </div>
               <div className="space-y-2">
                 <span className="text-sm font-medium">Description</span>
-                {/* <Textarea
-                  name="description"
-                  value={editedTask.description || ''}
-                  onChange={handleChange}
-                  placeholder="What is this task about?"
-                  className={cn(
-                    'min-h-[100px] focus-visible:ring-0',
-                    'border-transparent hover:border-input focus:border-input',
-                    'transition-colors duration-200'
-                  )}
-                /> */}
                 <MinimalTiptapEditor
                   value={editedTask.description || ''}
                   onChange={(value) =>
@@ -391,9 +410,9 @@ export function TaskDialog({
                   editorClassName="focus:outline-none"
                 />
               </div>
-            </div>
-          </>
-        )}
+            </motion.div>
+          )}
+        </AnimatePresence>
       </DialogContent>
     </Dialog>
   );
