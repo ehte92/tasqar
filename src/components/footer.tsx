@@ -1,18 +1,19 @@
 'use client';
 
 import Link from 'next/link';
+import { motion } from 'framer-motion';
 import { Icons } from '@/components/ui/icons';
 import { Button } from '@/components/ui/button';
 import React from 'react';
 
-const footerLinks = [
-  { title: 'Product', items: ['Features', 'Pricing', 'Integrations', 'FAQ'] },
-  { title: 'Company', items: ['About', 'Blog', 'Careers', 'Contact'] },
-];
-
-export default function Footer() {
+const Footer = () => {
   return (
-    <footer className="bg-gray-100 dark:bg-gray-900 py-12 border-t border-gray-200 dark:border-gray-800">
+    <motion.footer
+      initial={{ opacity: 0, y: 20 }}
+      animate={{ opacity: 1, y: 0 }}
+      transition={{ duration: 0.5 }}
+      className="bg-gray-100 dark:bg-gray-900 py-12 border-t border-gray-200 dark:border-gray-800"
+    >
       <div className="container mx-auto px-4">
         <div className="grid grid-cols-1 md:grid-cols-4 gap-8">
           <div className="space-y-4">
@@ -27,27 +28,40 @@ export default function Footer() {
               management platform.
             </p>
           </div>
-
-          {footerLinks.map(({ title, items }) => (
-            <div key={title}>
-              <h3 className="text-sm font-semibold text-gray-900 dark:text-white uppercase tracking-wider mb-4">
-                {title}
-              </h3>
-              <ul className="space-y-2">
-                {items.map((item) => (
-                  <li key={item}>
-                    <Link
-                      href={`/${item.toLowerCase()}`}
-                      className="text-sm text-gray-600 dark:text-gray-400 hover:text-blue-600 dark:hover:text-blue-400"
-                    >
-                      {item}
-                    </Link>
-                  </li>
-                ))}
-              </ul>
-            </div>
-          ))}
-
+          <div>
+            <h3 className="text-sm font-semibold text-gray-900 dark:text-white uppercase tracking-wider mb-4">
+              Product
+            </h3>
+            <ul className="space-y-2">
+              {['Features', 'Pricing', 'Integrations', 'FAQ'].map((item) => (
+                <li key={item}>
+                  <Link
+                    href={`/${item.toLowerCase()}`}
+                    className="text-sm text-gray-600 dark:text-gray-400 hover:text-blue-600 dark:hover:text-blue-400"
+                  >
+                    {item}
+                  </Link>
+                </li>
+              ))}
+            </ul>
+          </div>
+          <div>
+            <h3 className="text-sm font-semibold text-gray-900 dark:text-white uppercase tracking-wider mb-4">
+              Company
+            </h3>
+            <ul className="space-y-2">
+              {['About', 'Blog', 'Careers', 'Contact'].map((item) => (
+                <li key={item}>
+                  <Link
+                    href={`/${item.toLowerCase()}`}
+                    className="text-sm text-gray-600 dark:text-gray-400 hover:text-blue-600 dark:hover:text-blue-400"
+                  >
+                    {item}
+                  </Link>
+                </li>
+              ))}
+            </ul>
+          </div>
           <div>
             <h3 className="text-sm font-semibold text-gray-900 dark:text-white uppercase tracking-wider mb-4">
               Stay Updated
@@ -65,13 +79,30 @@ export default function Footer() {
             </div>
           </div>
         </div>
-
         <div className="mt-8 pt-8 border-t border-gray-200 dark:border-gray-800 flex flex-col md:flex-row justify-between items-center">
           <p className="text-sm text-gray-600 dark:text-gray-400">
             &copy; {new Date().getFullYear()} Tasqar. All rights reserved.
           </p>
+          <div className="flex space-x-6 mt-4 md:mt-0">
+            {['twitter', 'facebook', 'instagram', 'github'].map((social) => (
+              <a
+                key={social}
+                href={`https://${social}.com`}
+                className="text-gray-400 hover:text-gray-500 dark:hover:text-gray-300"
+                target="_blank"
+                rel="noopener noreferrer"
+              >
+                <span className="sr-only">{social}</span>
+                {React.createElement(Icons[social as keyof typeof Icons], {
+                  className: 'h-6 w-6',
+                })}
+              </a>
+            ))}
+          </div>
         </div>
       </div>
-    </footer>
+    </motion.footer>
   );
-}
+};
+
+export default Footer;
