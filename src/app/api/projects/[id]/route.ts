@@ -10,6 +10,34 @@ const updateProjectSchema = z.object({
   endDate: z.string().optional().nullable(),
 });
 
+// Add this new GET handler
+export async function GET(
+  req: NextRequest,
+  { params }: { params: { id: string } }
+) {
+  const session = await getServerSession(authOptions);
+
+  if (!session) {
+    return new NextResponse('Unauthorized', { status: 401 });
+  }
+
+  try {
+    const project = await prisma.project.findUnique({
+      where: { id: params.id },
+      include: { user: { select: { name: true } } },
+    });
+
+    if (!project) {
+      return new NextResponse('Project not found', { status: 404 });
+    }
+
+    return NextResponse.json(project);
+  } catch (error) {
+    console.error('Failed to fetch project:', error);
+    return new NextResponse('Internal Server Error', { status: 500 });
+  }
+}
+
 export async function PUT(
   req: NextRequest,
   { params }: { params: { id: string } }

@@ -81,3 +81,14 @@ export async function reorderProjects(data: {
     throw new Error('Failed to reorder projects');
   }
 }
+
+export const fetchProjectById = async (projectId: string): Promise<Project> => {
+  const response = await fetch(`/api/projects/${projectId}`);
+  if (!response.ok) {
+    if (response.status === 404) {
+      throw new Error('Project not found');
+    }
+    throw new Error('Failed to fetch project');
+  }
+  return response.json();
+};
