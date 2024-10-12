@@ -52,7 +52,7 @@ export function KanbanBoard() {
       onDragOver={onDragOver}
     >
       <div className="h-[calc(100vh-64px)] overflow-x-auto">
-        <div className="flex gap-20 items-start h-full">
+        <div className="flex gap-4 items-start h-full p-4">
           <SortableContext items={columnsId}>
             <AnimatePresence>
               {columns.map((col) => (

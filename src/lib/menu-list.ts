@@ -6,13 +6,13 @@ import {
   LucideIcon,
 } from 'lucide-react';
 
-export type Submenu = {
+type Submenu = {
   href: string;
   label: string;
   active?: boolean;
 };
 
-export type MenuItem = {
+type Menu = {
   href: string;
   label: string;
   active: boolean;
@@ -20,12 +20,12 @@ export type MenuItem = {
   submenus?: Submenu[];
 };
 
-export type MenuGroup = {
+type Group = {
   groupLabel: string;
-  menus: MenuItem[];
+  menus: Menu[];
 };
 
-export function getMenuList(pathname: string): MenuGroup[] {
+export function getMenuList(pathname: string): Group[] {
   return [
     {
       groupLabel: '',

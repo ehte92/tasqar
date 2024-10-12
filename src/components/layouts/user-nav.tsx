@@ -20,19 +20,8 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu';
-import { useSession, signOut } from 'next-auth/react';
 
 export function UserNav() {
-  const { data: session } = useSession();
-
-  if (!session) {
-    return null;
-  }
-
-  const handleLogout = async () => {
-    await signOut({ callbackUrl: '/login' });
-  };
-
   return (
     <DropdownMenu>
       <TooltipProvider disableHoverableContent>
@@ -44,17 +33,8 @@ export function UserNav() {
                 className="relative h-8 w-8 rounded-full"
               >
                 <Avatar className="h-8 w-8">
-                  <AvatarImage
-                    src={session?.user?.image}
-                    alt={session?.user?.name}
-                  />
-                  <AvatarFallback className="bg-transparent">
-                    {session?.user?.name
-                      ?.split(' ')
-                      .map((n) => n[0])
-                      .join('')
-                      .toUpperCase()}
-                  </AvatarFallback>
+                  <AvatarImage src="#" alt="Avatar" />
+                  <AvatarFallback className="bg-transparent">JD</AvatarFallback>
                 </Avatar>
               </Button>
             </DropdownMenuTrigger>
@@ -66,34 +46,29 @@ export function UserNav() {
       <DropdownMenuContent className="w-56" align="end" forceMount>
         <DropdownMenuLabel className="font-normal">
           <div className="flex flex-col space-y-1">
-            <p className="text-sm font-medium leading-none">
-              {session?.user?.name}
-            </p>
+            <p className="text-sm font-medium leading-none">John Doe</p>
             <p className="text-xs leading-none text-muted-foreground">
-              {session?.user?.email}
+              johndoe@example.com
             </p>
           </div>
         </DropdownMenuLabel>
         <DropdownMenuSeparator />
         <DropdownMenuGroup>
-          <DropdownMenuItem asChild>
-            <Link
-              href="/dashboard"
-              className="flex items-center cursor-pointer"
-            >
+          <DropdownMenuItem className="hover:cursor-pointer" asChild>
+            <Link href="/dashboard" className="flex items-center">
               <LayoutGrid className="w-4 h-4 mr-3 text-muted-foreground" />
               Dashboard
             </Link>
           </DropdownMenuItem>
-          <DropdownMenuItem asChild>
-            <Link href="/account" className="flex items-center cursor-pointer">
+          <DropdownMenuItem className="hover:cursor-pointer" asChild>
+            <Link href="/account" className="flex items-center">
               <User className="w-4 h-4 mr-3 text-muted-foreground" />
               Account
             </Link>
           </DropdownMenuItem>
         </DropdownMenuGroup>
         <DropdownMenuSeparator />
-        <DropdownMenuItem onClick={handleLogout} className="cursor-pointer">
+        <DropdownMenuItem className="hover:cursor-pointer" onClick={() => {}}>
           <LogOut className="w-4 h-4 mr-3 text-muted-foreground" />
           Sign out
         </DropdownMenuItem>

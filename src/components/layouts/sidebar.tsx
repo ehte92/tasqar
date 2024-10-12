@@ -19,7 +19,7 @@ export function Sidebar() {
       )}
     >
       <SidebarToggle isOpen={isOpen} setIsOpen={toggle} />
-      <div className="h-full flex flex-col px-3 py-4 shadow-md dark:shadow-zinc-800">
+      <div className="relative h-full flex flex-col px-3 py-4 overflow-y-auto shadow-md dark:shadow-zinc-800">
         <Button
           className={cn(
             'transition-transform ease-in-out duration-300 mb-1',
@@ -28,7 +28,7 @@ export function Sidebar() {
           variant="link"
           asChild
         >
-          <Link href="/dashboard" className="flex items-center gap-2 ">
+          <Link href="/dashboard" className="flex items-center gap-2">
             <Icons.logo className="w-6 h-6 mr-1 text-blue-600" />
             <h1
               className={cn(
@@ -42,9 +42,7 @@ export function Sidebar() {
             </h1>
           </Link>
         </Button>
-        <div className="flex-grow">
-          <Menu isOpen={isOpen} />
-        </div>
+        <Menu isOpen={isOpen} />
       </div>
     </aside>
   );

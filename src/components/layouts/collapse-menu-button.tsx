@@ -1,9 +1,8 @@
 'use client';
 
 import Link from 'next/link';
-import { useState, useMemo } from 'react';
+import { useState } from 'react';
 import { ChevronDown, Dot, LucideIcon } from 'lucide-react';
-import { usePathname } from 'next/navigation';
 
 import { cn } from '@/lib/utils';
 import { Button } from '@/components/ui/button';
@@ -27,6 +26,7 @@ import {
   DropdownMenuContent,
   DropdownMenuSeparator,
 } from '@/components/ui/dropdown-menu';
+import { usePathname } from 'next/navigation';
 
 type Submenu = {
   href: string;
@@ -50,110 +50,89 @@ export function CollapseMenuButton({
   isOpen,
 }: CollapseMenuButtonProps) {
   const pathname = usePathname();
-
-  const isSubmenuActive = useMemo(
-    () =>
-      submenus.some((submenu) => submenu.active ?? submenu.href === pathname),
-    [submenus, pathname]
+  const isSubmenuActive = submenus.some((submenu) =>
+    submenu.active == undefined ? submenu.href === pathname : submenu.active
   );
-
   const [isCollapsed, setIsCollapsed] = useState<boolean>(isSubmenuActive);
 
-  const renderSubmenuButton = (submenu: Submenu, index: number) => {
-    const isActive = submenu.active ?? pathname === submenu.href;
-    return (
-      <Button
-        key={index}
-        variant={isActive ? 'secondary' : 'ghost'}
-        className="w-full justify-start h-10 mb-1"
+  return isOpen ? (
+    <Collapsible
+      open={isCollapsed}
+      onOpenChange={setIsCollapsed}
+      className="w-full"
+    >
+      <CollapsibleTrigger
+        className="[&[data-state=open]>div>div>svg]:rotate-180 mb-1"
         asChild
       >
-        <Link href={submenu.href}>
-          <span className="mr-4 ml-2">
-            <Dot size={18} />
-          </span>
-          <p
-            className={cn(
-              'max-w-[170px] truncate',
-              isOpen ? 'translate-x-0 opacity-100' : '-translate-x-96 opacity-0'
-            )}
-          >
-            {submenu.label}
-          </p>
-        </Link>
-      </Button>
-    );
-  };
-
-  const renderDropdownMenuItem = (submenu: Submenu, index: number) => {
-    const isActive = submenu.active ?? pathname === submenu.href;
-    return (
-      <DropdownMenuItem key={index} asChild>
-        <Link
-          className={cn('cursor-pointer', isActive && 'bg-secondary')}
-          href={submenu.href}
+        <Button
+          variant={active ? 'secondary' : 'ghost'}
+          className="w-full justify-start h-10"
         >
-          <p className="max-w-[180px] truncate">{submenu.label}</p>
-        </Link>
-      </DropdownMenuItem>
-    );
-  };
-
-  if (isOpen) {
-    return (
-      <Collapsible
-        open={isCollapsed}
-        onOpenChange={setIsCollapsed}
-        className="w-full"
-      >
-        <CollapsibleTrigger
-          className="[&[data-state=open]>div>div>svg]:rotate-180 mb-1"
-          asChild
-        >
-          <Button
-            variant={active ? 'secondary' : 'ghost'}
-            className="w-full justify-start h-10"
-          >
-            <div className="w-full items-center flex justify-between">
-              <div className="flex items-center">
-                <span className="mr-4">
-                  <Icon size={18} />
-                </span>
-                <p
-                  className={cn(
-                    'max-w-[150px] truncate',
-                    isOpen
-                      ? 'translate-x-0 opacity-100'
-                      : '-translate-x-96 opacity-0'
-                  )}
-                >
-                  {label}
-                </p>
-              </div>
-              <div
+          <div className="w-full items-center flex justify-between">
+            <div className="flex items-center">
+              <span className="mr-4">
+                <Icon size={18} />
+              </span>
+              <p
                 className={cn(
-                  'whitespace-nowrap',
+                  'max-w-[150px] truncate',
                   isOpen
                     ? 'translate-x-0 opacity-100'
                     : '-translate-x-96 opacity-0'
                 )}
               >
-                <ChevronDown
-                  size={18}
-                  className="transition-transform duration-200"
-                />
-              </div>
+                {label}
+              </p>
             </div>
+            <div
+              className={cn(
+                'whitespace-nowrap',
+                isOpen
+                  ? 'translate-x-0 opacity-100'
+                  : '-translate-x-96 opacity-0'
+              )}
+            >
+              <ChevronDown
+                size={18}
+                className="transition-transform duration-200"
+              />
+            </div>
+          </div>
+        </Button>
+      </CollapsibleTrigger>
+      <CollapsibleContent className="overflow-hidden data-[state=closed]:animate-collapsible-up data-[state=open]:animate-collapsible-down">
+        {submenus.map(({ href, label, active }, index) => (
+          <Button
+            key={index}
+            variant={
+              (active === undefined && pathname === href) || active
+                ? 'secondary'
+                : 'ghost'
+            }
+            className="w-full justify-start h-10 mb-1"
+            asChild
+          >
+            <Link href={href}>
+              <span className="mr-4 ml-2">
+                <Dot size={18} />
+              </span>
+              <p
+                className={cn(
+                  'max-w-[170px] truncate',
+                  isOpen
+                    ? 'translate-x-0 opacity-100'
+                    : '-translate-x-96 opacity-0'
+                )}
+              >
+                {label}
+              </p>
+            </Link>
           </Button>
-        </CollapsibleTrigger>
-        <CollapsibleContent className="overflow-hidden data-[state=closed]:animate-collapsible-up data-[state=open]:animate-collapsible-down">
-          {submenus.map(renderSubmenuButton)}
-        </CollapsibleContent>
-      </Collapsible>
-    );
-  }
-
-  return (
+        ))}
+      </CollapsibleContent>
+    </Collapsible>
+  ) : (
     <DropdownMenu>
       <TooltipProvider disableHoverableContent>
         <Tooltip delayDuration={100}>
@@ -191,7 +170,19 @@ export function CollapseMenuButton({
           {label}
         </DropdownMenuLabel>
         <DropdownMenuSeparator />
-        {submenus.map(renderDropdownMenuItem)}
+        {submenus.map(({ href, label, active }, index) => (
+          <DropdownMenuItem key={index} asChild>
+            <Link
+              className={`cursor-pointer ${
+                ((active === undefined && pathname === href) || active) &&
+                'bg-secondary'
+              }`}
+              href={href}
+            >
+              <p className="max-w-[180px] truncate">{label}</p>
+            </Link>
+          </DropdownMenuItem>
+        ))}
         <DropdownMenuArrow className="fill-border" />
       </DropdownMenuContent>
     </DropdownMenu>
