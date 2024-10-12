@@ -1,9 +1,7 @@
 import React from 'react';
 import { useQuery } from '@tanstack/react-query';
 import { fetchProjectById } from '@/services/project-service';
-import { fetchTasks } from '@/services/task-service';
 import { Project, ProjectStatus } from '@/types/project';
-import { Task, TaskStatus } from '@/types/task';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Progress } from '@/components/ui/progress';
 import { Badge } from '@/components/ui/badge';
@@ -30,26 +28,16 @@ export const ProjectDetails: React.FC<ProjectDetailsProps> = ({
     queryFn: () => fetchProjectById(projectId),
   });
 
-  const {
-    data: tasks,
-    isLoading: areTasksLoading,
-    error: tasksError,
-  } = useQuery<Task[], Error>({
-    queryKey: ['tasks', projectId],
-    queryFn: () => fetchTasks(projectId),
-  });
-
-  if (isLoading || areTasksLoading)
-    return <div>Loading project details...</div>;
+  if (isLoading) return <div>Loading project details...</div>;
   if (projectError)
     return <div>Error loading project: {projectError.message}</div>;
-  if (tasksError) return <div>Error loading tasks: {tasksError.message}</div>;
   if (!project) return <div>Project not found</div>;
 
-  const completedTasks = tasks?.filter((task) => task.status === 'DONE') || [];
+  const completedTasks =
+    project.tasks?.filter((task) => task.status === 'DONE') || [];
   const progressPercentage =
-    tasks && tasks.length > 0
-      ? Math.round((completedTasks.length / tasks.length) * 100)
+    project.tasks && project.tasks.length > 0
+      ? Math.round((completedTasks.length / project.tasks.length) * 100)
       : 0;
 
   const getStatusColor = (status: ProjectStatus) => {
@@ -103,7 +91,7 @@ export const ProjectDetails: React.FC<ProjectDetailsProps> = ({
         <CardContent>
           <Progress value={progressPercentage} className="w-full" />
           <p className="text-sm text-gray-600 mt-2">
-            {completedTasks.length} of {tasks?.length} tasks completed (
+            {completedTasks.length} of {project.tasks?.length} tasks completed (
             {progressPercentage}%)
           </p>
         </CardContent>
@@ -115,7 +103,7 @@ export const ProjectDetails: React.FC<ProjectDetailsProps> = ({
         </CardHeader>
         <CardContent>
           <ul className="space-y-2">
-            {tasks?.map((task) => (
+            {project.tasks?.map((task) => (
               <li key={task.id} className="flex items-center justify-between">
                 <span className="flex items-center">
                   {task.status === 'DONE' ? (
