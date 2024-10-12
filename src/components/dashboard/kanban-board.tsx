@@ -1,4 +1,4 @@
-import React, { useMemo, useState, useEffect } from 'react';
+import React, { useMemo, useState } from 'react';
 import { createPortal } from 'react-dom';
 import {
   DndContext,
@@ -59,7 +59,6 @@ export function KanbanBoard() {
 
   const [activeColumn, setActiveColumn] = useState<Column | null>(null);
   const [activeTask, setActiveTask] = useState<Task | null>(null);
-  const [localTasks, setLocalTasks] = useState<Task[]>([]);
 
   const { data: session } = useSession();
   const queryClient = useQueryClient();
@@ -76,20 +75,18 @@ export function KanbanBoard() {
     enabled: !!session?.user?.id,
   });
 
-  useEffect(() => {
-    if (tasksData) {
-      const formattedTasks: Task[] = tasksData.map((task) => ({
-        ...task,
-        columnId: 'tasks',
-        content: task.description || '',
-        status: task.status || TaskStatus.TODO,
-        priority: task.priority || TaskPriority.MEDIUM,
-        createdAt: new Date(task.createdAt),
-        updatedAt: new Date(task.updatedAt),
-        dueDate: task.dueDate ? new Date(task.dueDate) : null,
-      }));
-      setLocalTasks(formattedTasks);
-    }
+  const formattedTasks = useMemo(() => {
+    if (!tasksData) return [];
+    return tasksData.map((task) => ({
+      ...task,
+      columnId: 'tasks',
+      content: task.description || '',
+      status: task.status || TaskStatus.TODO,
+      priority: task.priority || TaskPriority.MEDIUM,
+      createdAt: new Date(task.createdAt),
+      updatedAt: new Date(task.updatedAt),
+      dueDate: task.dueDate ? new Date(task.dueDate) : null,
+    }));
   }, [tasksData]);
 
   const createTaskMutation = useMutation({
@@ -149,9 +146,6 @@ export function KanbanBoard() {
   });
 
   const handleUpdateTask = (updatedTask: Task) => {
-    setLocalTasks((tasks) =>
-      tasks.map((task) => (task.id === updatedTask.id ? updatedTask : task))
-    );
     updateTaskMutation.mutate(updatedTask);
   };
 
@@ -236,16 +230,12 @@ export function KanbanBoard() {
         return columns;
       });
     } else if (isActiveATask) {
-      setLocalTasks((tasks) => {
-        const activeIndex = tasks.findIndex((t) => t.id === activeId);
-        const overIndex = tasks.findIndex((t) => t.id === overId);
-
-        if (activeIndex !== -1 && overIndex !== -1) {
-          return arrayMove(tasks, activeIndex, overIndex);
-        }
-
-        return tasks;
-      });
+      const updatedTasks = arrayMove(
+        formattedTasks,
+        formattedTasks.findIndex((t) => t.id === activeId),
+        formattedTasks.findIndex((t) => t.id === overId)
+      );
+      queryClient.setQueryData(['tasks', session?.user?.id], updatedTasks);
     }
   };
 
@@ -265,16 +255,12 @@ export function KanbanBoard() {
 
     // Dropping a Task over another Task
     if (isActiveATask && isOverATask) {
-      setLocalTasks((tasks) => {
-        const activeIndex = tasks.findIndex((t) => t.id === activeId);
-        const overIndex = tasks.findIndex((t) => t.id === overId);
-
-        if (activeIndex !== -1 && overIndex !== -1) {
-          return arrayMove(tasks, activeIndex, overIndex);
-        }
-
-        return tasks;
-      });
+      const updatedTasks = arrayMove(
+        formattedTasks,
+        formattedTasks.findIndex((t) => t.id === activeId),
+        formattedTasks.findIndex((t) => t.id === overId)
+      );
+      queryClient.setQueryData(['tasks', session?.user?.id], updatedTasks);
     }
 
     // Implement logic for dropping a Task into a different column if needed
@@ -295,8 +281,10 @@ export function KanbanBoard() {
                 <>
                   <CreateTaskInline onCreateTask={handleCreateTask} />
                   {!isTasksLoading && (
-                    <SortableContext items={localTasks.map((task) => task.id)}>
-                      {localTasks.map((task) => (
+                    <SortableContext
+                      items={formattedTasks.map((task) => task.id)}
+                    >
+                      {formattedTasks.map((task) => (
                         <TaskCard
                           key={task.id}
                           task={task}
@@ -325,7 +313,7 @@ export function KanbanBoard() {
             {activeColumn && (
               <BoardColumn column={activeColumn}>
                 {activeColumn.id === 'tasks' &&
-                  localTasks.map((task) => (
+                  formattedTasks.map((task) => (
                     <TaskCard
                       key={task.id}
                       task={task}
