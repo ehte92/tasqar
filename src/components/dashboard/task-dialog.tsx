@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useRef } from 'react';
-import { Task, TaskPriority, TaskStatus } from '@/types/task';
+import { Task, TaskStatus } from '@/types/task';
 import { Dialog, DialogContent } from '@/components/ui/dialog';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -12,7 +12,7 @@ import {
 } from '@/components/ui/select';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { useSession } from 'next-auth/react';
-import { CalendarIcon, X, Paperclip, Trash2, Check, Flag } from 'lucide-react';
+import { CalendarIcon, X, Paperclip, Trash2, Check } from 'lucide-react';
 import {
   Popover,
   PopoverContent,
@@ -86,6 +86,11 @@ export function TaskDialog({
     setIsCalendarOpen(false);
   };
 
+  const handleSubmit = () => {
+    onUpdateTask(editedTask);
+    onClose();
+  };
+
   const handleDeleteTask = () => {
     setIsDeleting(true);
   };
@@ -114,23 +119,6 @@ export function TaskDialog({
     if (editedTask.description !== originalDescriptionRef.current) {
       onUpdateTask(editedTask);
       originalDescriptionRef.current = editedTask.description;
-    }
-  };
-
-  const handlePriorityChange = (value: TaskPriority) => {
-    const updatedTask = { ...editedTask, priority: value };
-    setEditedTask(updatedTask);
-    onUpdateTask(updatedTask);
-  };
-
-  const getPriorityIcon = (priority: TaskPriority) => {
-    switch (priority) {
-      case TaskPriority.HIGH:
-        return <Flag className="h-4 w-4 text-red-500" />;
-      case TaskPriority.MEDIUM:
-        return <Flag className="h-4 w-4 text-yellow-500" />;
-      case TaskPriority.LOW:
-        return <Flag className="h-4 w-4 text-green-500" />;
     }
   };
 
@@ -322,29 +310,6 @@ export function TaskDialog({
                       <X className="h-4 w-4" />
                     </Button>
                   )}
-                </div>
-                <div className="flex items-center space-x-2">
-                  <span className="w-20 text-sm font-medium">Priority</span>
-                  <Select
-                    value={editedTask.priority || TaskPriority.MEDIUM}
-                    onValueChange={(value) =>
-                      handlePriorityChange(value as TaskPriority)
-                    }
-                  >
-                    <SelectTrigger className="w-[200px] border-none hover:bg-accent">
-                      <SelectValue placeholder="Select priority" />
-                    </SelectTrigger>
-                    <SelectContent>
-                      {Object.values(TaskPriority).map((priority) => (
-                        <SelectItem key={priority} value={priority}>
-                          <div className="flex items-center">
-                            {getPriorityIcon(priority as TaskPriority)}
-                            <span className="ml-2">{priority}</span>
-                          </div>
-                        </SelectItem>
-                      ))}
-                    </SelectContent>
-                  </Select>
                 </div>
                 <div className="flex items-center space-x-2">
                   <span className="w-20 text-sm font-medium">Projects</span>
