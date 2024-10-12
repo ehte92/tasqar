@@ -273,7 +273,7 @@ export function KanbanBoard() {
       onDragEnd={onDragEnd}
       onDragOver={onDragOver}
     >
-      <div className="flex gap-8 items-start">
+      <div className="flex flex-col sm:flex-row gap-4 sm:gap-6 items-start overflow-x-auto pb-4 sm:overflow-x-hidden sm:px-4">
         <SortableContext items={columnsId}>
           {columns.map((col) => (
             <BoardColumn key={col.id} column={col}>
