@@ -14,23 +14,36 @@ import {
 
 export function ModeToggle() {
   const { setTheme, theme } = useTheme();
+  const [isMounted, setIsMounted] = React.useState(false);
+
+  React.useEffect(() => {
+    setIsMounted(true);
+  }, []);
+
+  if (!isMounted) {
+    return null; // Prevent SSR flash
+  }
+
+  const toggleTheme = () => setTheme(theme === 'dark' ? 'light' : 'dark');
 
   return (
-    <TooltipProvider disableHoverableContent>
-      <Tooltip delayDuration={100}>
+    <TooltipProvider>
+      <Tooltip delayDuration={300}>
         <TooltipTrigger asChild>
           <Button
-            className="rounded-full w-8 h-8 bg-background mr-2"
             variant="outline"
             size="icon"
-            onClick={() => setTheme(theme === 'dark' ? 'light' : 'dark')}
+            onClick={toggleTheme}
+            className="rounded-full w-9 h-9 bg-background"
+            aria-label="Toggle theme"
           >
-            <SunIcon className="w-[1.2rem] h-[1.2rem] rotate-90 scale-0 transition-transform ease-in-out duration-500 dark:rotate-0 dark:scale-100" />
-            <MoonIcon className="absolute w-[1.2rem] h-[1.2rem] rotate-0 scale-1000 transition-transform ease-in-out duration-500 dark:-rotate-90 dark:scale-0" />
-            <span className="sr-only">Switch Theme</span>
+            <SunIcon className="h-[1.2rem] w-[1.2rem] rotate-0 scale-100 transition-all dark:-rotate-90 dark:scale-0" />
+            <MoonIcon className="absolute h-[1.2rem] w-[1.2rem] rotate-90 scale-0 transition-all dark:rotate-0 dark:scale-100" />
           </Button>
         </TooltipTrigger>
-        <TooltipContent side="bottom">Switch Theme</TooltipContent>
+        <TooltipContent side="bottom">
+          Switch to {theme === 'dark' ? 'light' : 'dark'} mode
+        </TooltipContent>
       </Tooltip>
     </TooltipProvider>
   );
