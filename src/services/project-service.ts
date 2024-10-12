@@ -35,15 +35,22 @@ export async function createProject(project: {
   }
 }
 
-export async function updateProject(project: Project): Promise<Project> {
-  const response = await fetch('/api/projects', {
+export async function updateProject(
+  projectId: string,
+  data: { title: string; description?: string }
+): Promise<Project> {
+  const response = await fetch(`/api/projects/${projectId}`, {
     method: 'PUT',
-    headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify(project),
+    headers: {
+      'Content-Type': 'application/json',
+    },
+    body: JSON.stringify(data),
   });
+
   if (!response.ok) {
     throw new Error('Failed to update project');
   }
+
   return response.json();
 }
 
