@@ -13,7 +13,7 @@ const getGreeting = (): Greeting => {
   return 'evening';
 };
 
-export function DashboardGreeting() {
+export default function DashboardGreeting() {
   const { data: session } = useSession();
   const currentDate = new Date();
   const greeting = getGreeting();

@@ -53,7 +53,7 @@ const defaultCols: Column[] = [
   },
 ];
 
-export function KanbanBoard() {
+export default function KanbanBoard() {
   const [columns, setColumns] = useState<Column[]>(defaultCols);
   const columnsId = useMemo(() => columns.map((col) => col.id), [columns]);
 

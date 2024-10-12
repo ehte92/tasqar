@@ -1,29 +1,41 @@
 'use client';
 
 import { Suspense } from 'react';
-import { DashboardGreeting } from '@/components/dashboard/dashboard-greeting';
-import { TaskStats } from '@/components/dashboard/task-stats';
+import dynamic from 'next/dynamic';
 import { ContentLayout } from '@/components/layouts/content-layout';
 import { LoadingSpinner } from '@/components/ui/loading-spinner';
-import { KanbanBoard } from '@/components/dashboard/kanban-board';
+
+const DashboardGreeting = dynamic(
+  () => import('@/components/dashboard/dashboard-greeting'),
+  {
+    loading: () => <LoadingSpinner />,
+  }
+);
+
+const TaskStats = dynamic(() => import('@/components/dashboard/task-stats'), {
+  loading: () => <LoadingSpinner />,
+});
+
+const KanbanBoard = dynamic(
+  () => import('@/components/dashboard/kanban-board'),
+  {
+    loading: () => <LoadingSpinner />,
+  }
+);
 
 export default function DashboardPage() {
   return (
     <ContentLayout title="Dashboard">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-        <div className="mb-8">
-          <Suspense fallback={<LoadingSpinner />}>
-            <DashboardGreeting />
-          </Suspense>
-        </div>
-        <Suspense fallback={<LoadingSpinner />}>
+        <section className="mb-8">
+          <DashboardGreeting />
+        </section>
+        <section>
           <TaskStats />
-        </Suspense>
-        <div className="mt-8">
-          <Suspense fallback={<LoadingSpinner />}>
-            <KanbanBoard />
-          </Suspense>
-        </div>
+        </section>
+        <section className="mt-8">
+          <KanbanBoard />
+        </section>
       </div>
     </ContentLayout>
   );

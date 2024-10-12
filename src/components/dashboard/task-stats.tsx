@@ -13,7 +13,7 @@ const fetchTaskStats = async (userId: string) => {
   return response.json();
 };
 
-export function TaskStats() {
+export default function TaskStats() {
   const { data: session } = useSession();
 
   const {
