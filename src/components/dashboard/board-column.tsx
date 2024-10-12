@@ -62,8 +62,12 @@ export const BoardColumn = React.memo(function BoardColumn({
   return (
     <Card
       ref={setNodeRef}
-      style={style}
-      className={`w-[350px] max-w-full bg-card flex flex-col h-[calc(100vh-12rem)] rounded-lg shadow-md transition-opacity duration-200 ${
+      style={{
+        ...style,
+        width: '385px',
+        minWidth: '385px',
+      }}
+      className={`max-w-full bg-card flex flex-col h-[calc(100vh-12rem)] rounded-lg shadow-md transition-opacity duration-200 ${
         isDragging ? 'opacity-50' : ''
       }`}
       {...attributes}
