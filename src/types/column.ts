@@ -1,8 +1,6 @@
 export type ColumnId = 'tasks' | 'projects' | 'collaborators';
 
 export interface Column {
-  id: string;
+  id: ColumnId;
   title: string;
-  type: 'tasks' | 'projects' | 'collaborators' | string;
-  // ... other properties
 }

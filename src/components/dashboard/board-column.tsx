@@ -4,8 +4,7 @@ import { CSS } from '@dnd-kit/utilities';
 import { Card, CardContent, CardHeader } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { GripVertical, ArrowUp } from 'lucide-react';
-import { Column } from '@/types/column';
-import { Badge } from '@/components/ui/badge';
+import { Column } from './kanban-board';
 
 interface BoardColumnProps {
   column: Column;
@@ -41,7 +40,7 @@ export function BoardColumn({ column, children }: BoardColumnProps) {
     if (contentRef.current) {
       const { scrollTop, scrollHeight, clientHeight } = contentRef.current;
       setShowScrollShadow(scrollTop > 0);
-      setShowScrollToTop(scrollTop > clientHeight / 2);
+      setShowScrollToTop(scrollTop > clientHeight);
     }
   };
 
@@ -57,31 +56,25 @@ export function BoardColumn({ column, children }: BoardColumnProps) {
     }
   }, []);
 
-  const taskCount = React.Children.count(children);
-
   return (
     <Card
       ref={setNodeRef}
       style={style}
-      className={`w-[350px] max-w-full bg-background flex flex-col h-full shadow-md ${
-        isDragging ? 'opacity-50 shadow-xl' : ''
+      className={`w-[350px] max-w-full bg-background flex flex-col h-full ${
+        isDragging ? 'opacity-50' : ''
       }`}
       {...attributes}
     >
-      <CardHeader className="p-3 font-semibold border-b text-left flex flex-row items-center justify-between shrink-0">
-        <div className="flex items-center">
-          <Button
-            variant="ghost"
-            {...listeners}
-            className="p-1 text-muted-foreground -ml-2 h-auto cursor-grab relative hover:text-primary"
-          >
-            <span className="sr-only">{`Move column: ${column.title}`}</span>
-            <GripVertical className="h-4 w-4" />
-          </Button>
-          <Badge variant="outline" className="ml-2 text-sm font-medium">
-            {column.title}
-          </Badge>
-        </div>
+      <CardHeader className="p-4 font-semibold border-b-2 text-left flex flex-row items-center shrink-0">
+        <Button
+          variant="ghost"
+          {...listeners}
+          className="p-1 text-primary/50 -ml-2 h-auto cursor-grab relative"
+        >
+          <span className="sr-only">{`Move column: ${column.title}`}</span>
+          <GripVertical />
+        </Button>
+        <span className="ml-2">{column.title}</span>
       </CardHeader>
       <CardContent
         ref={contentRef}
@@ -94,8 +87,8 @@ export function BoardColumn({ column, children }: BoardColumnProps) {
       {showScrollToTop && (
         <Button
           variant="outline"
-          size="icon"
-          className="absolute bottom-4 right-4 rounded-full opacity-80 hover:opacity-100 transition-opacity"
+          size="sm"
+          className="absolute bottom-4 right-4 rounded-full"
           onClick={scrollToTop}
         >
           <ArrowUp className="h-4 w-4" />
