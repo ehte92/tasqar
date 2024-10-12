@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useRef } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Task, TaskStatus } from '@/types/task';
 import { Dialog, DialogContent } from '@/components/ui/dialog';
 import { Button } from '@/components/ui/button';
@@ -33,7 +33,6 @@ import { cn } from '@/lib/utils';
 import { MinimalTiptapEditor } from '../minimal-tiptap';
 import { useQuery } from '@tanstack/react-query';
 import { fetchProjects } from '@/services/project-service';
-import { Content } from '@tiptap/react';
 
 interface TaskDialogProps {
   task: Task;
@@ -54,11 +53,9 @@ export function TaskDialog({
   const [isCalendarOpen, setIsCalendarOpen] = useState(false);
   const [isDeleting, setIsDeleting] = useState(false);
   const { data: session } = useSession();
-  const originalDescriptionRef = useRef(task.description);
 
   useEffect(() => {
     setEditedTask(task);
-    originalDescriptionRef.current = task.description;
   }, [task]);
 
   const { data: projects = [], isLoading: isProjectsLoading } = useQuery({
@@ -106,20 +103,6 @@ export function TaskDialog({
 
   const handleProjectChange = (value: string) => {
     setEditedTask({ ...editedTask, projectId: value });
-  };
-
-  const handleDescriptionChange = (value: Content) => {
-    setEditedTask((prevTask) => ({
-      ...prevTask,
-      description: value as string,
-    }));
-  };
-
-  const handleDescriptionBlur = () => {
-    if (editedTask.description !== originalDescriptionRef.current) {
-      onUpdateTask(editedTask);
-      originalDescriptionRef.current = editedTask.description;
-    }
   };
 
   return (
@@ -342,10 +325,26 @@ export function TaskDialog({
               </div>
               <div className="space-y-2">
                 <span className="text-sm font-medium">Description</span>
+                {/* <Textarea
+                  name="description"
+                  value={editedTask.description || ''}
+                  onChange={handleChange}
+                  placeholder="What is this task about?"
+                  className={cn(
+                    'min-h-[100px] focus-visible:ring-0',
+                    'border-transparent hover:border-input focus:border-input',
+                    'transition-colors duration-200'
+                  )}
+                /> */}
                 <MinimalTiptapEditor
                   value={editedTask.description || ''}
-                  onChange={handleDescriptionChange}
-                  onBlur={handleDescriptionBlur}
+                  onChange={(value) =>
+                    handleChange({
+                      target: { name: 'description', value: value as string },
+                    } as React.ChangeEvent<
+                      HTMLInputElement | HTMLTextAreaElement
+                    >)
+                  }
                   className={cn(
                     'min-h-[100px] focus-visible:ring-0',
                     'border-transparent hover:border-input focus:border-input',
