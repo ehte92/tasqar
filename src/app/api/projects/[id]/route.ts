@@ -10,7 +10,6 @@ const updateProjectSchema = z.object({
   endDate: z.string().optional().nullable(),
 });
 
-// Add this new GET handler
 export async function GET(
   req: NextRequest,
   { params }: { params: { id: string } }
@@ -24,7 +23,19 @@ export async function GET(
   try {
     const project = await prisma.project.findUnique({
       where: { id: params.id },
-      include: { user: { select: { name: true } } },
+      include: {
+        user: { select: { name: true } },
+        tasks: {
+          orderBy: { createdAt: 'desc' },
+          select: {
+            id: true,
+            title: true,
+            status: true,
+            priority: true,
+            dueDate: true,
+          },
+        },
+      },
     });
 
     if (!project) {
