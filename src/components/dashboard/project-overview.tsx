@@ -1,16 +1,60 @@
-import React from 'react';
+import React, { useState } from 'react';
 import Link from 'next/link';
 import { format } from 'date-fns';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Plus, Calendar, CheckCircle, Clock } from 'lucide-react';
 import { Project, ProjectStatus } from '@/types/project';
+import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
+import { fetchProjects, createProject } from '@/services/project-service';
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+  DialogTrigger,
+} from '@/components/ui/dialog';
+import { Input } from '@/components/ui/input';
+import { Label } from '@/components/ui/label';
+import { toast } from 'sonner';
 
-interface ProjectOverviewProps {
-  projects: Project[];
-}
+export function ProjectOverview() {
+  const [newProjectTitle, setNewProjectTitle] = useState('');
+  const [isDialogOpen, setIsDialogOpen] = useState(false);
+  const queryClient = useQueryClient();
 
-export function ProjectOverview({ projects }: ProjectOverviewProps) {
+  const {
+    data: projects,
+    isLoading,
+    isError,
+  } = useQuery({
+    queryKey: ['projects'],
+    queryFn: () => fetchProjects('currentUserId'), // Replace with actual user ID
+  });
+
+  const createProjectMutation = useMutation({
+    mutationFn: createProject,
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['projects'] });
+      setIsDialogOpen(false);
+      setNewProjectTitle('');
+      toast.success('Project created');
+    },
+    onError: (error) => {
+      toast.error(`Failed to create project: ${error.message}`);
+    },
+  });
+
+  const handleCreateProject = (e: React.FormEvent) => {
+    e.preventDefault();
+    if (newProjectTitle.trim()) {
+      createProjectMutation.mutate({
+        title: newProjectTitle.trim(),
+        userId: 'currentUserId', // Replace with actual user ID
+      });
+    }
+  };
+
   const getStatusIcon = (status: ProjectStatus) => {
     switch (status) {
       case ProjectStatus.ACTIVE:
@@ -22,14 +66,59 @@ export function ProjectOverview({ projects }: ProjectOverviewProps) {
     }
   };
 
+  if (isLoading) {
+    return <div>Loading projects...</div>;
+  }
+
+  if (isError) {
+    return <div>Error loading projects. Please try again later.</div>;
+  }
+
   return (
     <Card className="h-full flex flex-col">
       <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
         <CardTitle className="text-sm font-medium">Projects</CardTitle>
+        <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
+          <DialogTrigger asChild>
+            <Button variant="outline" size="sm">
+              <Plus className="mr-2 h-4 w-4" /> Quick Add
+            </Button>
+          </DialogTrigger>
+          <DialogContent>
+            <DialogHeader>
+              <DialogTitle>Create New Project</DialogTitle>
+            </DialogHeader>
+            <form onSubmit={handleCreateProject}>
+              <div className="grid gap-4 py-4">
+                <div className="grid grid-cols-4 items-center gap-4">
+                  <Label htmlFor="projectTitle" className="text-right">
+                    Title
+                  </Label>
+                  <Input
+                    id="projectTitle"
+                    value={newProjectTitle}
+                    onChange={(e) => setNewProjectTitle(e.target.value)}
+                    className="col-span-3"
+                  />
+                </div>
+              </div>
+              <div className="flex justify-end">
+                <Button
+                  type="submit"
+                  disabled={createProjectMutation.isPending}
+                >
+                  {createProjectMutation.isPending
+                    ? 'Creating...'
+                    : 'Create Project'}
+                </Button>
+              </div>
+            </form>
+          </DialogContent>
+        </Dialog>
       </CardHeader>
       <CardContent className="flex-grow flex flex-col">
         <div className="flex-grow overflow-auto">
-          {projects.length > 0 ? (
+          {projects && projects.length > 0 ? (
             <ul className="space-y-4">
               {projects.map((project) => (
                 <li
@@ -64,16 +153,17 @@ export function ProjectOverview({ projects }: ProjectOverviewProps) {
               ))}
             </ul>
           ) : (
-            <p className="text-sm text-gray-500 dark:text-gray-400">
-              No projects to display.
-            </p>
+            <div className="text-center py-8">
+              <p className="text-sm text-gray-500 dark:text-gray-400 mb-4">
+                No projects to display. Create your first project to get
+                started!
+              </p>
+              <Button onClick={() => setIsDialogOpen(true)}>
+                <Plus className="mr-2 h-4 w-4" /> Create Your First Project
+              </Button>
+            </div>
           )}
         </div>
-        <Link href="/projects/create" passHref className="mt-4">
-          <Button variant="outline" className="w-full">
-            <Plus className="mr-2 h-4 w-4" /> Create project
-          </Button>
-        </Link>
       </CardContent>
     </Card>
   );
