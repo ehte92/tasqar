@@ -1,4 +1,4 @@
-import React, { useRef, useState, useEffect } from 'react';
+import React, { useRef, useState, useCallback } from 'react';
 import { useSortable } from '@dnd-kit/sortable';
 import { CSS } from '@dnd-kit/utilities';
 import { Card, CardContent, CardHeader } from '@/components/ui/card';
@@ -11,7 +11,10 @@ interface BoardColumnProps {
   children: React.ReactNode;
 }
 
-export function BoardColumn({ column, children }: BoardColumnProps) {
+export const BoardColumn = React.memo(function BoardColumn({
+  column,
+  children,
+}: BoardColumnProps) {
   const {
     attributes,
     listeners,
@@ -36,51 +39,42 @@ export function BoardColumn({ column, children }: BoardColumnProps) {
   const [showScrollShadow, setShowScrollShadow] = useState(false);
   const [showScrollToTop, setShowScrollToTop] = useState(false);
 
-  const handleScroll = () => {
+  const handleScroll = useCallback(() => {
     if (contentRef.current) {
       const { scrollTop, scrollHeight, clientHeight } = contentRef.current;
       setShowScrollShadow(scrollTop > 0);
-      setShowScrollToTop(scrollTop > clientHeight);
+      setShowScrollToTop(scrollTop > clientHeight / 2);
     }
-  };
+  }, []);
 
   const scrollToTop = () => {
     contentRef.current?.scrollTo({ top: 0, behavior: 'smooth' });
   };
 
-  useEffect(() => {
-    const content = contentRef.current;
-    if (content) {
-      content.addEventListener('scroll', handleScroll);
-      return () => content.removeEventListener('scroll', handleScroll);
-    }
-  }, []);
-
   return (
     <Card
       ref={setNodeRef}
       style={style}
-      className={`w-[350px] max-w-full bg-background flex flex-col h-full ${
+      className={`w-[350px] max-w-full bg-card flex flex-col h-full rounded-lg shadow-md transition-opacity duration-200 ${
         isDragging ? 'opacity-50' : ''
       }`}
       {...attributes}
     >
-      <CardHeader className="p-4 font-semibold border-b-2 text-left flex flex-row items-center shrink-0">
+      <CardHeader className="p-4 font-semibold border-b border-border text-left flex flex-row items-center shrink-0 bg-card-header">
         <Button
           variant="ghost"
           {...listeners}
-          className="p-1 text-primary/50 -ml-2 h-auto cursor-grab relative"
+          className="p-1 text-muted-foreground hover:text-primary -ml-2 h-auto cursor-grab relative"
         >
           <span className="sr-only">{`Move column: ${column.title}`}</span>
-          <GripVertical />
+          <GripVertical className="h-5 w-5" />
         </Button>
-        <span className="ml-2">{column.title}</span>
+        <span className="ml-2 text-lg">{column.title}</span>
       </CardHeader>
       <CardContent
         ref={contentRef}
-        className={`flex-grow overflow-y-auto p-2 transition-shadow duration-200 ${
-          showScrollShadow ? 'shadow-inner' : ''
-        }`}
+        onScroll={handleScroll}
+        className="flex-grow overflow-y-auto p-2 space-y-2 transition-shadow duration-200 scrollbar-thin scrollbar-thumb-rounded scrollbar-thumb-gray-300 hover:scrollbar-thumb-gray-400"
       >
         {children}
       </CardContent>
@@ -88,7 +82,7 @@ export function BoardColumn({ column, children }: BoardColumnProps) {
         <Button
           variant="outline"
           size="sm"
-          className="absolute bottom-4 right-4 rounded-full"
+          className="absolute bottom-4 right-4 rounded-full opacity-70 hover:opacity-100 transition-opacity duration-200"
           onClick={scrollToTop}
         >
           <ArrowUp className="h-4 w-4" />
@@ -96,4 +90,4 @@ export function BoardColumn({ column, children }: BoardColumnProps) {
       )}
     </Card>
   );
-}
+});
