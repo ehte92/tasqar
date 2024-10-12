@@ -1,4 +1,4 @@
-import React, { useRef, useState, useCallback } from 'react';
+import React, { useRef, useState, useCallback, useEffect } from 'react';
 import { useSortable } from '@dnd-kit/sortable';
 import { CSS } from '@dnd-kit/utilities';
 import { Card, CardContent, CardHeader } from '@/components/ui/card';
@@ -43,7 +43,7 @@ export const BoardColumn = React.memo(function BoardColumn({
     if (contentRef.current) {
       const { scrollTop, scrollHeight, clientHeight } = contentRef.current;
       setShowScrollShadow(scrollTop > 0);
-      setShowScrollToTop(scrollTop > clientHeight / 2);
+      setShowScrollToTop(scrollTop > 100); // Show button after scrolling 100px
     }
   }, []);
 
@@ -51,11 +51,19 @@ export const BoardColumn = React.memo(function BoardColumn({
     contentRef.current?.scrollTo({ top: 0, behavior: 'smooth' });
   };
 
+  useEffect(() => {
+    const content = contentRef.current;
+    if (content) {
+      content.addEventListener('scroll', handleScroll);
+      return () => content.removeEventListener('scroll', handleScroll);
+    }
+  }, [handleScroll]);
+
   return (
     <Card
       ref={setNodeRef}
       style={style}
-      className={`w-[350px] max-w-full bg-card flex flex-col h-full rounded-lg shadow-md transition-opacity duration-200 ${
+      className={`w-[350px] max-w-full bg-card flex flex-col h-[calc(100vh-12rem)] rounded-lg shadow-md transition-opacity duration-200 ${
         isDragging ? 'opacity-50' : ''
       }`}
       {...attributes}
@@ -73,21 +81,24 @@ export const BoardColumn = React.memo(function BoardColumn({
       </CardHeader>
       <CardContent
         ref={contentRef}
-        onScroll={handleScroll}
-        className="flex-grow overflow-y-auto p-2 space-y-2 transition-shadow duration-200 scrollbar-thin scrollbar-thumb-rounded scrollbar-thumb-gray-300 hover:scrollbar-thumb-gray-400"
+        className="flex-grow overflow-y-auto p-2 space-y-2 transition-shadow duration-200 scrollbar-thin scrollbar-thumb-rounded scrollbar-thumb-gray-300 hover:scrollbar-thumb-gray-400 relative"
       >
         {children}
+        {showScrollShadow && (
+          <div className="sticky top-0 left-0 right-0 h-4 bg-gradient-to-b from-background to-transparent pointer-events-none" />
+        )}
+        {showScrollToTop && (
+          <Button
+            variant="outline"
+            size="sm"
+            className="sticky bottom-2 left-[calc(100%-2.5rem)] rounded-full opacity-70 hover:opacity-100 transition-opacity duration-200 z-10"
+            onClick={scrollToTop}
+          >
+            <ArrowUp className="h-4 w-4" />
+            <span className="sr-only">Scroll to top</span>
+          </Button>
+        )}
       </CardContent>
-      {showScrollToTop && (
-        <Button
-          variant="outline"
-          size="sm"
-          className="absolute bottom-4 right-4 rounded-full opacity-70 hover:opacity-100 transition-opacity duration-200"
-          onClick={scrollToTop}
-        >
-          <ArrowUp className="h-4 w-4" />
-        </Button>
-      )}
     </Card>
   );
 });

@@ -30,9 +30,8 @@ import { useSession } from 'next-auth/react';
 import { Task, TaskStatus, TaskPriority } from '@/types/task';
 import { toast } from 'sonner';
 import { CreateTaskInline } from './create-task-inline';
-import { Project } from '@/types/project';
 
-export type ColumnId = 'tasks' | 'projects' | 'collaborators';
+export type ColumnId = 'tasks' | 'projects' | 'people';
 
 export interface Column {
   id: ColumnId;
@@ -49,8 +48,8 @@ const defaultCols: Column[] = [
     title: 'Project Overview',
   },
   {
-    id: 'collaborators',
-    title: 'Collaborators',
+    id: 'people',
+    title: 'People',
   },
 ];
 
@@ -302,9 +301,7 @@ export function KanbanBoard() {
                   projects={projects as ProjectOverviewProps['projects']}
                 />
               )}
-              {col.id === 'collaborators' && (
-                <div>Collaborators feature coming soon...</div>
-              )}
+              {col.id === 'people' && <div>People feature coming soon...</div>}
             </BoardColumn>
           ))}
         </SortableContext>
@@ -329,8 +326,8 @@ export function KanbanBoard() {
                     projects={projects as ProjectOverviewProps['projects']}
                   />
                 )}
-                {activeColumn.id === 'collaborators' && (
-                  <div>Collaborators feature coming soon...</div>
+                {activeColumn.id === 'people' && (
+                  <div>People feature coming soon...</div>
                 )}
               </BoardColumn>
             )}
