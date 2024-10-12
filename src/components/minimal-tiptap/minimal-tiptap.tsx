@@ -87,7 +87,7 @@ export const MinimalTiptapEditor = React.forwardRef<
         className
       )}
     >
-      {editor.isFocused && <Toolbar editor={editor} />}
+      <Toolbar editor={editor} />
       <EditorContent
         editor={editor}
         className={cn('minimal-tiptap-editor', editorContentClassName)}
