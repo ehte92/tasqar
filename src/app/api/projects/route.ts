@@ -1,6 +1,9 @@
 import { NextResponse } from 'next/server';
 import { z } from 'zod';
 import prisma from '@/lib/db';
+import { PrismaClient } from '@prisma/client';
+import { getServerSession } from 'next-auth/next';
+import { authOptions } from '@/app/api/auth/[...nextauth]/route';
 
 const projectSchema = z.object({
   title: z
@@ -33,47 +36,55 @@ function handleError(error: unknown) {
 }
 
 export async function GET(request: Request) {
-  try {
-    const { searchParams } = new URL(request.url);
-    const userId = searchParams.get('userId');
+  const session = await getServerSession(authOptions);
 
-    if (!userId) {
-      throw new Error('User ID is required');
-    }
-
-    const projects = await prisma.project.findMany({
-      where: { userId },
-      orderBy: { updatedAt: 'desc' },
-      take: 5,
-    });
-
-    return NextResponse.json(projects);
-  } catch (error) {
-    return handleError(error);
+  if (!session || !session.user) {
+    return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
   }
+
+  const { searchParams } = new URL(request.url);
+  const userId = searchParams.get('userId');
+
+  if (!userId) {
+    throw new Error('User ID is required');
+  }
+
+  const projects = await prisma.project.findMany({
+    where: { userId },
+    orderBy: { updatedAt: 'desc' },
+    take: 5,
+  });
+
+  return NextResponse.json(projects);
 }
 
 export async function POST(request: Request) {
   try {
-    const body = await request.json();
-    const validatedData = projectSchema.parse(body);
+    const session = await getServerSession(authOptions);
+    if (!session || !session.user) {
+      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+    }
 
-    const newProject = await prisma.project.create({
+    const { title, description } = await request.json();
+
+    if (!title) {
+      return NextResponse.json({ error: 'Title is required' }, { status: 400 });
+    }
+
+    const project = await prisma.project.create({
       data: {
-        title: validatedData.title,
-        userId: validatedData.userId,
-        status: 'ACTIVE', // Set a default status
+        title,
+        description,
+        status: 'PLANNED',
+        userId: session.user.id,
       },
     });
 
-    return NextResponse.json(newProject, { status: 201 });
+    return NextResponse.json(project);
   } catch (error) {
-    if (error instanceof z.ZodError) {
-      return NextResponse.json({ error: error.errors }, { status: 400 });
-    }
     console.error('Error creating project:', error);
     return NextResponse.json(
-      { error: 'An unexpected error occurred' },
+      { error: 'Failed to create project. Please try again.' },
       { status: 500 }
     );
   }

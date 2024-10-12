@@ -10,12 +10,11 @@ export enum ProjectStatus {
 export interface Project {
   id: string;
   title: string;
-  description?: string;
+  description: string;
   status: ProjectStatus;
-  startDate?: Date | null;
-  endDate?: Date | null;
+  startDate?: string;
+  tasks?: Array<Task>;
   createdAt: Date;
   updatedAt: Date;
   userId: string;
-  tasks: Task[];
 }

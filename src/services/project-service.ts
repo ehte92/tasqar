@@ -10,20 +10,29 @@ export async function fetchProjects(userId: string): Promise<Project[]> {
 
 export async function createProject(project: {
   title: string;
+  description?: string;
   userId: string;
 }): Promise<Project> {
-  const response = await fetch('/api/projects', {
-    method: 'POST',
-    headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify(project),
-  });
+  try {
+    const response = await fetch('/api/projects', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        ...project,
+        status: ProjectStatus.PLANNED, // Set a default status
+      }),
+    });
 
-  if (!response.ok) {
-    const errorData = await response.json();
-    throw new Error(errorData.error || 'Failed to create project');
+    if (!response.ok) {
+      const errorData = await response.json();
+      throw new Error(errorData.error || 'Failed to create project');
+    }
+
+    return response.json();
+  } catch (error) {
+    console.error('Error creating project:', error);
+    throw new Error('Failed to create project. Please try again.');
   }
-
-  return response.json();
 }
 
 export async function updateProject(project: Project): Promise<Project> {
