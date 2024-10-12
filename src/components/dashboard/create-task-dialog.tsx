@@ -210,7 +210,7 @@ export function CreateTaskDialog({
               )}
             </div>
             <div className="flex items-center space-x-2">
-              <span className="w-20 text-sm font-medium">Projects</span>
+              <span className="w-20 text-sm font-medium">Project</span>
               <Select
                 value={taskDetails.projectId || ''}
                 onValueChange={handleProjectChange}
