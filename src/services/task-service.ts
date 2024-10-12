@@ -22,7 +22,10 @@ export async function createTask(task: Partial<Task>): Promise<Task> {
   const response = await fetch('/api/tasks', {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify(task),
+    body: JSON.stringify({
+      ...task,
+      status: task.status ? TaskStatus[task.status] : undefined,
+    }),
   });
 
   if (!response.ok) {
@@ -39,6 +42,7 @@ export async function updateTask(task: Task): Promise<Task> {
     headers: { 'Content-Type': 'application/json' },
     body: JSON.stringify({
       ...task,
+      status: TaskStatus[task.status],
       dueDate: task.dueDate,
     }),
   });

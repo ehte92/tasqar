@@ -86,7 +86,7 @@ export async function POST(request: Request) {
       data: {
         title: validatedData.title,
         description: validatedData.description ?? null,
-        status: validatedData.status,
+        status: TaskStatus[validatedData.status],
         priority: validatedData.priority,
         dueDate: validatedData.dueDate ? new Date(validatedData.dueDate) : null,
         userId: validatedData.userId,
@@ -117,7 +117,10 @@ export async function PUT(request: Request) {
 
     const updatedTask = await prisma.task.update({
       where: { id },
-      data: updateData,
+      data: {
+        ...updateData,
+        status: updateData.status ? TaskStatus[updateData.status] : undefined,
+      },
     });
 
     return NextResponse.json(updatedTask);
