@@ -23,4 +23,5 @@ export interface Task {
   projectId?: string | null;
   columnId: string;
   content: string;
+  assigneeId?: string | null;
 }
