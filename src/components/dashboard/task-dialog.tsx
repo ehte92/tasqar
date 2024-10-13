@@ -52,6 +52,7 @@ import { Badge } from '@/components/ui/badge';
 import { VisuallyHidden } from '@/components/ui/visually-hidden';
 import { Content } from '@tiptap/react';
 import { toast } from 'sonner';
+import { ExtendedUserConnection } from '../people/connection-card';
 
 interface TaskDialogProps {
   task: Task;
@@ -59,6 +60,14 @@ interface TaskDialogProps {
   onClose: () => void;
   onUpdateTask: (updatedTask: Task) => void;
   onDeleteTask: (taskId: string) => void;
+}
+
+async function fetchConnections(): Promise<ExtendedUserConnection[]> {
+  const response = await fetch('/api/connections');
+  if (!response.ok) {
+    throw new Error('Failed to fetch connections');
+  }
+  return response.json();
 }
 
 export function TaskDialog({
@@ -85,6 +94,15 @@ export function TaskDialog({
     queryKey: ['projects', session?.user?.id],
     queryFn: () => fetchProjects(session?.user?.id as string),
     enabled: !!session?.user?.id,
+  });
+
+  const { data: connections = [], isLoading: isConnectionsLoading } = useQuery<
+    ExtendedUserConnection[],
+    Error
+  >({
+    queryKey: ['connections'],
+    queryFn: fetchConnections,
+    enabled: !!session,
   });
 
   const handleChange = useCallback(
@@ -211,6 +229,7 @@ export function TaskDialog({
     const updatedTask = {
       ...editedTask,
       description: descriptionRef.current,
+      assigneeId: editedTask.assigneeId || null,
     };
     try {
       await onUpdateTask(updatedTask);
@@ -228,6 +247,45 @@ export function TaskDialog({
     if (isUpdating) return; // Prevent closing while updating
     onClose();
   }, [onClose, isUpdating]);
+
+  const handleAssigneeChange = useCallback((value: string) => {
+    setEditedTask((prev) => ({ ...prev, assigneeId: value }));
+  }, []);
+
+  const getAssigneeDetails = useCallback(
+    (assigneeId: string | null) => {
+      if (!assigneeId) return null;
+
+      if (assigneeId === session?.user?.id) {
+        return {
+          name: session.user.name,
+          image: session.user.image,
+        };
+      }
+
+      const connection = connections.find(
+        (c) => c.sender.id === assigneeId || c.receiver.id === assigneeId
+      );
+
+      if (connection) {
+        const user =
+          connection.sender.id === assigneeId
+            ? connection.sender
+            : connection.receiver;
+        return {
+          name: user.name,
+          image: user.image,
+        };
+      }
+
+      return null;
+    },
+    [connections, session]
+  );
+  const assigneeDetails = useMemo(
+    () => getAssigneeDetails(editedTask.assigneeId ?? null),
+    [editedTask.assigneeId, getAssigneeDetails]
+  );
 
   return (
     <Dialog open={isOpen} onOpenChange={handleCancelEdit}>
@@ -324,14 +382,62 @@ export function TaskDialog({
               <div className="space-y-4">
                 <div className="flex items-center space-x-2">
                   <span className="w-20 text-sm font-medium">Assignee</span>
-                  <Avatar className="h-6 w-6">
-                    <AvatarImage src={session?.user?.image || ''} />
-                    <AvatarFallback>{session?.user?.name?.[0]}</AvatarFallback>
-                  </Avatar>
-                  <span className="text-sm">{session?.user?.name}</span>
-                  <Button variant="ghost" size="sm" className="h-6 w-6 p-0">
-                    <X size={16} />
-                  </Button>
+                  <Select
+                    value={editedTask.assigneeId || ''}
+                    onValueChange={handleAssigneeChange}
+                  >
+                    <SelectTrigger className="w-[200px] border-none hover:bg-accent">
+                      <SelectValue placeholder="Select assignee">
+                        {isConnectionsLoading ? (
+                          'Loading...'
+                        ) : assigneeDetails ? (
+                          <div className="flex items-center">
+                            <Avatar className="h-6 w-6 mr-2">
+                              <AvatarImage src={assigneeDetails.image || ''} />
+                              <AvatarFallback>
+                                {assigneeDetails.name?.[0]}
+                              </AvatarFallback>
+                            </Avatar>
+                            <span>{assigneeDetails.name}</span>
+                          </div>
+                        ) : (
+                          'Select assignee'
+                        )}
+                      </SelectValue>
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value={session?.user?.id as string}>
+                        <div className="flex items-center">
+                          <Avatar className="h-6 w-6 mr-2">
+                            <AvatarImage src={session?.user?.image || ''} />
+                            <AvatarFallback>
+                              {session?.user?.name?.[0]}
+                            </AvatarFallback>
+                          </Avatar>
+                          <span>{session?.user?.name} (You)</span>
+                        </div>
+                      </SelectItem>
+                      {connections.map((connection) => {
+                        const user =
+                          connection.sender.id === session?.user?.id
+                            ? connection.receiver
+                            : connection.sender;
+                        return (
+                          <SelectItem key={user.id} value={user.id}>
+                            <div className="flex items-center">
+                              <Avatar className="h-6 w-6 mr-2">
+                                <AvatarImage src={user.image || ''} />
+                                <AvatarFallback>
+                                  {user.name?.[0]}
+                                </AvatarFallback>
+                              </Avatar>
+                              <span>{user.name}</span>
+                            </div>
+                          </SelectItem>
+                        );
+                      })}
+                    </SelectContent>
+                  </Select>
                 </div>
                 <div className="flex items-center space-x-2">
                   <span className="w-20 text-sm font-medium">Due date</span>
