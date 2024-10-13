@@ -4,6 +4,7 @@ import { UserNav } from '@/components/layouts/user-nav';
 import { SheetMenu } from '@/components/layouts/sheet-menu';
 import { Search } from 'lucide-react';
 import { Input } from '@/components/ui/input';
+import { NotificationDropdown } from '../notifications/notification-dropdown';
 
 interface NavbarProps {
   title: string;
@@ -33,6 +34,7 @@ export function Navbar({ title }: NavbarProps) {
           </div>
 
           <div className="flex items-center space-x-4">
+            <NotificationDropdown />
             <ModeToggle />
             <div className="hidden sm:block">
               <UserNav />
