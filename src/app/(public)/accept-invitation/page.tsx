@@ -31,13 +31,11 @@ export default function AcceptInvitationPage() {
           setEmail(data.email);
         } else {
           setError(data.error || 'Invalid or expired invitation');
-          toast.error(data.error || 'Invalid or expired invitation');
           setIsValidToken(false);
         }
       } catch (error) {
         console.error('Error validating token:', error);
         setError('An error occurred while validating the invitation');
-        toast.error('An error occurred while validating the invitation');
         setIsValidToken(false);
       }
     };
