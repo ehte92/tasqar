@@ -27,7 +27,8 @@ model User {
   updatedAt                DateTime         @updatedAt
   accounts                 Account[]
   sessions                 Session[]
-  tasks                    Task[]
+  tasks                    Task[]           @relation("UserTasks")
+  assignedTasks            Task[]           @relation("AssignedTasks")
   projects                 Project[]
   sentConnections          UserConnection[] @relation("SentConnections")
   receivedConnections      UserConnection[] @relation("ReceivedConnections")
@@ -80,8 +81,10 @@ model Task {
   updatedAt   DateTime   @updatedAt
   userId      String
   projectId   String?
-  user        User       @relation(fields: [userId], references: [id])
+  assigneeId  String? // Add this line
+  user        User       @relation("UserTasks", fields: [userId], references: [id])
   project     Project?   @relation(fields: [projectId], references: [id])
+  assignee    User?      @relation("AssignedTasks", fields: [assigneeId], references: [id])
 }
 
 model Project {
