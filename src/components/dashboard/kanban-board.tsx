@@ -76,18 +76,20 @@ export default function KanbanBoard() {
   });
 
   const formattedTasks = useMemo(() => {
-    if (!tasksData) return [];
-    return tasksData.map((task) => ({
-      ...task,
-      columnId: 'tasks',
-      content: task.description || '',
-      status: task.status || TaskStatus.TODO,
-      priority: task.priority || TaskPriority.MEDIUM,
-      createdAt: new Date(task.createdAt),
-      updatedAt: new Date(task.updatedAt),
-      dueDate: task.dueDate ? new Date(task.dueDate) : null,
-    }));
-  }, [tasksData]);
+    if (!tasksData || !session?.user?.id) return [];
+    return tasksData
+      .filter((task) => task.assigneeId === session.user.id)
+      .map((task) => ({
+        ...task,
+        columnId: 'tasks',
+        content: task.description || '',
+        status: task.status || TaskStatus.TODO,
+        priority: task.priority || TaskPriority.MEDIUM,
+        createdAt: new Date(task.createdAt),
+        updatedAt: new Date(task.updatedAt),
+        dueDate: task.dueDate ? new Date(task.dueDate) : null,
+      }));
+  }, [tasksData, session?.user?.id]);
 
   const createTaskMutation = useMutation({
     mutationFn: createTask,
