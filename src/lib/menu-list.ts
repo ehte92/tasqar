@@ -52,6 +52,13 @@ export function getMenuList(pathname: string): Group[] {
           icon: Briefcase,
           submenus: [],
         },
+        {
+          href: '/people',
+          label: 'People',
+          active: pathname.includes('/people'),
+          icon: Users,
+          submenus: [],
+        },
       ],
     },
     // {
