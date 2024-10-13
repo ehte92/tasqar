@@ -2,7 +2,7 @@
 
 import React from 'react';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
-import { Bell } from 'lucide-react';
+import { Bell, Briefcase, Clock, CheckSquare, AlertCircle } from 'lucide-react';
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -14,13 +14,20 @@ import { Badge } from '@/components/ui/badge';
 import { cn } from '@/lib/utils';
 import { toast } from 'sonner';
 import { AnimatePresence, motion } from 'framer-motion';
+import Link from 'next/link';
 
 interface Notification {
   id: string;
-  type: string;
+  type:
+    | 'CONNECTION_REQUEST'
+    | 'TASK_ASSIGNMENT'
+    | 'PROJECT_UPDATE'
+    | 'TASK_DUE_SOON'
+    | 'TASK_OVERDUE';
   message: string;
   read: boolean;
   createdAt: string;
+  relatedId?: string;
 }
 
 async function fetchNotifications(): Promise<Notification[]> {
@@ -43,6 +50,40 @@ async function markNotificationsAsRead(ids: string[]): Promise<void> {
     throw new Error('Failed to mark notifications as read');
   }
 }
+
+const NotificationIcon = ({ type }: { type: Notification['type'] }) => {
+  switch (type) {
+    case 'CONNECTION_REQUEST':
+      return <Bell className="h-4 w-4 text-blue-500" />;
+    case 'TASK_ASSIGNMENT':
+      return <CheckSquare className="h-4 w-4 text-green-500" />;
+    case 'PROJECT_UPDATE':
+      return <Briefcase className="h-4 w-4 text-purple-500" />;
+    case 'TASK_DUE_SOON':
+      return <Clock className="h-4 w-4 text-yellow-500" />;
+    case 'TASK_OVERDUE':
+      return <AlertCircle className="h-4 w-4 text-red-500" />;
+    default:
+      return <Bell className="h-4 w-4 text-gray-500" />;
+  }
+};
+
+const NotificationLink = ({ notification }: { notification: Notification }) => {
+  switch (notification.type) {
+    case 'CONNECTION_REQUEST':
+      return <Link href="/people">View request</Link>;
+    case 'TASK_ASSIGNMENT':
+    case 'TASK_DUE_SOON':
+    case 'TASK_OVERDUE':
+      return <Link href={`/tasks/${notification.relatedId}`}>View task</Link>;
+    case 'PROJECT_UPDATE':
+      return (
+        <Link href={`/projects/${notification.relatedId}`}>View project</Link>
+      );
+    default:
+      return null;
+  }
+};
 
 export function NotificationDropdown() {
   const queryClient = useQueryClient();
@@ -126,42 +167,28 @@ export function NotificationDropdown() {
           notifications.map((notification) => (
             <DropdownMenuItem
               key={notification.id}
-              className="flex flex-col items-start"
+              className="flex items-start space-x-2 p-2"
             >
-              <span
-                className={cn('text-sm', !notification.read && 'font-semibold')}
-              >
-                {notification.message}
-              </span>
-              <span className="text-xs text-gray-500">
-                {new Date(notification.createdAt).toLocaleString()}
-              </span>
+              <NotificationIcon type={notification.type} />
+              <div className="flex-1">
+                <p
+                  className={cn(
+                    'text-sm',
+                    !notification.read && 'font-semibold'
+                  )}
+                >
+                  {notification.message}
+                </p>
+                <div className="flex justify-between items-center mt-1">
+                  <span className="text-xs text-gray-500">
+                    {new Date(notification.createdAt).toLocaleString()}
+                  </span>
+                  <NotificationLink notification={notification} />
+                </div>
+              </div>
             </DropdownMenuItem>
           ))
         )}
-        {notifications.map((notification) => (
-          <DropdownMenuItem
-            key={notification.id}
-            className="flex items-start space-x-2 p-2"
-          >
-            <div
-              className={cn(
-                'w-2 h-2 rounded-full mt-1',
-                notification.read ? 'bg-gray-300' : 'bg-blue-500'
-              )}
-            />
-            <div className="flex-1">
-              <p
-                className={cn('text-sm', !notification.read && 'font-semibold')}
-              >
-                {notification.message}
-              </p>
-              <span className="text-xs text-gray-500">
-                {new Date(notification.createdAt).toLocaleString()}
-              </span>
-            </div>
-          </DropdownMenuItem>
-        ))}
       </DropdownMenuContent>
     </DropdownMenu>
   );
