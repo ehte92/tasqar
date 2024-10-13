@@ -32,6 +32,7 @@ model User {
   projects                 Project[]
   sentConnections          UserConnection[] @relation("SentConnections")
   receivedConnections      UserConnection[] @relation("ReceivedConnections")
+  Notification             Notification[]
 }
 
 model Account {
@@ -113,6 +114,16 @@ model UserConnection {
   receiver   User             @relation("ReceivedConnections", fields: [receiverId], references: [id])
 
   @@unique([senderId, receiverId])
+}
+
+model Notification {
+  id        String   @id @default(cuid())
+  type      String
+  message   String
+  read      Boolean  @default(false)
+  createdAt DateTime @default(now())
+  userId    String
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
 }
 
 enum TaskStatus {
