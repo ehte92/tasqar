@@ -117,13 +117,14 @@ model UserConnection {
 }
 
 model Notification {
-  id        String   @id @default(cuid())
-  type      String
+  id        String           @id @default(cuid())
+  type      NotificationType
   message   String
-  read      Boolean  @default(false)
-  createdAt DateTime @default(now())
+  read      Boolean          @default(false)
+  createdAt DateTime         @default(now())
   userId    String
-  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  user      User             @relation(fields: [userId], references: [id], onDelete: Cascade)
+  relatedId String?
 }
 
 enum TaskStatus {
@@ -150,4 +151,12 @@ enum ConnectionStatus {
   ACCEPTED
   REJECTED
   BLOCKED
+}
+
+enum NotificationType {
+  CONNECTION_REQUEST
+  TASK_ASSIGNMENT
+  PROJECT_UPDATE
+  TASK_DUE_SOON
+  TASK_OVERDUE
 }
