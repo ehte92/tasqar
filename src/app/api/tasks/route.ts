@@ -37,6 +37,7 @@ const taskCreateSchema = z.object({
   dueDate: z.string().datetime().nullable().optional(),
   userId: z.string().cuid('Invalid user ID'),
   projectId: z.string().cuid('Invalid project ID').nullable().optional(),
+  assigneeId: z.string().cuid('Invalid assignee ID').nullable().optional(),
 });
 
 const taskUpdateSchema = taskSchema.partial().extend({
@@ -58,22 +59,28 @@ function handleError(error: unknown) {
 }
 
 export async function GET(request: Request) {
+  const { searchParams } = new URL(request.url);
+  const userId = searchParams.get('userId');
+  const assigneeId = searchParams.get('assigneeId');
+
+  if (!userId) {
+    return NextResponse.json({ error: 'User ID is required' }, { status: 400 });
+  }
+
   try {
-    const { searchParams } = new URL(request.url);
-    const userId = searchParams.get('userId');
-
-    if (!userId) {
-      throw new Error('User ID is required');
-    }
-
     const tasks = await prisma.task.findMany({
-      where: { userId },
+      where: {
+        OR: [{ userId: userId }, { assigneeId: assigneeId }],
+      },
       orderBy: { createdAt: 'desc' },
     });
-
     return NextResponse.json(tasks);
   } catch (error) {
-    return handleError(error);
+    console.error('Error fetching tasks:', error);
+    return NextResponse.json(
+      { error: 'Failed to fetch tasks' },
+      { status: 500 }
+    );
   }
 }
 
@@ -91,6 +98,7 @@ export async function POST(request: Request) {
         dueDate: validatedData.dueDate ? new Date(validatedData.dueDate) : null,
         userId: validatedData.userId,
         projectId: validatedData.projectId ?? null,
+        assigneeId: validatedData.assigneeId ?? null,
         order: 0, // Assuming you want to set a default order
       },
     });
