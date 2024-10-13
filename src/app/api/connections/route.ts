@@ -4,6 +4,7 @@ import { z } from 'zod';
 import { authOptions } from '../auth/[...nextauth]/route';
 import prisma from '@/lib/db';
 import { connectionService } from '@/services/connection-service';
+import { notificationService } from '@/services/notification-service';
 
 // Schema for validating new connection requests
 const newConnectionSchema = z.object({
@@ -59,6 +60,14 @@ export async function POST(req: Request) {
       session.user.id,
       email
     );
+
+    // Create a notification for the receiver
+    await notificationService.createNotification(
+      newConnection.receiverId,
+      'CONNECTION_REQUEST',
+      `${session.user.name} sent you a connection request`
+    );
+
     return NextResponse.json(newConnection, { status: 201 });
   } catch (error) {
     if (error instanceof z.ZodError) {
