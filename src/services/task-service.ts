@@ -8,10 +8,13 @@ type CreateTaskInput = {
   dueDate?: string | null;
   userId: string;
   projectId?: string | null;
+  assigneeId?: string | null;
 };
 
 export async function fetchTasks(userId: string): Promise<Task[]> {
-  const response = await fetch(`/api/tasks?userId=${userId}`);
+  const response = await fetch(
+    `/api/tasks?userId=${userId}&assigneeId=${userId}`
+  );
   if (!response.ok) {
     throw new Error('Failed to fetch tasks');
   }
@@ -25,6 +28,7 @@ export async function createTask(task: Partial<Task>): Promise<Task> {
     body: JSON.stringify({
       ...task,
       status: task.status ? TaskStatus[task.status] : undefined,
+      assigneeId: task.assigneeId || null,
     }),
   });
 
