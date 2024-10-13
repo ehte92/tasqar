@@ -48,6 +48,7 @@ export async function updateTask(task: Task): Promise<Task> {
       ...task,
       status: TaskStatus[task.status],
       dueDate: task.dueDate,
+      assigneeId: task.assigneeId || null,
     }),
   });
   if (!response.ok) {

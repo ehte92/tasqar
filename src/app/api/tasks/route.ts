@@ -42,6 +42,7 @@ const taskCreateSchema = z.object({
 
 const taskUpdateSchema = taskSchema.partial().extend({
   id: z.string().cuid('Invalid task ID'),
+  assigneeId: z.string().cuid('Invalid assignee ID').nullable().optional(),
 });
 
 function handleError(error: unknown) {
@@ -128,6 +129,7 @@ export async function PUT(request: Request) {
       data: {
         ...updateData,
         status: updateData.status ? TaskStatus[updateData.status] : undefined,
+        assigneeId: updateData.assigneeId || null,
       },
     });
 
@@ -136,6 +138,7 @@ export async function PUT(request: Request) {
     if (error instanceof z.ZodError) {
       return NextResponse.json({ error: error.errors }, { status: 400 });
     }
+    console.error('Error updating task:', error);
     return NextResponse.json(
       { error: 'An unexpected error occurred' },
       { status: 500 }
