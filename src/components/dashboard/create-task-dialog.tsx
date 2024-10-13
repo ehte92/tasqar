@@ -27,6 +27,16 @@ import { fetchProjects } from '@/services/project-service';
 import { Badge } from '@/components/ui/badge';
 import { VisuallyHidden } from '@/components/ui/visually-hidden';
 import { motion, AnimatePresence } from 'framer-motion';
+import { ExtendedUserConnection } from '../people/connection-card';
+
+// Add this new function to fetch connections
+async function fetchConnections(): Promise<ExtendedUserConnection[]> {
+  const response = await fetch('/api/connections');
+  if (!response.ok) {
+    throw new Error('Failed to fetch connections');
+  }
+  return response.json();
+}
 
 interface CreateTaskDialogProps {
   isOpen: boolean;
@@ -49,6 +59,16 @@ export function CreateTaskDialog({
     queryKey: ['projects', session?.user?.id],
     queryFn: () => fetchProjects(session?.user?.id as string),
     enabled: !!session?.user?.id,
+  });
+
+  // Add this new query to fetch connections
+  const { data: connections = [], isLoading: isConnectionsLoading } = useQuery<
+    ExtendedUserConnection[],
+    Error
+  >({
+    queryKey: ['connections'],
+    queryFn: fetchConnections,
+    enabled: !!session,
   });
 
   // Add this useEffect hook to update taskDetails when initialData changes
@@ -141,6 +161,10 @@ export function CreateTaskDialog({
     onClose();
   };
 
+  const handleAssigneeChange = useCallback((value: string) => {
+    setTaskDetails((prev) => ({ ...prev, assigneeId: value }));
+  }, []);
+
   return (
     <Dialog open={isOpen} onOpenChange={onClose}>
       <DialogContent
@@ -193,11 +217,84 @@ export function CreateTaskDialog({
             <div className="space-y-4">
               <div className="flex items-center space-x-2">
                 <span className="w-20 text-sm font-medium">Assignee</span>
-                <Avatar className="h-6 w-6">
-                  <AvatarImage src={session?.user?.image || ''} />
-                  <AvatarFallback>{session?.user?.name?.[0]}</AvatarFallback>
-                </Avatar>
-                <span className="text-sm">{session?.user?.name}</span>
+                <Select
+                  value={taskDetails.assigneeId || session?.user?.id || ''}
+                  onValueChange={handleAssigneeChange}
+                >
+                  <SelectTrigger className="w-full border-none hover:bg-accent">
+                    <SelectValue placeholder="Select assignee">
+                      {isConnectionsLoading ? (
+                        'Loading...'
+                      ) : (
+                        <div className="flex items-center">
+                          <Avatar className="h-6 w-6 mr-2">
+                            <AvatarImage
+                              src={
+                                connections.find(
+                                  (c) =>
+                                    c.sender.id === taskDetails.assigneeId ||
+                                    c.receiver.id === taskDetails.assigneeId
+                                )?.sender.image ||
+                                session?.user?.image ||
+                                ''
+                              }
+                            />
+                            <AvatarFallback>
+                              {
+                                (connections.find(
+                                  (c) =>
+                                    c.sender.id === taskDetails.assigneeId ||
+                                    c.receiver.id === taskDetails.assigneeId
+                                )?.sender.name ||
+                                  session?.user?.name ||
+                                  '')[0]
+                              }
+                            </AvatarFallback>
+                          </Avatar>
+                          <span>
+                            {connections.find(
+                              (c) =>
+                                c.sender.id === taskDetails.assigneeId ||
+                                c.receiver.id === taskDetails.assigneeId
+                            )?.sender.name ||
+                              session?.user?.name ||
+                              'Select assignee'}
+                          </span>
+                        </div>
+                      )}
+                    </SelectValue>
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value={session?.user?.id as string}>
+                      <div className="flex items-center">
+                        <Avatar className="h-6 w-6 mr-2">
+                          <AvatarImage src={session?.user?.image || ''} />
+                          <AvatarFallback>
+                            {session?.user?.name?.[0]}
+                          </AvatarFallback>
+                        </Avatar>
+                        <span>{session?.user?.name} (You)</span>
+                      </div>
+                    </SelectItem>
+                    {connections.map((connection) => {
+                      const user =
+                        connection.sender.id === session?.user?.id
+                          ? connection.receiver
+                          : connection.sender;
+                      return (
+                        <SelectItem key={user.id} value={user.id}>
+                          <div className="flex items-center">
+                            <Avatar className="h-6 w-6 mr-2">
+                              <AvatarImage src={user.image || ''} />
+                              <AvatarFallback>{user.name?.[0]}</AvatarFallback>
+                            </Avatar>
+                            <span>{user.name}</span>
+                          </div>
+                        </SelectItem>
+                      );
+                    })}
+                  </SelectContent>
+                </Select>
               </div>
               <div className="flex items-center space-x-2">
                 <span className="w-20 text-sm font-medium">Due date</span>
