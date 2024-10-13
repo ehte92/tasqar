@@ -56,6 +56,19 @@ async function checkUserExists(email: string): Promise<boolean> {
   return response.json();
 }
 
+async function inviteUser(email: string): Promise<void> {
+  const response = await fetch('/api/invite', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ email }),
+  });
+
+  if (!response.ok) {
+    const errorData = await response.json();
+    throw new Error(errorData.error || 'Failed to send invitation');
+  }
+}
+
 export function AddConnectionDialog() {
   const [isOpen, setIsOpen] = React.useState(false);
   const queryClient = useQueryClient();
@@ -89,12 +102,24 @@ export function AddConnectionDialog() {
     },
   });
 
+  const inviteUserMutation = useMutation({
+    mutationFn: (email: string) => inviteUser(email),
+    onSuccess: () => {
+      toast.success('Invitation sent successfully');
+      setIsOpen(false);
+      form.reset();
+    },
+    onError: (error: Error) => {
+      toast.error(`Failed to send invitation: ${error.message}`);
+    },
+  });
+
   const onSubmit = (data: FormData) => {
-    if (!userExists) {
-      toast.error('User does not exist');
-      return;
+    if (userExists) {
+      addConnectionMutation.mutate(data);
+    } else {
+      inviteUserMutation.mutate(data.email);
     }
-    addConnectionMutation.mutate(data);
   };
 
   return (
@@ -128,9 +153,13 @@ export function AddConnectionDialog() {
                   )}
                   {!isCheckingUser && debouncedEmail && (
                     <p
-                      className={`text-sm ${userExists ? 'text-green-500' : 'text-red-500'}`}
+                      className={`text-sm ${
+                        userExists ? 'text-green-500' : 'text-yellow-500'
+                      }`}
                     >
-                      {userExists ? 'User found' : 'User not found'}
+                      {userExists
+                        ? 'User found'
+                        : 'User not found. You can invite them.'}
                     </p>
                   )}
                   <FormMessage />
@@ -142,17 +171,20 @@ export function AddConnectionDialog() {
                 type="submit"
                 disabled={
                   addConnectionMutation.isPending ||
-                  isCheckingUser ||
-                  !userExists
+                  inviteUserMutation.isPending ||
+                  isCheckingUser
                 }
               >
-                {addConnectionMutation.isPending ? (
+                {addConnectionMutation.isPending ||
+                inviteUserMutation.isPending ? (
                   <>
                     <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                    Sending...
+                    {userExists ? 'Sending Request...' : 'Inviting...'}
                   </>
-                ) : (
+                ) : userExists ? (
                   'Send Request'
+                ) : (
+                  'Invite User'
                 )}
               </Button>
             </DialogFooter>

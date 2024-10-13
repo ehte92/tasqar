@@ -36,14 +36,18 @@ const registerSchema = z.object({
 
 type RegisterFormValues = z.infer<typeof registerSchema>;
 
-const RegisterForm = () => {
+interface RegisterFormProps {
+  initialEmail?: string | null;
+}
+
+const RegisterForm: React.FC<RegisterFormProps> = ({ initialEmail }) => {
   const router = useRouter();
 
   const form = useForm<RegisterFormValues>({
     resolver: zodResolver(registerSchema),
     defaultValues: {
       name: '',
-      email: '',
+      email: initialEmail || '',
       password: '',
     },
   });
@@ -84,10 +88,10 @@ const RegisterForm = () => {
         <Card className="border-0 shadow-lg">
           <CardHeader className="space-y-1">
             <CardTitle className="text-3xl font-bold text-center">
-              Create an Account
+              Complete Your Registration
             </CardTitle>
             <CardDescription className="text-center text-gray-500">
-              Join Tasqar and start boosting your productivity today.
+              Set up your account to start using Tasqar.
             </CardDescription>
           </CardHeader>
           <CardContent>
@@ -116,7 +120,11 @@ const RegisterForm = () => {
                     <FormItem>
                       <FormLabel>Email</FormLabel>
                       <FormControl>
-                        <Input placeholder="john@example.com" {...field} />
+                        <Input
+                          placeholder="john@example.com"
+                          {...field}
+                          disabled={!!initialEmail}
+                        />
                       </FormControl>
                       <FormMessage />
                     </FormItem>
