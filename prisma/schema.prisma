@@ -33,6 +33,7 @@ model User {
   sentConnections          UserConnection[] @relation("SentConnections")
   receivedConnections      UserConnection[] @relation("ReceivedConnections")
   Notification             Notification[]
+  sentInvitations          Invitation[]
 }
 
 model Account {
@@ -125,6 +126,16 @@ model Notification {
   userId    String
   user      User             @relation(fields: [userId], references: [id], onDelete: Cascade)
   relatedId String?
+}
+
+model Invitation {
+  id        String   @id @default(cuid())
+  email     String
+  token     String   @unique
+  inviterId String
+  inviter   User     @relation(fields: [inviterId], references: [id])
+  createdAt DateTime @default(now())
+  expiresAt DateTime
 }
 
 enum TaskStatus {
