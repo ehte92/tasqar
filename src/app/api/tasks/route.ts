@@ -2,6 +2,8 @@ import { NextResponse } from 'next/server';
 import { z } from 'zod';
 import prisma from '@/lib/db';
 import { TaskStatus, TaskPriority } from '@/types/task';
+import { notificationService } from '@/services/notification-service';
+import { NotificationType } from '@prisma/client';
 
 const taskSchema = z.object({
   id: z.string().cuid('Invalid task ID'),
@@ -103,6 +105,19 @@ export async function POST(request: Request) {
         order: 0, // Assuming you want to set a default order
       },
     });
+
+    // If the task is assigned to someone other than the creator
+    if (
+      validatedData.assigneeId &&
+      validatedData.assigneeId !== validatedData.userId
+    ) {
+      await notificationService.createNotification(
+        validatedData.assigneeId,
+        NotificationType.TASK_ASSIGNMENT,
+        `You have been assigned a new task: ${validatedData.title}`,
+        newTask.id
+      );
+    }
 
     return NextResponse.json(newTask, { status: 201 });
   } catch (error) {

@@ -1,7 +1,6 @@
 import { NextResponse } from 'next/server';
 import { z } from 'zod';
 import prisma from '@/lib/db';
-import { PrismaClient } from '@prisma/client';
 import { getServerSession } from 'next-auth/next';
 import { authOptions } from '@/app/api/auth/[...nextauth]/route';
 
@@ -99,6 +98,23 @@ export async function PUT(request: Request) {
       where: { id },
       data: updateData,
     });
+
+    // Notify all project members about the update
+    // const projectMembers = await prisma.projectMember.findMany({
+    //   where: { projectId: updatedProject.id },
+    // });
+
+    // for (const member of projectMembers) {
+    //   if (member.userId !== session.user.id) {
+    //     await notificationService.createNotification(
+    //       member.userId,
+    //       NotificationType.PROJECT_UPDATE,
+    //       `Project "${updatedProject.title}" has been updated`,
+    //       updatedProject.id
+    //     );
+    //   }
+    // }
+
     return NextResponse.json(updatedProject);
   } catch (error) {
     return handleError(error);
