@@ -1,4 +1,8 @@
+import { useOptimizedQuery } from '@/hooks/use-optimized-query';
 import { Project, ProjectStatus } from '@/types/project';
+
+const PROJECTS_CACHE_KEY = 'projects_cache';
+const PROJECTS_CACHE_TTL = 5 * 60 * 1000; // 5 minutes
 
 export async function fetchProjects(userId: string): Promise<Project[]> {
   const response = await fetch(`/api/projects?userId=${userId}`);
@@ -6,6 +10,17 @@ export async function fetchProjects(userId: string): Promise<Project[]> {
     throw new Error('Failed to fetch projects');
   }
   return response.json();
+}
+
+export function useProjects(userId: string) {
+  return useOptimizedQuery<Project[]>(
+    ['projects', userId],
+    () => fetchProjects(userId),
+    { key: PROJECTS_CACHE_KEY, ttl: PROJECTS_CACHE_TTL },
+    {
+      enabled: !!userId,
+    }
+  );
 }
 
 export async function createProject(project: {
@@ -92,3 +107,17 @@ export const fetchProjectById = async (projectId: string): Promise<Project> => {
   }
   return response.json();
 };
+
+export function useFetchProjectById(projectId: string) {
+  return useOptimizedQuery<Project>(
+    ['project', projectId],
+    () => fetchProjectById(projectId),
+    {
+      key: `project-${projectId}`,
+      ttl: 5 * 60 * 1000, // 5 minutes
+    },
+    {
+      enabled: !!projectId,
+    }
+  );
+}

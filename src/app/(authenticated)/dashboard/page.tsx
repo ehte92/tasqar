@@ -1,9 +1,9 @@
 'use client';
 
-import { Suspense } from 'react';
 import dynamic from 'next/dynamic';
 import { ContentLayout } from '@/components/layouts/content-layout';
 import { LoadingSpinner } from '@/components/ui/loading-spinner';
+import { useBackgroundSync } from '@/hooks/use-background-sync';
 
 const DashboardGreeting = dynamic(
   () => import('@/components/dashboard/dashboard-greeting'),

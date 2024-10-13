@@ -6,10 +6,13 @@ import { ProjectList } from '@/components/projects/project-list';
 import { LoadingSpinner } from '@/components/ui/loading-spinner';
 import { CreateProjectButton } from '@/components/projects/create-project-button';
 import { useSession } from 'next-auth/react';
+import { useBackgroundSync } from '@/hooks/use-background-sync';
 
 export default function ProjectsPage() {
   const { data: session } = useSession();
   const userId = session?.user?.id;
+
+  useBackgroundSync(['projects', userId as string], 5 * 60 * 1000);
 
   return (
     <ContentLayout title="Projects">

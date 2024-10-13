@@ -4,6 +4,7 @@ import React from 'react';
 import { useParams } from 'next/navigation';
 import { ProjectDetails } from '@/components/projects/project-details';
 import { ContentLayout } from '@/components/layouts/content-layout';
+import { useBackgroundSync } from '@/hooks/use-background-sync';
 
 interface ProjectPageProps {
   params: {
@@ -12,6 +13,8 @@ interface ProjectPageProps {
 }
 
 const ProjectPage: React.FC<ProjectPageProps> = ({ params }) => {
+  useBackgroundSync(['projects', params.id], 5 * 60 * 1000);
+
   return (
     <ContentLayout title="Project Details">
       <div className="container mx-auto py-8">

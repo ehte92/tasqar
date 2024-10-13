@@ -1,17 +1,16 @@
+'use client';
+
 import React from 'react';
-import { Metadata } from 'next';
 import { PeopleList } from '@/components/people/people-list';
 import { AddConnectionDialog } from '@/components/people/add-connection-dialog';
 import { ContentLayout } from '@/components/layouts/content-layout';
 import { UserPlus, Users } from 'lucide-react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-
-export const metadata: Metadata = {
-  title: 'People | Tasqar',
-  description: 'Manage your connections and collaborators',
-};
+import { useBackgroundSync } from '@/hooks/use-background-sync';
 
 export default function PeoplePage() {
+  useBackgroundSync(['connections'], 5 * 60 * 1000);
+
   return (
     <ContentLayout title="People">
       <div className="space-y-6">

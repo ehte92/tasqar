@@ -13,6 +13,7 @@ import { Task, TaskStatus } from '@/types/task';
 import { cn } from '@/lib/utils';
 import { AnimatePresence, motion } from 'framer-motion';
 import { useClickOutside } from '@/hooks/use-click-outside';
+import { useSession } from 'next-auth/react';
 
 interface CreateTaskInlineProps {
   onCreateTask: (task: Partial<Task>) => void;
@@ -25,6 +26,7 @@ export function CreateTaskInline({ onCreateTask }: CreateTaskInlineProps) {
   const [isDialogOpen, setIsDialogOpen] = useState(false);
   const containerRef = useRef<HTMLDivElement>(null);
   const inputRef = useRef<HTMLInputElement>(null);
+  const { data: session } = useSession();
 
   useClickOutside(containerRef, () => {
     if (isCreating && !title.trim()) {
@@ -49,13 +51,14 @@ export function CreateTaskInline({ onCreateTask }: CreateTaskInlineProps) {
         title,
         status: TaskStatus.TODO,
         dueDate: dueDate ?? null,
+        assigneeId: session?.user?.id ?? '',
       });
       resetForm();
       setIsCreating(true); // Open a new inline task creation
     } else {
       resetForm();
     }
-  }, [title, dueDate, onCreateTask, resetForm]);
+  }, [title, dueDate, onCreateTask, resetForm, session?.user?.id]);
 
   const handleKeyDown = useCallback(
     (e: React.KeyboardEvent) => {

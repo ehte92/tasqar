@@ -1,7 +1,6 @@
 import React from 'react';
-import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
-import { fetchProjects, deleteProject } from '@/services/project-service';
-import { Project } from '@/types/project';
+import { useMutation, useQueryClient } from '@tanstack/react-query';
+import { deleteProject, useProjects } from '@/services/project-service';
 import { Button } from '@/components/ui/button';
 import {
   Card,
@@ -21,14 +20,7 @@ interface ProjectListProps {
 export const ProjectList: React.FC<ProjectListProps> = ({ userId }) => {
   const queryClient = useQueryClient();
 
-  const {
-    data: projects,
-    isLoading,
-    error,
-  } = useQuery<Project[], Error>({
-    queryKey: ['projects', userId],
-    queryFn: () => fetchProjects(userId),
-  });
+  const { data: projects, isLoading, error } = useProjects(userId);
 
   const deleteMutation = useMutation({
     mutationFn: deleteProject,

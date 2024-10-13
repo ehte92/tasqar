@@ -1,7 +1,7 @@
 'use client';
 
 import React from 'react';
-import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
+import { useMutation, useQueryClient } from '@tanstack/react-query';
 import { Bell, Briefcase, Clock, CheckSquare, AlertCircle } from 'lucide-react';
 import {
   DropdownMenu,
@@ -16,28 +16,10 @@ import { toast } from 'sonner';
 import { AnimatePresence, motion } from 'framer-motion';
 import Link from 'next/link';
 import { NotificationListener } from './notification-listener';
-
-interface Notification {
-  id: string;
-  type:
-    | 'CONNECTION_REQUEST'
-    | 'TASK_ASSIGNMENT'
-    | 'PROJECT_UPDATE'
-    | 'TASK_DUE_SOON'
-    | 'TASK_OVERDUE';
-  message: string;
-  read: boolean;
-  createdAt: string;
-  relatedId?: string;
-}
-
-async function fetchNotifications(): Promise<Notification[]> {
-  const response = await fetch('/api/notifications');
-  if (!response.ok) {
-    throw new Error('Failed to fetch notifications');
-  }
-  return response.json();
-}
+import { useNotifications } from '@/services/notification-service';
+import { Notification } from '@/types/notification';
+import { useSession } from 'next-auth/react';
+import { useBackgroundSync } from '@/hooks/use-background-sync';
 
 async function markNotificationsAsRead(ids: string[]): Promise<void> {
   const response = await fetch('/api/notifications', {
@@ -88,15 +70,15 @@ const NotificationLink = ({ notification }: { notification: Notification }) => {
 
 export function NotificationDropdown() {
   const queryClient = useQueryClient();
+  const { data: session } = useSession();
 
   const {
     data: notifications = [],
     isLoading,
     error,
-  } = useQuery<Notification[], Error>({
-    queryKey: ['notifications'],
-    queryFn: fetchNotifications,
-  });
+  } = useNotifications(session?.user?.id as string);
+
+  useBackgroundSync(['notifications'], 1000 * 60 * 5);
 
   const markAsReadMutation = useMutation({
     mutationFn: markNotificationsAsRead,

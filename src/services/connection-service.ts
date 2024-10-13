@@ -5,6 +5,8 @@ import {
   ConnectionStatus,
 } from '@prisma/client';
 import { CustomError } from '@/lib/custom-error';
+import { useOptimizedQuery } from '@/hooks/use-optimized-query';
+import { ExtendedUserConnection } from '@/components/people/connection-card';
 
 const prisma = new PrismaClient();
 
@@ -144,3 +146,40 @@ export const connectionService = {
     }
   },
 };
+
+const CONNECTIONS_CACHE_KEY = 'connections_cache';
+const CONNECTIONS_CACHE_TTL = 5 * 60 * 1000; // 5 minutes
+
+export async function fetchConnections(): Promise<
+  (UserConnection & {
+    sender: {
+      id: string;
+      name: string | null;
+      email: string;
+      image: string | null;
+    };
+    receiver: {
+      id: string;
+      name: string | null;
+      email: string;
+      image: string | null;
+    };
+  })[]
+> {
+  const response = await fetch('/api/connections');
+  if (!response.ok) {
+    throw new Error('Failed to fetch connections');
+  }
+  return response.json();
+}
+
+export function useConnections(userId: string) {
+  return useOptimizedQuery<ExtendedUserConnection[]>(
+    ['connections'],
+    () => fetchConnections(),
+    { key: CONNECTIONS_CACHE_KEY, ttl: CONNECTIONS_CACHE_TTL },
+    {
+      enabled: !!userId,
+    }
+  );
+}

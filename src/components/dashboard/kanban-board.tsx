@@ -13,14 +13,14 @@ import {
   MouseSensor,
 } from '@dnd-kit/core';
 import { SortableContext, arrayMove } from '@dnd-kit/sortable';
-import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
+import { useMutation, useQueryClient } from '@tanstack/react-query';
 import {
   createTask,
-  fetchTasks,
   updateTask,
   deleteTask,
+  useTasks,
 } from '@/services/task-service';
-import { fetchProjects } from '@/services/project-service';
+import { useProjects } from '@/services/project-service';
 import { TaskCard } from './task-card';
 import { BoardColumn } from './board-column';
 import { ProjectOverview, ProjectOverviewProps } from './project-overview';
@@ -30,6 +30,7 @@ import { useSession } from 'next-auth/react';
 import { Task, TaskStatus, TaskPriority } from '@/types/task';
 import { toast } from 'sonner';
 import { CreateTaskInline } from './create-task-inline';
+import { useBackgroundSync } from '@/hooks/use-background-sync';
 
 export type ColumnId = 'tasks' | 'projects' | 'people';
 
@@ -63,17 +64,16 @@ export default function KanbanBoard() {
   const { data: session } = useSession();
   const queryClient = useQueryClient();
 
-  const { data: tasksData = [], isLoading: isTasksLoading } = useQuery({
-    queryKey: ['tasks', session?.user?.id],
-    queryFn: () => fetchTasks(session?.user?.id as string),
-    enabled: !!session?.user?.id,
-  });
+  const { data: tasksData = [], isLoading: isTasksLoading } = useTasks(
+    session?.user?.id as string
+  );
 
-  const { data: projects = [], isLoading: isProjectsLoading } = useQuery({
-    queryKey: ['projects', session?.user?.id],
-    queryFn: () => fetchProjects(session?.user?.id as string),
-    enabled: !!session?.user?.id,
-  });
+  const { data: projects = [], isLoading: isProjectsLoading } = useProjects(
+    session?.user?.id as string
+  );
+
+  useBackgroundSync(['tasks', session?.user?.id as string], 5 * 60 * 1000);
+  useBackgroundSync(['projects', session?.user?.id as string], 5 * 60 * 1000);
 
   const formattedTasks = useMemo(() => {
     if (!tasksData || !session?.user?.id) return [];

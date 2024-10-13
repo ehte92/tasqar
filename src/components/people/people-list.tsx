@@ -1,41 +1,18 @@
 'use client';
 
 import React from 'react';
-import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
+import { useMutation, useQueryClient } from '@tanstack/react-query';
 import { useSession } from 'next-auth/react';
-import { UserConnection } from '@prisma/client';
 import { Skeleton } from '@/components/ui/skeleton';
 import { toast } from 'sonner';
-import { ConnectionCard, ExtendedUserConnection } from './connection-card';
+import { ConnectionCard } from './connection-card';
 import {
   Card,
   CardContent,
   CardFooter,
   CardHeader,
 } from '@/components/ui/card';
-
-async function fetchConnections(): Promise<
-  (UserConnection & {
-    sender: {
-      id: string;
-      name: string | null;
-      email: string;
-      image: string | null;
-    };
-    receiver: {
-      id: string;
-      name: string | null;
-      email: string;
-      image: string | null;
-    };
-  })[]
-> {
-  const response = await fetch('/api/connections');
-  if (!response.ok) {
-    throw new Error('Failed to fetch connections');
-  }
-  return response.json();
-}
+import { useConnections } from '@/services/connection-service';
 
 async function removeConnection(connectionId: string): Promise<void> {
   const response = await fetch(`/api/connections?id=${connectionId}`, {
@@ -54,11 +31,7 @@ export function PeopleList() {
     data: connections,
     isLoading,
     error,
-  } = useQuery<ExtendedUserConnection[], Error>({
-    queryKey: ['connections'],
-    queryFn: fetchConnections,
-    enabled: !!session,
-  });
+  } = useConnections(session?.user.id as string);
 
   const removeMutation = useMutation({
     mutationFn: removeConnection,

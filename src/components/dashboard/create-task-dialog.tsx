@@ -22,21 +22,11 @@ import { Calendar } from '@/components/ui/calendar';
 import { format, isToday, isTomorrow, isThisYear } from 'date-fns';
 import { cn } from '@/lib/utils';
 import { MinimalTiptapEditor } from '../minimal-tiptap';
-import { useQuery } from '@tanstack/react-query';
-import { fetchProjects } from '@/services/project-service';
+import { useProjects } from '@/services/project-service';
 import { Badge } from '@/components/ui/badge';
 import { VisuallyHidden } from '@/components/ui/visually-hidden';
 import { motion, AnimatePresence } from 'framer-motion';
-import { ExtendedUserConnection } from '../people/connection-card';
-
-// Add this new function to fetch connections
-async function fetchConnections(): Promise<ExtendedUserConnection[]> {
-  const response = await fetch('/api/connections');
-  if (!response.ok) {
-    throw new Error('Failed to fetch connections');
-  }
-  return response.json();
-}
+import { useConnections } from '@/services/connection-service';
 
 interface CreateTaskDialogProps {
   isOpen: boolean;
@@ -55,21 +45,12 @@ export function CreateTaskDialog({
   const [isCalendarOpen, setIsCalendarOpen] = useState(false);
   const { data: session } = useSession();
 
-  const { data: projects = [], isLoading: isProjectsLoading } = useQuery({
-    queryKey: ['projects', session?.user?.id],
-    queryFn: () => fetchProjects(session?.user?.id as string),
-    enabled: !!session?.user?.id,
-  });
+  const { data: projects = [], isLoading: isProjectsLoading } = useProjects(
+    session?.user?.id as string
+  );
 
-  // Add this new query to fetch connections
-  const { data: connections = [], isLoading: isConnectionsLoading } = useQuery<
-    ExtendedUserConnection[],
-    Error
-  >({
-    queryKey: ['connections'],
-    queryFn: fetchConnections,
-    enabled: !!session,
-  });
+  const { data: connections = [], isLoading: isConnectionsLoading } =
+    useConnections(session?.user?.id as string);
 
   // Add this useEffect hook to update taskDetails when initialData changes
   useEffect(() => {

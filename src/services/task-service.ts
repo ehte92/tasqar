@@ -1,3 +1,4 @@
+import { useOptimizedQuery } from '@/hooks/use-optimized-query';
 import { Task, TaskStatus, TaskPriority } from '@/types/task';
 
 type CreateTaskInput = {
@@ -11,6 +12,12 @@ type CreateTaskInput = {
   assigneeId?: string | null;
 };
 
+const TASKS_CACHE_KEY = 'tasks_cache';
+const TASKS_CACHE_TTL = 5 * 60 * 1000; // 5 minutes
+
+const TASK_STATS_CACHE_KEY = 'task_stats_cache';
+const TASK_STATS_CACHE_TTL = 5 * 60 * 1000; // 5 minutes
+
 export async function fetchTasks(userId: string): Promise<Task[]> {
   const response = await fetch(
     `/api/tasks?userId=${userId}&assigneeId=${userId}`
@@ -19,6 +26,36 @@ export async function fetchTasks(userId: string): Promise<Task[]> {
     throw new Error('Failed to fetch tasks');
   }
   return response.json();
+}
+
+export function useTasks(userId: string) {
+  return useOptimizedQuery<Task[]>(
+    ['tasks', userId],
+    () => fetchTasks(userId),
+    { key: TASKS_CACHE_KEY, ttl: TASKS_CACHE_TTL },
+    {
+      enabled: !!userId,
+    }
+  );
+}
+
+const fetchTaskStats = async (userId: string) => {
+  const response = await fetch(`/api/tasks/stats?userId=${userId}`);
+  if (!response.ok) {
+    throw new Error('Failed to fetch task stats');
+  }
+  return response.json();
+};
+
+export function useTaskStats(userId: string) {
+  return useOptimizedQuery<any>(
+    ['task_stats', userId],
+    () => fetchTaskStats(userId),
+    { key: TASK_STATS_CACHE_KEY, ttl: TASK_STATS_CACHE_TTL },
+    {
+      enabled: !!userId,
+    }
+  );
 }
 
 export async function createTask(task: Partial<Task>): Promise<Task> {

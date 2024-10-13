@@ -1,7 +1,6 @@
 import React from 'react';
-import { useQuery } from '@tanstack/react-query';
-import { fetchProjectById } from '@/services/project-service';
-import { Project, ProjectStatus } from '@/types/project';
+import { useFetchProjectById } from '@/services/project-service';
+import { ProjectStatus } from '@/types/project';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Progress } from '@/components/ui/progress';
 import { Badge } from '@/components/ui/badge';
@@ -23,10 +22,7 @@ export const ProjectDetails: React.FC<ProjectDetailsProps> = ({
     data: project,
     isLoading,
     error: projectError,
-  } = useQuery<Project, Error>({
-    queryKey: ['projects', projectId],
-    queryFn: () => fetchProjectById(projectId),
-  });
+  } = useFetchProjectById(projectId);
 
   if (isLoading) return <div>Loading project details...</div>;
   if (projectError)

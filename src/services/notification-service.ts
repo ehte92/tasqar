@@ -1,5 +1,7 @@
+import { useOptimizedQuery } from '@/hooks/use-optimized-query';
 import prisma from '@/lib/db';
 import { NotificationType } from '@prisma/client';
+import { Notification } from '@/types/notification';
 
 export const notificationService = {
   async createNotification(
@@ -53,3 +55,25 @@ export const notificationService = {
     }
   },
 };
+
+const NOTIFICATIONS_CACHE_KEY = 'notifications_cache';
+const NOTIFICATIONS_CACHE_TTL = 5 * 60 * 1000; // 5 minutes
+
+export async function fetchNotifications(): Promise<Notification[]> {
+  const response = await fetch('/api/notifications');
+  if (!response.ok) {
+    throw new Error('Failed to fetch notifications');
+  }
+  return response.json();
+}
+
+export function useNotifications(userId: string) {
+  return useOptimizedQuery<Notification[]>(
+    ['notifications'],
+    () => fetchNotifications(),
+    { key: NOTIFICATIONS_CACHE_KEY, ttl: NOTIFICATIONS_CACHE_TTL },
+    {
+      enabled: !!userId,
+    }
+  );
+}

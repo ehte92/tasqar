@@ -1,10 +1,10 @@
 import React from 'react';
 import { format } from 'date-fns';
-import { useQuery, useQueryClient } from '@tanstack/react-query';
+import { useQueryClient } from '@tanstack/react-query';
 import { Button } from '@/components/ui/button';
 import { Plus, FileText, MoreHorizontal } from 'lucide-react';
 import { Project } from '@/types/project';
-import { fetchProjects } from '@/services/project-service';
+import { useProjects } from '@/services/project-service';
 import { toast } from 'sonner';
 import dynamic from 'next/dynamic';
 import { useSession } from 'next-auth/react';
@@ -13,7 +13,7 @@ import {
   DropdownMenuContent,
   DropdownMenuItem,
   DropdownMenuTrigger,
-} from '../ui/dropdown-menu';
+} from '@/components/ui/dropdown-menu';
 import { useDeleteProject } from '@/hooks/use-delete-project';
 import {
   AlertDialog,
@@ -105,12 +105,7 @@ export function ProjectOverview({ projects }: ProjectOverviewProps) {
     isPending: isLoading,
     isError,
     error,
-  } = useQuery({
-    queryKey: ['projects'],
-    queryFn: () => fetchProjects(session?.user?.id || ''),
-    enabled: !!session?.user?.id,
-    staleTime: 1000 * 60 * 5,
-  });
+  } = useProjects(session?.user?.id as string);
 
   React.useEffect(() => {
     if (isError) {

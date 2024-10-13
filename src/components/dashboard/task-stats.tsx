@@ -1,17 +1,10 @@
 'use client';
 
-import { useQuery } from '@tanstack/react-query';
 import { Card, CardContent } from '@/components/ui/card';
 import { CheckCircle, Users } from 'lucide-react';
 import { useSession } from 'next-auth/react';
-
-const fetchTaskStats = async (userId: string) => {
-  const response = await fetch(`/api/tasks/stats?userId=${userId}`);
-  if (!response.ok) {
-    throw new Error('Failed to fetch task stats');
-  }
-  return response.json();
-};
+import { useTaskStats } from '@/services/task-service';
+import { useBackgroundSync } from '@/hooks/use-background-sync';
 
 export default function TaskStats() {
   const { data: session } = useSession();
@@ -20,13 +13,9 @@ export default function TaskStats() {
     data: stats,
     isLoading,
     error,
-  } = useQuery({
-    queryKey: ['taskStats', session?.user?.id],
-    queryFn: () => fetchTaskStats(session?.user?.id as string),
-    enabled: !!session?.user?.id,
-    staleTime: 5 * 60 * 1000, // 5 minutes
-    gcTime: 10 * 60 * 1000, // 10 minutes
-  });
+  } = useTaskStats(session?.user?.id as string);
+
+  useBackgroundSync(['taskStats', session?.user?.id as string], 5 * 60 * 1000);
 
   return (
     <Card className="mb-8 shadow-lg hover:shadow-xl transition-shadow duration-300">
