@@ -15,6 +15,7 @@ import { cn } from '@/lib/utils';
 import { toast } from 'sonner';
 import { AnimatePresence, motion } from 'framer-motion';
 import Link from 'next/link';
+import { NotificationListener } from './notification-listener';
 
 interface Notification {
   id: string;
@@ -95,7 +96,6 @@ export function NotificationDropdown() {
   } = useQuery<Notification[], Error>({
     queryKey: ['notifications'],
     queryFn: fetchNotifications,
-    refetchInterval: 30000, // Refetch every 30 seconds
   });
 
   const markAsReadMutation = useMutation({
@@ -105,7 +105,9 @@ export function NotificationDropdown() {
       toast.success('Notifications marked as read');
     },
     onError: (error) => {
-      toast.error(`Error marking notifications as read: ${error.message}`);
+      toast.error(
+        `Error marking notifications as read: ${(error as Error).message}`
+      );
     },
   });
 
@@ -120,76 +122,79 @@ export function NotificationDropdown() {
   };
 
   return (
-    <DropdownMenu>
-      <DropdownMenuTrigger asChild>
-        <Button variant="ghost" size="icon" className="relative">
-          <Bell className="h-5 w-5" />
-          <AnimatePresence>
+    <>
+      <NotificationListener />
+      <DropdownMenu>
+        <DropdownMenuTrigger asChild>
+          <Button variant="ghost" size="icon" className="relative">
+            <Bell className="h-5 w-5" />
+            <AnimatePresence>
+              {unreadCount > 0 && (
+                <motion.div
+                  initial={{ scale: 0 }}
+                  animate={{ scale: 1 }}
+                  exit={{ scale: 0 }}
+                  className="absolute -top-1 -right-1"
+                >
+                  <Badge
+                    variant="destructive"
+                    className="h-5 w-5 rounded-full p-0 text-xs flex items-center justify-center"
+                  >
+                    {unreadCount}
+                  </Badge>
+                </motion.div>
+              )}
+            </AnimatePresence>
+          </Button>
+        </DropdownMenuTrigger>
+        <DropdownMenuContent align="end" className="w-80">
+          <div className="flex justify-between items-center p-2">
+            <h3 className="font-semibold">Notifications</h3>
             {unreadCount > 0 && (
-              <motion.div
-                initial={{ scale: 0 }}
-                animate={{ scale: 1 }}
-                exit={{ scale: 0 }}
-                className="absolute -top-1 -right-1"
+              <Button
+                variant="ghost"
+                size="sm"
+                onClick={handleMarkAsRead}
+                disabled={markAsReadMutation.isPending}
               >
-                <Badge
-                  variant="destructive"
-                  className="h-5 w-5 rounded-full p-0 text-xs flex items-center justify-center"
-                >
-                  {unreadCount}
-                </Badge>
-              </motion.div>
+                Mark all as read
+              </Button>
             )}
-          </AnimatePresence>
-        </Button>
-      </DropdownMenuTrigger>
-      <DropdownMenuContent align="end" className="w-80">
-        <div className="flex justify-between items-center p-2">
-          <h3 className="font-semibold">Notifications</h3>
-          {unreadCount > 0 && (
-            <Button
-              variant="ghost"
-              size="sm"
-              onClick={handleMarkAsRead}
-              disabled={markAsReadMutation.isPending}
-            >
-              Mark all as read
-            </Button>
-          )}
-        </div>
-        {isLoading ? (
-          <DropdownMenuItem>Loading notifications...</DropdownMenuItem>
-        ) : error ? (
-          <DropdownMenuItem>Error loading notifications</DropdownMenuItem>
-        ) : notifications.length === 0 ? (
-          <DropdownMenuItem>No notifications</DropdownMenuItem>
-        ) : (
-          notifications.map((notification) => (
-            <DropdownMenuItem
-              key={notification.id}
-              className="flex items-start space-x-2 p-2"
-            >
-              <NotificationIcon type={notification.type} />
-              <div className="flex-1">
-                <p
-                  className={cn(
-                    'text-sm',
-                    !notification.read && 'font-semibold'
-                  )}
-                >
-                  {notification.message}
-                </p>
-                <div className="flex justify-between items-center mt-1">
-                  <span className="text-xs text-gray-500">
-                    {new Date(notification.createdAt).toLocaleString()}
-                  </span>
-                  <NotificationLink notification={notification} />
+          </div>
+          {isLoading ? (
+            <DropdownMenuItem>Loading notifications...</DropdownMenuItem>
+          ) : error ? (
+            <DropdownMenuItem>Error loading notifications</DropdownMenuItem>
+          ) : notifications.length === 0 ? (
+            <DropdownMenuItem>No notifications</DropdownMenuItem>
+          ) : (
+            notifications.map((notification) => (
+              <DropdownMenuItem
+                key={notification.id}
+                className="flex items-start space-x-2 p-2"
+              >
+                <NotificationIcon type={notification.type} />
+                <div className="flex-1">
+                  <p
+                    className={cn(
+                      'text-sm',
+                      !notification.read && 'font-semibold'
+                    )}
+                  >
+                    {notification.message}
+                  </p>
+                  <div className="flex justify-between items-center mt-1">
+                    <span className="text-xs text-gray-500">
+                      {new Date(notification.createdAt).toLocaleString()}
+                    </span>
+                    <NotificationLink notification={notification} />
+                  </div>
                 </div>
-              </div>
-            </DropdownMenuItem>
-          ))
-        )}
-      </DropdownMenuContent>
-    </DropdownMenu>
+              </DropdownMenuItem>
+            ))
+          )}
+        </DropdownMenuContent>
+      </DropdownMenu>
+    </>
   );
 }
