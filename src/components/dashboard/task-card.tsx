@@ -1,4 +1,4 @@
-import React, { useState, useMemo } from 'react';
+import React, { useState, useMemo, forwardRef } from 'react';
 import { useSortable } from '@dnd-kit/sortable';
 import { CSS } from '@dnd-kit/utilities';
 import { Task, TaskStatus, TaskPriority } from '@/types/task';
@@ -38,14 +38,14 @@ const TaskDialog = dynamic(
   }
 );
 
-interface TaskCardProps {
+export interface TaskCardProps {
   task: Task;
-  onUpdateTask: (updatedTask: Task) => void;
+  onUpdateTask: (task: Task) => void;
   onDeleteTask: (taskId: string) => void;
 }
 
-export const TaskCard = React.memo(
-  ({ task, onUpdateTask, onDeleteTask }: TaskCardProps) => {
+export const TaskCard = forwardRef<HTMLDivElement, TaskCardProps>(
+  ({ task, onUpdateTask, onDeleteTask }, ref) => {
     const [isDialogOpen, setIsDialogOpen] = useState(false);
     const [isHovered, setIsHovered] = useState(false);
 
@@ -81,7 +81,7 @@ export const TaskCard = React.memo(
 
     return (
       <motion.div
-        ref={setNodeRef}
+        ref={ref}
         style={style}
         className={cn(
           'p-4 rounded-lg shadow-sm border transition-all duration-200',

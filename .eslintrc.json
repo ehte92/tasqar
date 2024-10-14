@@ -8,6 +8,12 @@
     {
       "files": ["*.ts", "*.tsx"],
       "parser": "@typescript-eslint/parser"
+    },
+    {
+      "files": ["tests/**/*"],
+      "env": {
+        "jest": true
+      }
     }
   ],
   "root": true

@@ -1,6 +1,16 @@
 import { Active, DataRef, Over } from '@dnd-kit/core';
-import { ColumnDragData } from './board-column';
-import { TaskDragData } from './task-card';
+import { Column } from './kanban-board';
+import { Task } from '@/types/task';
+
+export interface ColumnDragData {
+  type: 'Column';
+  column: Column;
+}
+
+export interface TaskDragData {
+  type: 'Task';
+  task: Task;
+}
 
 type DraggableData = ColumnDragData | TaskDragData;
 

@@ -1,20 +1,25 @@
+import React from 'react';
 import { Project } from '@/types/project';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 
 interface ProjectCardProps {
   project: Project;
 }
 
-export function ProjectCard({ project }: ProjectCardProps) {
+export const ProjectCard: React.FC<ProjectCardProps> = ({ project }) => {
   return (
-    <Card className="hover:shadow-lg transition-shadow">
-      <CardHeader>
-        <CardTitle>{project.title}</CardTitle>
-      </CardHeader>
-      <CardContent>
+    <div
+      data-testid="project-card"
+      className="rounded-xl border bg-card text-card-foreground shadow hover:shadow-lg transition-shadow"
+    >
+      <div className="flex flex-col space-y-1.5 p-6">
+        <h3 className="font-semibold leading-none tracking-tight">
+          {project.title}
+        </h3>
+      </div>
+      <div className="p-6 pt-0">
         <p className="text-sm text-gray-600">{project.description}</p>
-        <p className="text-sm mt-2">Tasks: {project.tasks?.length || 0}</p>
-      </CardContent>
-    </Card>
+        <p className="text-sm mt-2">Tasks: {project.tasks?.length ?? 0}</p>
+      </div>
+    </div>
   );
-}
+};
