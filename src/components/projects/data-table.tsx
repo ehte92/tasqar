@@ -1,6 +1,7 @@
 'use client';
 
 import * as React from 'react';
+import { useRouter } from 'next/navigation';
 import {
   ColumnDef,
   ColumnFiltersState,
@@ -41,6 +42,7 @@ export function DataTable<TData, TValue>({
   refetch,
   isLoading,
 }: DataTableProps<TData, TValue>) {
+  const router = useRouter();
   const [rowSelection, setRowSelection] = React.useState({});
   const [columnVisibility, setColumnVisibility] =
     React.useState<VisibilityState>({});
@@ -71,6 +73,12 @@ export function DataTable<TData, TValue>({
     getFacetedUniqueValues: getFacetedUniqueValues(),
   });
 
+  const handleRowClick = (row: TData) => {
+    // Assuming each row has an 'id' property
+    const projectId = (row as any).id;
+    router.push(`/projects/${projectId}`);
+  };
+
   return (
     <div className="space-y-4">
       <DataTableToolbar table={table} refetch={refetch} isLoading={isLoading} />
@@ -100,6 +108,8 @@ export function DataTable<TData, TValue>({
                 <TableRow
                   key={row.id}
                   data-state={row.getIsSelected() && 'selected'}
+                  onClick={() => handleRowClick(row.original)}
+                  className="cursor-pointer hover:bg-muted/50"
                 >
                   {row.getVisibleCells().map((cell) => (
                     <TableCell key={cell.id}>

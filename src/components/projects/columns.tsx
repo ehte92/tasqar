@@ -4,16 +4,16 @@ import { ColumnDef } from '@tanstack/react-table';
 
 import { Checkbox } from '@/components/ui/checkbox';
 
-import { DataTableColumnHeader } from '../data-table/data-table-column-header';
-import { DataTableRowActions } from './data-table-row-actions';
-import { Task } from '@/types/task';
-import { priorities, statuses } from './data/data';
+import { statuses } from './data/data';
 import { formatDate } from '@/lib/utils/date';
+import { DataTableColumnHeader } from '../data-table/data-table-column-header';
 
+import { Project } from '@/types/project';
+import { DataTableRowActions } from './data-table-row-actions';
 const CHECKBOX_COLUMN_ID = 'select';
 const MAX_TITLE_WIDTH = 500;
 
-const createSelectColumn = (): ColumnDef<Task> => ({
+const createSelectColumn = (): ColumnDef<Project> => ({
   id: CHECKBOX_COLUMN_ID,
   header: ({ table }) => (
     <Checkbox
@@ -27,18 +27,20 @@ const createSelectColumn = (): ColumnDef<Task> => ({
     />
   ),
   cell: ({ row }) => (
-    <Checkbox
-      checked={row.getIsSelected()}
-      onCheckedChange={(value) => row.toggleSelected(!!value)}
-      aria-label="Select row"
-      className="translate-y-[2px]"
-    />
+    <div onClick={(e) => e.stopPropagation()}>
+      <Checkbox
+        checked={row.getIsSelected()}
+        onCheckedChange={(value) => row.toggleSelected(!!value)}
+        aria-label="Select row"
+        className="translate-y-[2px]"
+      />
+    </div>
   ),
   enableSorting: false,
   enableHiding: false,
 });
 
-const createTitleColumn = (): ColumnDef<Task> => ({
+const createTitleColumn = (): ColumnDef<Project> => ({
   accessorKey: 'title',
   header: ({ column }) => (
     <DataTableColumnHeader column={column} title="Title" />
@@ -52,15 +54,15 @@ const createTitleColumn = (): ColumnDef<Task> => ({
   ),
 });
 
-const createDueDateColumn = (): ColumnDef<Task> => ({
-  accessorKey: 'dueDate',
+const createDueDateColumn = (): ColumnDef<Project> => ({
+  accessorKey: 'endDate',
   header: ({ column }) => (
-    <DataTableColumnHeader column={column} title="Due date" />
+    <DataTableColumnHeader column={column} title="End date" />
   ),
-  cell: ({ row }) => <div>{formatDate(row.getValue('dueDate'))}</div>,
+  cell: ({ row }) => <div>{formatDate(row.getValue('endDate'))}</div>,
 });
 
-const createStatusColumn = (): ColumnDef<Task> => ({
+const createStatusColumn = (): ColumnDef<Project> => ({
   accessorKey: 'status',
   header: ({ column }) => (
     <DataTableColumnHeader column={column} title="Status" />
@@ -80,38 +82,19 @@ const createStatusColumn = (): ColumnDef<Task> => ({
   filterFn: (row, id, value) => value.includes(row.getValue(id)),
 });
 
-const createPriorityColumn = (): ColumnDef<Task> => ({
-  accessorKey: 'priority',
-  header: ({ column }) => (
-    <DataTableColumnHeader column={column} title="Priority" />
-  ),
-  cell: ({ row }) => {
-    const priority = priorities.find(
-      (p) => p.value === row.getValue('priority')
-    );
-    if (!priority) return null;
-    return (
-      <div className="flex items-center">
-        {priority.icon && (
-          <priority.icon className="mr-2 h-4 w-4 text-muted-foreground" />
-        )}
-        <span>{priority.label}</span>
-      </div>
-    );
-  },
-  filterFn: (row, id, value) => value.includes(row.getValue(id)),
-});
-
-const createActionsColumn = (): ColumnDef<Task> => ({
+const createActionsColumn = (): ColumnDef<Project> => ({
   id: 'actions',
-  cell: ({ row }) => <DataTableRowActions row={row} />,
+  cell: ({ row }) => (
+    <div onClick={(e) => e.stopPropagation()}>
+      <DataTableRowActions row={row} />
+    </div>
+  ),
 });
 
-export const columns: ColumnDef<Task>[] = [
+export const columns: ColumnDef<Project>[] = [
   createSelectColumn(),
   createTitleColumn(),
   createDueDateColumn(),
   createStatusColumn(),
-  createPriorityColumn(),
   createActionsColumn(),
 ];

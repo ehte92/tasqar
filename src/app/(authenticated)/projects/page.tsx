@@ -7,10 +7,19 @@ import { LoadingSpinner } from '@/components/ui/loading-spinner';
 import { CreateProjectButton } from '@/components/projects/create-project-button';
 import { useSession } from 'next-auth/react';
 import { useBackgroundSync } from '@/hooks/use-background-sync';
+import { columns } from '@/components/projects/columns';
+import { DataTable } from '@/components/projects/data-table';
+import { useProjects } from '@/services/project-service';
 
 export default function ProjectsPage() {
   const { data: session } = useSession();
   const userId = session?.user?.id;
+
+  const {
+    data: projects,
+    isLoading,
+    refetch,
+  } = useProjects(session?.user?.id as string);
 
   useBackgroundSync(['projects', userId as string], 5 * 60 * 1000);
 
@@ -22,7 +31,12 @@ export default function ProjectsPage() {
           <CreateProjectButton />
         </div>
         <Suspense fallback={<LoadingSpinner />}>
-          <ProjectList userId={userId ?? ''} />
+          <DataTable
+            columns={columns}
+            data={projects || []}
+            refetch={refetch}
+            isLoading={isLoading}
+          />
         </Suspense>
       </div>
     </ContentLayout>
