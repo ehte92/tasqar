@@ -10,24 +10,31 @@ export async function GET() {
     return new NextResponse('Unauthorized', { status: 401 });
   }
 
-  const stream = new ReadableStream({
-    async start(controller) {
-      controller.enqueue('retry: 1000\n\n');
+  const encoder = new TextEncoder();
 
+  let intervalId: NodeJS.Timeout;
+
+  const stream = new ReadableStream({
+    start: async (controller) => {
       const sendNotifications = async () => {
-        const notifications = await fetchNotifications();
-        const data = `data: ${JSON.stringify(notifications)}\n\n`;
-        controller.enqueue(data);
+        try {
+          const notifications = await fetchNotifications();
+          const data = `data: ${JSON.stringify(notifications)}\n\n`;
+          controller.enqueue(encoder.encode(data));
+        } catch (error) {
+          console.error('Error fetching notifications:', error);
+          controller.error(error);
+        }
       };
 
       // Send initial notifications
       await sendNotifications();
 
       // Set up interval to check for new notifications
-      const intervalId = setInterval(sendNotifications, 5000);
-
-      // Clean up interval when the connection is closed
-      return () => clearInterval(intervalId);
+      intervalId = setInterval(sendNotifications, 5000);
+    },
+    cancel: () => {
+      clearInterval(intervalId);
     },
   });
 
