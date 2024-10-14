@@ -12,10 +12,14 @@ import { priorities, statuses } from './data/data';
 
 interface DataTableToolbarProps<TData> {
   table: Table<TData>;
+  refetch: () => void;
+  isLoading: boolean;
 }
 
 export function DataTableToolbar<TData>({
   table,
+  refetch,
+  isLoading,
 }: DataTableToolbarProps<TData>) {
   const isFiltered = table.getState().columnFilters.length > 0;
 
@@ -55,7 +59,11 @@ export function DataTableToolbar<TData>({
           </Button>
         )}
       </div>
-      <DataTableViewOptions table={table} />
+      <DataTableViewOptions
+        table={table}
+        refetch={refetch}
+        isLoading={isLoading}
+      />
     </div>
   );
 }

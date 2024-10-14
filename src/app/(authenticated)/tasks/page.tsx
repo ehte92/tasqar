@@ -4,13 +4,20 @@ import { ContentLayout } from '@/components/layouts/content-layout';
 import { columns } from '@/components/tasks/columns';
 import { DataTable } from '@/components/tasks/data-table';
 import { TaskTableSkeleton } from '@/components/tasks/task-table-skeleton';
+import { useBackgroundSync } from '@/hooks/use-background-sync';
 import { useTasks } from '@/services/task-service';
 import { useSession } from 'next-auth/react';
 import { Suspense } from 'react';
 
 export default function TasksPage() {
   const { data: session } = useSession();
-  const { data: tasks } = useTasks(session?.user?.id as string);
+  const {
+    data: tasks,
+    isLoading,
+    refetch,
+  } = useTasks(session?.user?.id as string);
+
+  useBackgroundSync(['tasks', session?.user?.id as string], 1 * 60 * 1000);
 
   return (
     <ContentLayout title="My tasks">
@@ -21,7 +28,12 @@ export default function TasksPage() {
         </button>
       </div>
       <Suspense fallback={<TaskTableSkeleton />}>
-        <DataTable columns={columns} data={tasks || []} />
+        <DataTable
+          columns={columns}
+          data={tasks || []}
+          refetch={refetch}
+          isLoading={isLoading}
+        />
       </Suspense>
     </ContentLayout>
   );

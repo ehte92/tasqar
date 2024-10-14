@@ -6,7 +6,7 @@ import { Checkbox } from '@/components/ui/checkbox';
 
 import { DataTableColumnHeader } from './data-table-column-header';
 import { DataTableRowActions } from './data-table-row-actions';
-import { Task, TaskPriority, TaskStatus } from '@/types/task';
+import { Task } from '@/types/task';
 import { priorities, statuses } from './data/data';
 import { formatDate } from '@/lib/utils/date';
 
