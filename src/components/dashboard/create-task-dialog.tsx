@@ -32,7 +32,7 @@ interface CreateTaskDialogProps {
   isOpen: boolean;
   onClose: () => void;
   onCreateTask: (task: Partial<Task>) => void;
-  initialData: Partial<Task>;
+  initialData?: Partial<Task>;
 }
 
 export function CreateTaskDialog({
@@ -41,7 +41,9 @@ export function CreateTaskDialog({
   onCreateTask,
   initialData,
 }: CreateTaskDialogProps) {
-  const [taskDetails, setTaskDetails] = useState<Partial<Task>>(initialData);
+  const [taskDetails, setTaskDetails] = useState<Partial<Task>>(
+    initialData || {}
+  );
   const [isCalendarOpen, setIsCalendarOpen] = useState(false);
   const { data: session } = useSession();
 
@@ -54,7 +56,7 @@ export function CreateTaskDialog({
 
   // Add this useEffect hook to update taskDetails when initialData changes
   useEffect(() => {
-    setTaskDetails(initialData);
+    setTaskDetails(initialData || {});
   }, [initialData]);
 
   const handleChange = useCallback(

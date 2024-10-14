@@ -1,16 +1,24 @@
 'use client';
 
+import { CreateTaskDialog } from '@/components/dashboard/create-task-dialog';
 import { ContentLayout } from '@/components/layouts/content-layout';
 import { columns } from '@/components/tasks/columns';
 import { DataTable } from '@/components/tasks/data-table';
 import { TaskTableSkeleton } from '@/components/tasks/task-table-skeleton';
+import { Button } from '@/components/ui/button';
 import { useBackgroundSync } from '@/hooks/use-background-sync';
-import { useTasks } from '@/services/task-service';
+import { createTask, useTasks } from '@/services/task-service';
+import { Task } from '@/types/task';
+import { useMutation, useQueryClient } from '@tanstack/react-query';
+import { PlusIcon } from 'lucide-react';
 import { useSession } from 'next-auth/react';
-import { Suspense } from 'react';
+import { Suspense, useCallback, useState } from 'react';
+import { toast } from 'sonner';
 
 export default function TasksPage() {
   const { data: session } = useSession();
+  const [isDialogOpen, setIsDialogOpen] = useState(false);
+  const queryClient = useQueryClient();
   const {
     data: tasks,
     isLoading,
@@ -19,13 +27,54 @@ export default function TasksPage() {
 
   useBackgroundSync(['tasks', session?.user?.id as string], 1 * 60 * 1000);
 
+  const createTaskMutation = useMutation({
+    mutationFn: createTask,
+    onSuccess: (newTask) => {
+      queryClient.setQueryData<Task[]>(
+        ['tasks', session?.user?.id],
+        (oldTasks = []) => [...oldTasks, newTask]
+      );
+      toast.success('Task created successfully');
+    },
+    onError: (error) => {
+      toast.error('Failed to create task');
+      console.error('Error creating task:', error);
+    },
+  });
+
+  const handleCreateTask = useCallback(
+    (newTask: Partial<Task>) => {
+      if (session?.user?.id) {
+        createTaskMutation.mutate({
+          ...newTask,
+          userId: session.user.id,
+        });
+      }
+    },
+    [createTaskMutation, session?.user?.id]
+  );
+
+  const handleCreateTaskFromDialog = useCallback(
+    (taskDetails: Partial<Task>) => {
+      handleCreateTask(taskDetails);
+      setIsDialogOpen(false);
+    },
+    [handleCreateTask]
+  );
+
   return (
     <ContentLayout title="My tasks">
-      <div className="flex justify-between items-center mb-6">
-        <h1 className="text-2xl font-semibold">My tasks</h1>
-        <button className="bg-blue-500 hover:bg-blue-600 text-white font-semibold py-2 px-4 rounded flex items-center">
-          <span className="mr-2">+</span> Add task
-        </button>
+      <div className="flex justify-end items-center mb-6">
+        <Button
+          variant="outline"
+          size="sm"
+          className="ml-auto hidden h-8 lg:flex"
+          disabled={isLoading}
+          onClick={() => setIsDialogOpen(true)}
+        >
+          <PlusIcon className="mr-2 h-4 w-4" />
+          Add task
+        </Button>
       </div>
       <Suspense fallback={<TaskTableSkeleton />}>
         <DataTable
@@ -35,6 +84,13 @@ export default function TasksPage() {
           isLoading={isLoading}
         />
       </Suspense>
+      {isDialogOpen && (
+        <CreateTaskDialog
+          isOpen={isDialogOpen}
+          onClose={() => setIsDialogOpen(false)}
+          onCreateTask={handleCreateTaskFromDialog}
+        />
+      )}
     </ContentLayout>
   );
 }
