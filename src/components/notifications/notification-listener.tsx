@@ -17,8 +17,12 @@ export function NotificationListener() {
       eventSourceRef.current = eventSource;
 
       eventSource.onmessage = (event) => {
-        const notifications = JSON.parse(event.data);
-        queryClient.setQueryData(['notifications'], notifications);
+        try {
+          const notifications = JSON.parse(event.data);
+          queryClient.setQueryData(['notifications'], notifications);
+        } catch (error) {
+          console.error('Error parsing notification data:', error);
+        }
       };
 
       eventSource.onerror = (error) => {

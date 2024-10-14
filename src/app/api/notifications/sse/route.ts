@@ -12,31 +12,35 @@ export async function GET() {
 
   const encoder = new TextEncoder();
 
+  let controller: ReadableStreamDefaultController;
   let intervalId: NodeJS.Timeout;
 
   const stream = new ReadableStream({
-    start: async (controller) => {
-      const sendNotifications = async () => {
-        try {
-          const notifications = await fetchNotifications();
-          const data = `data: ${JSON.stringify(notifications)}\n\n`;
-          controller.enqueue(encoder.encode(data));
-        } catch (error) {
-          console.error('Error fetching notifications:', error);
-          controller.error(error);
-        }
-      };
-
-      // Send initial notifications
-      await sendNotifications();
-
-      // Set up interval to check for new notifications
-      intervalId = setInterval(sendNotifications, 5000);
+    start(c) {
+      controller = c;
+      controller.enqueue(encoder.encode('retry: 1000\n\n'));
     },
-    cancel: () => {
+    cancel() {
       clearInterval(intervalId);
     },
   });
+
+  const sendNotifications = async () => {
+    try {
+      const notifications = await fetchNotifications();
+      const data = `data: ${JSON.stringify(notifications)}\n\n`;
+      controller.enqueue(encoder.encode(data));
+    } catch (error) {
+      console.error('Error fetching notifications:', error);
+      controller.error(error);
+    }
+  };
+
+  // Send initial notifications
+  await sendNotifications();
+
+  // Set up interval to check for new notifications
+  intervalId = setInterval(sendNotifications, 5000);
 
   return new NextResponse(stream, {
     headers: {
