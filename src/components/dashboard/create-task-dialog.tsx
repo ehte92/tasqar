@@ -330,6 +330,7 @@ export function CreateTaskDialog({
                 <Select
                   value={taskDetails.projectId || ''}
                   onValueChange={handleProjectChange}
+                  disabled={!!taskDetails.projectId}
                 >
                   <SelectTrigger className="w-full border-none hover:bg-accent">
                     <SelectValue placeholder="Select a project" />

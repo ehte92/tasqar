@@ -2,7 +2,6 @@
 
 import { Suspense } from 'react';
 import { ContentLayout } from '@/components/layouts/content-layout';
-import { ProjectList } from '@/components/projects/project-list';
 import { LoadingSpinner } from '@/components/ui/loading-spinner';
 import { CreateProjectButton } from '@/components/projects/create-project-button';
 import { useSession } from 'next-auth/react';
