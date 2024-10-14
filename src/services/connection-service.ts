@@ -5,8 +5,8 @@ import {
   ConnectionStatus,
 } from '@prisma/client';
 import { CustomError } from '@/lib/custom-error';
-import { useOptimizedQuery } from '@/hooks/use-optimized-query';
 import { ExtendedUserConnection } from '@/components/people/connection-card';
+import { useQuery } from '@tanstack/react-query';
 
 const prisma = new PrismaClient();
 
@@ -147,9 +147,6 @@ export const connectionService = {
   },
 };
 
-const CONNECTIONS_CACHE_KEY = 'connections_cache';
-const CONNECTIONS_CACHE_TTL = 5 * 60 * 1000; // 5 minutes
-
 export async function fetchConnections(): Promise<
   (UserConnection & {
     sender: {
@@ -174,12 +171,10 @@ export async function fetchConnections(): Promise<
 }
 
 export function useConnections(userId: string) {
-  return useOptimizedQuery<ExtendedUserConnection[]>(
-    ['connections'],
-    () => fetchConnections(),
-    { key: CONNECTIONS_CACHE_KEY, ttl: CONNECTIONS_CACHE_TTL },
-    {
-      enabled: !!userId,
-    }
-  );
+  return useQuery<ExtendedUserConnection[]>({
+    queryKey: ['connections', userId],
+    queryFn: fetchConnections,
+    enabled: !!userId,
+    staleTime: 5 * 60 * 1000, // 5 minutes
+  });
 }

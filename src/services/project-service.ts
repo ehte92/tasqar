@@ -1,8 +1,5 @@
-import { useOptimizedQuery } from '@/hooks/use-optimized-query';
+import { useQuery } from '@tanstack/react-query';
 import { Project, ProjectStatus } from '@/types/project';
-
-const PROJECTS_CACHE_KEY = 'projects_cache';
-const PROJECTS_CACHE_TTL = 5 * 60 * 1000; // 5 minutes
 
 export async function fetchProjects(userId: string): Promise<Project[]> {
   const response = await fetch(`/api/projects?userId=${userId}`);
@@ -13,14 +10,12 @@ export async function fetchProjects(userId: string): Promise<Project[]> {
 }
 
 export function useProjects(userId: string) {
-  return useOptimizedQuery<Project[]>(
-    ['projects', userId],
-    () => fetchProjects(userId),
-    { key: PROJECTS_CACHE_KEY, ttl: PROJECTS_CACHE_TTL },
-    {
-      enabled: !!userId,
-    }
-  );
+  return useQuery<Project[]>({
+    queryKey: ['projects', userId],
+    queryFn: () => fetchProjects(userId),
+    enabled: !!userId,
+    staleTime: 5 * 60 * 1000, // 5 minutes
+  });
 }
 
 export async function createProject(project: {
@@ -109,15 +104,10 @@ export const fetchProjectById = async (projectId: string): Promise<Project> => {
 };
 
 export function useFetchProjectById(projectId: string) {
-  return useOptimizedQuery<Project>(
-    ['project', projectId],
-    () => fetchProjectById(projectId),
-    {
-      key: `project-${projectId}`,
-      ttl: 5 * 60 * 1000, // 5 minutes
-    },
-    {
-      enabled: !!projectId,
-    }
-  );
+  return useQuery<Project>({
+    queryKey: ['project', projectId],
+    queryFn: () => fetchProjectById(projectId),
+    enabled: !!projectId,
+    staleTime: 5 * 60 * 1000, // 5 minutes
+  });
 }
