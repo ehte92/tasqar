@@ -10,7 +10,6 @@ import {
   DropdownMenuContent,
   DropdownMenuItem,
   DropdownMenuSeparator,
-  DropdownMenuShortcut,
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu';
 import { Task } from '@/types/task';
@@ -121,12 +120,9 @@ export function DataTableRowActions<TData>({
           <DropdownMenuItem onSelect={() => setIsDialogOpen(true)}>
             Edit
           </DropdownMenuItem>
-          <DropdownMenuItem>Make a copy</DropdownMenuItem>
-          <DropdownMenuItem>Favorite</DropdownMenuItem>
           <DropdownMenuSeparator />
-          <DropdownMenuItem>
+          <DropdownMenuItem onSelect={() => handleDeleteTask(task.id)}>
             Delete
-            <DropdownMenuShortcut>⌘⌫</DropdownMenuShortcut>
           </DropdownMenuItem>
         </DropdownMenuContent>
       </DropdownMenu>
