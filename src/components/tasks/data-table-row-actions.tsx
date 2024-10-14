@@ -12,6 +12,16 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu';
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from '@/components/ui/alert-dialog';
 import { Task } from '@/types/task';
 import { useMutation, useQueryClient } from '@tanstack/react-query';
 import { deleteTask, updateTask } from '@/services/task-service';
@@ -26,7 +36,8 @@ interface DataTableRowActionsProps<TData> {
 export function DataTableRowActions<TData>({
   row,
 }: DataTableRowActionsProps<TData>) {
-  const [isDialogOpen, setIsDialogOpen] = useState(false);
+  const [isEditDialogOpen, setIsEditDialogOpen] = useState(false);
+  const [isDeleteDialogOpen, setIsDeleteDialogOpen] = useState(false);
   const task = row.original as Task;
   const queryClient = useQueryClient();
   const { data: session } = useSession();
@@ -65,7 +76,7 @@ export function DataTableRowActions<TData>({
 
   const handleTaskUpdate = (updatedTask: Task) => {
     updateTaskMutation.mutate(updatedTask);
-    setIsDialogOpen(false);
+    setIsEditDialogOpen(false);
   };
 
   const deleteTaskMutation = useMutation({
@@ -101,6 +112,7 @@ export function DataTableRowActions<TData>({
   });
 
   const handleDeleteTask = (taskId: string) => {
+    setIsDeleteDialogOpen(false);
     deleteTaskMutation.mutate(taskId);
   };
 
@@ -117,24 +129,44 @@ export function DataTableRowActions<TData>({
           </Button>
         </DropdownMenuTrigger>
         <DropdownMenuContent align="end" className="w-[160px]">
-          <DropdownMenuItem onSelect={() => setIsDialogOpen(true)}>
+          <DropdownMenuItem onSelect={() => setIsEditDialogOpen(true)}>
             Edit
           </DropdownMenuItem>
           <DropdownMenuSeparator />
-          <DropdownMenuItem onSelect={() => handleDeleteTask(task.id)}>
+          <DropdownMenuItem onSelect={() => setIsDeleteDialogOpen(true)}>
             Delete
           </DropdownMenuItem>
         </DropdownMenuContent>
       </DropdownMenu>
-      {isDialogOpen && (
+      {isEditDialogOpen && (
         <EditTaskDialog
           task={task}
-          isOpen={isDialogOpen}
-          onClose={() => setIsDialogOpen(false)}
+          isOpen={isEditDialogOpen}
+          onClose={() => setIsEditDialogOpen(false)}
           onUpdateTask={handleTaskUpdate}
-          onDeleteTask={handleDeleteTask}
+          onDeleteTask={() => setIsDeleteDialogOpen(true)}
         />
       )}
+      <AlertDialog
+        open={isDeleteDialogOpen}
+        onOpenChange={setIsDeleteDialogOpen}
+      >
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>Are you sure?</AlertDialogTitle>
+            <AlertDialogDescription>
+              This action cannot be undone. This will permanently delete the
+              task.
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel>Cancel</AlertDialogCancel>
+            <AlertDialogAction onClick={() => handleDeleteTask(task.id)}>
+              Delete
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
     </>
   );
 }
