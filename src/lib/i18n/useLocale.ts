@@ -1,6 +1,7 @@
 import { useEffect, useState } from 'react';
 
 import { useTranslation } from 'react-i18next';
+
 import { AVAILABLE_LANGUAGES } from './constants';
 
 export const useLocale = () => {

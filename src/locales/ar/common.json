@@ -45,5 +45,29 @@
   "invalidOrExpiredInvitation": "دعوة غير صالحة أو منتهية الصلاحية. يرجى طلب دعوة جديدة.",
   "errorValidatingInvitation": "حدث خطأ أثناء التحقق من صحة الدعوة",
   "validatingInvitation": "جارٍ التحقق من صحة الدعوة...",
-  "completeYourRegistration": "أكمل تسجيلك"
+  "completeYourRegistration": "أكمل تسجيلك",
+  "search": {
+    "label": "بحث",
+    "placeholder": "البحث عن المهام...",
+    "noResults": "لم يتم العثور على نتائج.",
+    "tasks": "المهام",
+    "loading": "جاري البحث..."
+  },
+  "notifications": {
+    "title": "الإشعارات",
+    "markAllAsRead": "تحديد الكل كمقروء",
+    "loading": "جاري تحميل الإشعارات...",
+    "error": "خطأ في تحميل الإشعارات",
+    "empty": "لا توجد إشعارات",
+    "connectionRequest": "عرض الطلب",
+    "viewTask": "عرض المهمة",
+    "viewProject": "عرض المشروع"
+  },
+  "userNav": {
+    "openUserMenu": "فتح قائمة المستخدم",
+    "userMenu": "قائمة المستخدم",
+    "dashboard": "لوحة التحكم",
+    "account": "الحساب",
+    "signOut": "تسجيل الخروج"
+  }
 }

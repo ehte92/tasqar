@@ -10,6 +10,7 @@ import {
   AVAILABLE_LANGUAGES,
   DEFAULT_LANGUAGE_KEY,
 } from '@/lib/i18n/constants';
+
 import { isBrowser } from '../ssr';
 
 dayjs.locale(DEFAULT_LANGUAGE_KEY);

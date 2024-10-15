@@ -45,5 +45,29 @@
   "invalidOrExpiredInvitation": "Invalid or expired invitation. Please request a new invitation.",
   "errorValidatingInvitation": "An error occurred while validating the invitation",
   "validatingInvitation": "Validating invitation...",
-  "completeYourRegistration": "Complete Your Registration"
+  "completeYourRegistration": "Complete Your Registration",
+  "search": {
+    "label": "Search",
+    "placeholder": "Search tasks...",
+    "noResults": "No results found.",
+    "tasks": "Tasks",
+    "loading": "Searching..."
+  },
+  "notifications": {
+    "title": "Notifications",
+    "markAllAsRead": "Mark all as read",
+    "loading": "Loading notifications...",
+    "error": "Error loading notifications",
+    "empty": "No notifications",
+    "connectionRequest": "View request",
+    "viewTask": "View task",
+    "viewProject": "View project"
+  },
+  "userNav": {
+    "openUserMenu": "Open user menu",
+    "userMenu": "User menu",
+    "dashboard": "Dashboard",
+    "account": "Account",
+    "signOut": "Sign out"
+  }
 }

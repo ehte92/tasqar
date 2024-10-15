@@ -1,17 +1,13 @@
 'use client';
 
-import Link from 'next/link';
 import { LayoutGrid, LogOut, User } from 'lucide-react';
 import { signOut } from 'next-auth/react';
+import { useSession } from 'next-auth/react';
+import Link from 'next/link';
+import { useTranslation } from 'react-i18next';
 
-import { Button } from '@/components/ui/button';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
-import {
-  Tooltip,
-  TooltipContent,
-  TooltipTrigger,
-  TooltipProvider,
-} from '@/components/ui/tooltip';
+import { Button } from '@/components/ui/button';
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -21,9 +17,15 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu';
-import { useSession } from 'next-auth/react';
+import {
+  Tooltip,
+  TooltipContent,
+  TooltipProvider,
+  TooltipTrigger,
+} from '@/components/ui/tooltip';
 
 export function UserNav() {
+  const { t } = useTranslation('common');
   const { data: session } = useSession();
 
   const handleLogout = async () => {
@@ -43,7 +45,7 @@ export function UserNav() {
               <Button
                 variant="ghost"
                 className="relative h-8 w-8 rounded-full"
-                aria-label="Open user menu"
+                aria-label={t('userNav.openUserMenu')}
               >
                 <Avatar className="h-8 w-8">
                   <AvatarImage
@@ -60,7 +62,7 @@ export function UserNav() {
               </Button>
             </DropdownMenuTrigger>
           </TooltipTrigger>
-          <TooltipContent side="bottom">User menu</TooltipContent>
+          <TooltipContent side="bottom">{t('userNav.userMenu')}</TooltipContent>
         </Tooltip>
       </TooltipProvider>
 
@@ -80,20 +82,20 @@ export function UserNav() {
           <DropdownMenuItem asChild>
             <Link href="/dashboard" className="flex items-center">
               <LayoutGrid className="w-4 h-4 mr-3 text-muted-foreground" />
-              Dashboard
+              {t('userNav.dashboard')}
             </Link>
           </DropdownMenuItem>
           <DropdownMenuItem asChild>
             <Link href="/account" className="flex items-center">
               <User className="w-4 h-4 mr-3 text-muted-foreground" />
-              Account
+              {t('userNav.account')}
             </Link>
           </DropdownMenuItem>
         </DropdownMenuGroup>
         <DropdownMenuSeparator />
         <DropdownMenuItem onSelect={handleLogout}>
           <LogOut className="w-4 h-4 mr-3 text-muted-foreground" />
-          Sign out
+          {t('userNav.signOut')}
         </DropdownMenuItem>
       </DropdownMenuContent>
     </DropdownMenu>
