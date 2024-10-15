@@ -1,10 +1,13 @@
 import React from 'react';
-import { useForm, Controller } from 'react-hook-form';
+
 import { zodResolver } from '@hookform/resolvers/zod';
+import { Controller, useForm } from 'react-hook-form';
+import { toast } from 'sonner';
 import * as z from 'zod';
+
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
-import { Textarea } from '@/components/ui/textarea';
+import { Label } from '@/components/ui/label';
 import {
   Select,
   SelectContent,
@@ -12,10 +15,9 @@ import {
   SelectTrigger,
   SelectValue,
 } from '@/components/ui/select';
+import { Textarea } from '@/components/ui/textarea';
 import { createProject, updateProject } from '@/services/project-service';
 import { ProjectStatus } from '@/types/project';
-import { toast } from 'sonner';
-import { Label } from '@/components/ui/label';
 
 // Define the form schema using Zod
 const projectSchema = z.object({

@@ -1,15 +1,16 @@
 'use client';
 
 import { ColumnDef } from '@tanstack/react-table';
+import { useTranslation } from 'react-i18next';
 
 import { Checkbox } from '@/components/ui/checkbox';
-
-import { statuses } from './data/data';
 import { formatDate } from '@/lib/utils/date';
-import { DataTableColumnHeader } from '../data-table/data-table-column-header';
-
 import { Project } from '@/types/project';
+
+import { DataTableColumnHeader } from '../data-table/data-table-column-header';
 import { DataTableRowActions } from './data-table-row-actions';
+import { statuses } from './data/data';
+
 const CHECKBOX_COLUMN_ID = 'select';
 const MAX_TITLE_WIDTH = 500;
 
@@ -40,10 +41,10 @@ const createSelectColumn = (): ColumnDef<Project> => ({
   enableHiding: false,
 });
 
-const createTitleColumn = (): ColumnDef<Project> => ({
+const createTitleColumn = (t: (key: string) => string): ColumnDef<Project> => ({
   accessorKey: 'title',
   header: ({ column }) => (
-    <DataTableColumnHeader column={column} title="Title" />
+    <DataTableColumnHeader column={column} title={t('columns.title')} />
   ),
   cell: ({ row }) => (
     <div className="flex space-x-2">
@@ -54,18 +55,22 @@ const createTitleColumn = (): ColumnDef<Project> => ({
   ),
 });
 
-const createDueDateColumn = (): ColumnDef<Project> => ({
+const createDueDateColumn = (
+  t: (key: string) => string
+): ColumnDef<Project> => ({
   accessorKey: 'endDate',
   header: ({ column }) => (
-    <DataTableColumnHeader column={column} title="End date" />
+    <DataTableColumnHeader column={column} title={t('columns.dueDate')} />
   ),
   cell: ({ row }) => <div>{formatDate(row.getValue('endDate'))}</div>,
 });
 
-const createStatusColumn = (): ColumnDef<Project> => ({
+const createStatusColumn = (
+  t: (key: string) => string
+): ColumnDef<Project> => ({
   accessorKey: 'status',
   header: ({ column }) => (
-    <DataTableColumnHeader column={column} title="Status" />
+    <DataTableColumnHeader column={column} title={t('columns.status')} />
   ),
   cell: ({ row }) => {
     const status = statuses.find((s) => s.value === row.getValue('status'));
@@ -75,15 +80,20 @@ const createStatusColumn = (): ColumnDef<Project> => ({
         {status.icon && (
           <status.icon className="mr-2 h-4 w-4 text-muted-foreground" />
         )}
-        <span>{status.label}</span>
+        <span>{t(`status.${status.value}`)}</span>
       </div>
     );
   },
   filterFn: (row, id, value) => value.includes(row.getValue(id)),
 });
 
-const createActionsColumn = (): ColumnDef<Project> => ({
+const createActionsColumn = (
+  t: (key: string) => string
+): ColumnDef<Project> => ({
   id: 'actions',
+  header: ({ column }) => (
+    <DataTableColumnHeader column={column} title={t('columns.actions')} />
+  ),
   cell: ({ row }) => (
     <div onClick={(e) => e.stopPropagation()}>
       <DataTableRowActions row={row} />
@@ -91,10 +101,14 @@ const createActionsColumn = (): ColumnDef<Project> => ({
   ),
 });
 
-export const columns: ColumnDef<Project>[] = [
-  createSelectColumn(),
-  createTitleColumn(),
-  createDueDateColumn(),
-  createStatusColumn(),
-  createActionsColumn(),
-];
+export const useColumns = (): ColumnDef<Project>[] => {
+  const { t } = useTranslation('project');
+
+  return [
+    createSelectColumn(),
+    createTitleColumn(t),
+    createDueDateColumn(t),
+    createStatusColumn(t),
+    createActionsColumn(t),
+  ];
+};
