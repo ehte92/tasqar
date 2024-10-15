@@ -1,8 +1,5 @@
 import * as React from 'react';
-import type { Editor } from '@tiptap/react';
-import type { FormatAction } from '../../types';
-import type { toggleVariants } from '@/components/ui/toggle';
-import type { VariantProps } from 'class-variance-authority';
+
 import {
   CaretDownIcon,
   CodeIcon,
@@ -10,8 +7,14 @@ import {
   PlusIcon,
   QuoteIcon,
 } from '@radix-ui/react-icons';
-import { LinkEditPopover } from '../link/link-edit-popover';
+import type { Editor } from '@tiptap/react';
+import type { VariantProps } from 'class-variance-authority';
+
+import type { toggleVariants } from '@/components/ui/toggle';
+
+import type { FormatAction } from '../../types';
 import { ImageEditDialog } from '../image/image-edit-dialog';
+import { LinkEditPopover } from '../link/link-edit-popover';
 import { ToolbarSection } from '../toolbar-section';
 
 type InsertElementAction = 'codeBlock' | 'blockquote' | 'horizontalRule';

@@ -1,9 +1,11 @@
 import * as React from 'react';
+
 import { Editor } from '@tiptap/react';
 import { BubbleMenu } from '@tiptap/react';
+
+import { ShouldShowProps } from '../../types';
 import { LinkEditBlock } from '../link/link-edit-block';
 import { LinkPopoverBlock } from '../link/link-popover-block';
-import { ShouldShowProps } from '../../types';
 
 interface LinkBubbleMenuProps {
   editor: Editor;

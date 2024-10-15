@@ -1,4 +1,5 @@
 import type { Editor } from '@tiptap/core';
+
 import type { MinimalTiptapProps } from './minimal-tiptap';
 
 let isMac: boolean | undefined;
