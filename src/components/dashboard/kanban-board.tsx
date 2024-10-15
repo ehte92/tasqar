@@ -33,7 +33,7 @@ import { BoardColumn } from './board-column';
 import { CreateTaskInline } from './create-task-inline';
 import { coordinateGetter } from './multipleContainersKeyboardPreset';
 import { PeopleOverview } from './people-overview';
-import { ProjectOverview, ProjectOverviewProps } from './project-overview';
+import { ProjectOverview } from './project-overview';
 import { TaskCard } from './task-card';
 import { hasDraggableData } from './utils';
 
@@ -303,9 +303,7 @@ export default function KanbanBoard() {
                 </>
               )}
               {col.id === 'projects' && !isProjectsLoading && (
-                <ProjectOverview
-                  projects={projects as ProjectOverviewProps['projects']}
-                />
+                <ProjectOverview projects={projects} />
               )}
               {col.id === 'people' && <PeopleOverview />}
             </BoardColumn>
@@ -328,9 +326,7 @@ export default function KanbanBoard() {
                     />
                   ))}
                 {activeColumn.id === 'projects' && (
-                  <ProjectOverview
-                    projects={projects as ProjectOverviewProps['projects']}
-                  />
+                  <ProjectOverview projects={projects} />
                 )}
                 {activeColumn.id === 'people' && <PeopleOverview />}
               </BoardColumn>

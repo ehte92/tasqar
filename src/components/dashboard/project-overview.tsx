@@ -2,7 +2,8 @@ import React from 'react';
 
 import { useQueryClient } from '@tanstack/react-query';
 import { format } from 'date-fns';
-import { FileText, MoreHorizontal, Plus } from 'lucide-react';
+import { AnimatePresence, motion } from 'framer-motion';
+import { FileText, Loader2, MoreHorizontal, Plus } from 'lucide-react';
 import { useSession } from 'next-auth/react';
 import dynamic from 'next/dynamic';
 import { useTranslation } from 'react-i18next';
@@ -38,10 +39,25 @@ const EditProjectDialog = dynamic(() => import('./edit-project-dialog'), {
 });
 
 const ProjectSkeleton = () => (
-  <div className="animate-pulse space-y-2 p-4 border border-gray-200 dark:border-gray-700 rounded-md">
-    <div className="h-5 bg-gray-200 dark:bg-gray-700 rounded w-3/4"></div>
-    <div className="h-4 bg-gray-200 dark:bg-gray-700 rounded w-1/2"></div>
-  </div>
+  <motion.div
+    initial={{ opacity: 0 }}
+    animate={{ opacity: 1 }}
+    exit={{ opacity: 0 }}
+    className="space-y-2 p-4 border border-gray-200 dark:border-gray-700 rounded-md"
+  >
+    {[...Array(3)].map((_, index) => (
+      <motion.div
+        key={index}
+        initial={{ opacity: 0, y: 20 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ delay: index * 0.1 }}
+        className="animate-pulse space-y-2"
+      >
+        <div className="h-5 bg-gray-200 dark:bg-gray-700 rounded w-3/4"></div>
+        <div className="h-4 bg-gray-200 dark:bg-gray-700 rounded w-1/2"></div>
+      </motion.div>
+    ))}
+  </motion.div>
 );
 
 const ProjectCard = ({
@@ -56,9 +72,16 @@ const ProjectCard = ({
   const { t } = useTranslation('project');
 
   return (
-    <div className="flex items-center space-x-3 p-2 hover:bg-gray-50 dark:hover:bg-gray-800 rounded-md transition-colors duration-200">
-      <div className="flex-shrink-0 w-10 h-10 bg-gray-100 dark:bg-gray-800 rounded-md flex items-center justify-center">
-        <FileText className="h-5 w-5 text-gray-500 dark:text-gray-400" />
+    <motion.div
+      layout
+      initial={{ opacity: 0, y: 20 }}
+      animate={{ opacity: 1, y: 0 }}
+      exit={{ opacity: 0, y: -20 }}
+      whileHover={{ scale: 1.02 }}
+      className="flex items-center space-x-3 p-3 bg-white dark:bg-gray-800 rounded-md shadow-sm hover:shadow-md transition-all duration-200"
+    >
+      <div className="flex-shrink-0 w-10 h-10 bg-blue-100 dark:bg-blue-900 rounded-md flex items-center justify-center">
+        <FileText className="h-5 w-5 text-blue-500 dark:text-blue-300" />
       </div>
       <div className="flex-grow min-w-0">
         <h3 className="text-sm font-medium text-gray-900 dark:text-gray-100 truncate">
@@ -86,15 +109,11 @@ const ProjectCard = ({
           </DropdownMenuItem>
         </DropdownMenuContent>
       </DropdownMenu>
-    </div>
+    </motion.div>
   );
 };
 
-export interface ProjectOverviewProps {
-  projects: Project[];
-}
-
-export function ProjectOverview({ projects }: ProjectOverviewProps) {
+export function ProjectOverview({ projects }: { projects: Project[] }) {
   const { t } = useTranslation('project');
   const [isCreateDialogOpen, setIsCreateDialogOpen] = React.useState(false);
   const [editingProject, setEditingProject] = React.useState<Project | null>(
@@ -150,19 +169,27 @@ export function ProjectOverview({ projects }: ProjectOverviewProps) {
   };
 
   return (
-    <>
+    <motion.div
+      initial={{ opacity: 0 }}
+      animate={{ opacity: 1 }}
+      exit={{ opacity: 0 }}
+      className="space-y-4"
+    >
+      <motion.div whileHover={{ scale: 1.02 }} whileTap={{ scale: 0.98 }}>
+        <Button
+          variant="outline"
+          className="w-full justify-start h-auto py-3 px-4 border-dashed bg-blue-50 dark:bg-blue-900 text-blue-600 dark:text-blue-300 hover:bg-blue-100 dark:hover:bg-blue-800 transition-colors duration-200"
+          onClick={() => setIsCreateDialogOpen(true)}
+        >
+          <Plus className="mr-2 h-5 w-5" />
+          <span className="font-normal">{t('createProject')}</span>
+        </Button>
+      </motion.div>
+
       {isLoading ? (
         <ProjectSkeleton />
       ) : (
-        <div className="space-y-2">
-          <Button
-            variant="outline"
-            className="w-full justify-start h-auto py-3 px-4 border-dashed"
-            onClick={() => setIsCreateDialogOpen(true)}
-          >
-            <Plus className="mr-2 h-5 w-5" />
-            <span className="font-normal">{t('createProject')}</span>
-          </Button>
+        <AnimatePresence>
           {projectsData?.map((project) => (
             <ProjectCard
               key={project.id}
@@ -171,8 +198,9 @@ export function ProjectOverview({ projects }: ProjectOverviewProps) {
               onDelete={handleDeleteProject}
             />
           ))}
-        </div>
+        </AnimatePresence>
       )}
+
       <CreateProjectDialog
         isOpen={isCreateDialogOpen}
         onClose={() => setIsCreateDialogOpen(false)}
@@ -201,13 +229,16 @@ export function ProjectOverview({ projects }: ProjectOverviewProps) {
             <AlertDialogCancel>{t('cancel')}</AlertDialogCancel>
             <AlertDialogAction
               onClick={confirmDelete}
-              className="bg-red-600 hover:bg-red-700"
+              className="bg-red-600 hover:bg-red-700 text-white"
             >
+              {isDeleting ? (
+                <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+              ) : null}
               {isDeleting ? t('deleting') : t('delete')}
             </AlertDialogAction>
           </AlertDialogFooter>
         </AlertDialogContent>
       </AlertDialog>
-    </>
+    </motion.div>
   );
 }
