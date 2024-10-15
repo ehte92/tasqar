@@ -69,5 +69,22 @@
     "dashboard": "Dashboard",
     "account": "Account",
     "signOut": "Sign out"
+  },
+  "dashboard": {
+    "title": "Dashboard",
+    "taskStats": "Task Statistics",
+    "kanbanBoard": "Kanban Board",
+    "greeting": {
+      "morning": "Good morning,",
+      "afternoon": "Good afternoon,",
+      "evening": "Good evening,",
+      "defaultUser": "User",
+      "date": "{{date, EEEE, MMMM d}}",
+      "year": "{{year}}"
+    },
+    "completedTasks": "Completed Tasks",
+    "pendingTasks": "Pending Tasks",
+    "overdueTasks": "Overdue Tasks",
+    "connections": "Connections"
   }
 }

@@ -69,5 +69,22 @@
     "dashboard": "لوحة التحكم",
     "account": "الحساب",
     "signOut": "تسجيل الخروج"
+  },
+  "dashboard": {
+    "title": "لوحة التحكم",
+    "taskStats": "إحصائيات المهام",
+    "kanbanBoard": "لوحة كانبان",
+    "greeting": {
+      "morning": "صباح الخير،",
+      "afternoon": "مساء الخير،",
+      "evening": "مساء الخير،",
+      "defaultUser": "المستخدم",
+      "date": "{{date, EEEE, MMMM d}}",
+      "year": "{{year}}"
+    },
+    "completedTasks": "المهام المكتملة",
+    "pendingTasks": "المهام المعلقة",
+    "overdueTasks": "المهام المتأخرة",
+    "connections": "الاتصالات"
   }
 }
