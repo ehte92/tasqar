@@ -1,12 +1,14 @@
 'use client';
 
 import Link from 'next/link';
-import { cn } from '@/lib/utils';
+
 import { Button } from '@/components/ui/button';
 import { useSidebarToggle } from '@/hooks/use-sidebar-toggle';
-import { SidebarToggle } from './sidebar-toggle';
-import { Menu } from './menu';
+import { cn } from '@/lib/utils';
+
 import { Icons } from '../ui/icons';
+import { Menu } from './menu';
+import { SidebarToggle } from './sidebar-toggle';
 
 export function Sidebar() {
   const { isOpen, toggle } = useSidebarToggle();

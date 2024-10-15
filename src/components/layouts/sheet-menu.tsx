@@ -1,20 +1,22 @@
 'use client';
 
 import { useState } from 'react';
-import Link from 'next/link';
+
 import { MenuIcon } from 'lucide-react';
+import Link from 'next/link';
 
 import { Button } from '@/components/ui/button';
+import { Icons } from '@/components/ui/icons';
 import {
   Sheet,
-  SheetHeader,
-  SheetContent,
-  SheetTrigger,
-  SheetTitle,
   SheetClose,
+  SheetContent,
+  SheetHeader,
+  SheetTitle,
+  SheetTrigger,
 } from '@/components/ui/sheet';
+
 import { Menu } from './menu';
-import { Icons } from '@/components/ui/icons';
 
 export function SheetMenu() {
   const [isOpen, setIsOpen] = useState(false);

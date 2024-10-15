@@ -1,10 +1,13 @@
 'use client';
 
+import { ReactNode } from 'react';
+
 import localFont from 'next/font/local';
+
 import { Providers } from '@/components/providers';
 import { Toaster } from '@/components/ui/sonner';
 import { useLocale } from '@/lib/i18n/useLocale';
-import { ReactNode } from 'react';
+
 import './globals.css';
 
 const geistSans = localFont({

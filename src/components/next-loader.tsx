@@ -1,8 +1,9 @@
 'use client';
 
 import { useEffect, useState } from 'react';
-import { useTheme } from 'next-themes';
+
 import HolyLoader from 'holy-loader';
+import { useTheme } from 'next-themes';
 
 export type NextLoaderProps = {
   showSpinner?: boolean;

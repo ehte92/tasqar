@@ -1,12 +1,15 @@
 'use client';
 
 import { useEffect } from 'react';
-import { useRouter } from 'next/navigation';
+
 import { useSession } from 'next-auth/react';
-import { Sidebar } from './sidebar';
+import { useRouter } from 'next/navigation';
+
 import { LoadingSpinner } from '@/components/ui/loading-spinner';
 import { useSidebarToggle } from '@/hooks/use-sidebar-toggle';
 import { cn } from '@/lib/utils';
+
+import { Sidebar } from './sidebar';
 
 export function AuthenticatedLayout({
   children,
