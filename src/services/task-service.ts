@@ -1,5 +1,6 @@
-import { Task, TaskStatus, TaskPriority } from '@/types/task';
 import { useQuery } from '@tanstack/react-query';
+
+import { Task, TaskPriority, TaskStatus } from '@/types/task';
 
 type CreateTaskInput = {
   title: string;

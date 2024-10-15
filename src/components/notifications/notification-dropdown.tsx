@@ -1,25 +1,29 @@
 'use client';
 
 import React from 'react';
+
 import { useMutation, useQueryClient } from '@tanstack/react-query';
-import { Bell, Briefcase, Clock, CheckSquare, AlertCircle } from 'lucide-react';
+import { AnimatePresence, motion } from 'framer-motion';
+import { AlertCircle, Bell, Briefcase, CheckSquare, Clock } from 'lucide-react';
+import { useSession } from 'next-auth/react';
+import Link from 'next/link';
+import { useTranslation } from 'react-i18next';
+import { toast } from 'sonner';
+
+import { Badge } from '@/components/ui/badge';
+import { Button } from '@/components/ui/button';
 import {
   DropdownMenu,
   DropdownMenuContent,
   DropdownMenuItem,
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu';
-import { Button } from '@/components/ui/button';
-import { Badge } from '@/components/ui/badge';
+import { useBackgroundSync } from '@/hooks/use-background-sync';
 import { cn } from '@/lib/utils';
-import { toast } from 'sonner';
-import { AnimatePresence, motion } from 'framer-motion';
-import Link from 'next/link';
-import { NotificationListener } from './notification-listener';
 import { useNotifications } from '@/services/notification-service';
 import { Notification } from '@/types/notification';
-import { useSession } from 'next-auth/react';
-import { useBackgroundSync } from '@/hooks/use-background-sync';
+
+import { NotificationListener } from './notification-listener';
 
 async function markNotificationsAsRead(ids: string[]): Promise<void> {
   const response = await fetch('/api/notifications', {
@@ -52,16 +56,24 @@ const NotificationIcon = ({ type }: { type: Notification['type'] }) => {
 };
 
 const NotificationLink = ({ notification }: { notification: Notification }) => {
+  const { t } = useTranslation('common');
+
   switch (notification.type) {
     case 'CONNECTION_REQUEST':
-      return <Link href="/people">View request</Link>;
+      return <Link href="/people">{t('notifications.connectionRequest')}</Link>;
     case 'TASK_ASSIGNMENT':
     case 'TASK_DUE_SOON':
     case 'TASK_OVERDUE':
-      return <Link href={`/tasks/${notification.relatedId}`}>View task</Link>;
+      return (
+        <Link href={`/tasks/${notification.relatedId}`}>
+          {t('notifications.viewTask')}
+        </Link>
+      );
     case 'PROJECT_UPDATE':
       return (
-        <Link href={`/projects/${notification.relatedId}`}>View project</Link>
+        <Link href={`/projects/${notification.relatedId}`}>
+          {t('notifications.viewProject')}
+        </Link>
       );
     default:
       return null;
@@ -69,6 +81,7 @@ const NotificationLink = ({ notification }: { notification: Notification }) => {
 };
 
 export function NotificationDropdown() {
+  const { t } = useTranslation('common');
   const queryClient = useQueryClient();
   const { data: session } = useSession();
 
@@ -131,7 +144,7 @@ export function NotificationDropdown() {
         </DropdownMenuTrigger>
         <DropdownMenuContent align="end" className="w-80">
           <div className="flex justify-between items-center p-2">
-            <h3 className="font-semibold">Notifications</h3>
+            <h3 className="font-semibold">{t('notifications.title')}</h3>
             {unreadCount > 0 && (
               <Button
                 variant="ghost"
@@ -139,16 +152,16 @@ export function NotificationDropdown() {
                 onClick={handleMarkAsRead}
                 disabled={markAsReadMutation.isPending}
               >
-                Mark all as read
+                {t('notifications.markAllAsRead')}
               </Button>
             )}
           </div>
           {isLoading ? (
-            <DropdownMenuItem>Loading notifications...</DropdownMenuItem>
+            <DropdownMenuItem>{t('notifications.loading')}</DropdownMenuItem>
           ) : error ? (
-            <DropdownMenuItem>Error loading notifications</DropdownMenuItem>
+            <DropdownMenuItem>{t('notifications.error')}</DropdownMenuItem>
           ) : notifications.length === 0 ? (
-            <DropdownMenuItem>No notifications</DropdownMenuItem>
+            <DropdownMenuItem>{t('notifications.empty')}</DropdownMenuItem>
           ) : (
             notifications.map((notification) => (
               <DropdownMenuItem
