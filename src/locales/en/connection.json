@@ -1,0 +1,14 @@
+{
+  "received": "Received {{time}} ago",
+  "sent": "Sent {{time}} ago",
+  "connected": "Connected {{time}} ago",
+  "accept": "Accept",
+  "remove": "Remove",
+  "connectionRemovedSuccess": "Connection removed successfully",
+  "failedToRemoveConnection": "Failed to remove connection: {{error}}",
+  "connectionAcceptedSuccess": "Connection accepted successfully",
+  "failedToAcceptConnection": "Failed to accept connection: {{error}}",
+  "addConnectionFeatureComingSoon": "Add connection feature coming soon!",
+  "addConnection": "Add connection",
+  "pending": "Pending"
+}

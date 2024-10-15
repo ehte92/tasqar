@@ -1,5 +1,15 @@
 import React from 'react';
+
 import { ConnectionStatus, UserConnection } from '@prisma/client';
+import { formatDistanceToNow } from 'date-fns';
+import {
+  Clock,
+  MessageSquare,
+  MoreHorizontal,
+  UserCheck,
+  UserX,
+} from 'lucide-react';
+
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Button } from '@/components/ui/button';
 import {
@@ -16,14 +26,6 @@ import {
   DropdownMenuItem,
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu';
-import {
-  MoreHorizontal,
-  UserX,
-  MessageSquare,
-  UserCheck,
-  Clock,
-} from 'lucide-react';
-import { formatDistanceToNow } from 'date-fns';
 
 export type ExtendedUserConnection = UserConnection & {
   sender: {

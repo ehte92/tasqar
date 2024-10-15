@@ -1,0 +1,14 @@
+{
+  "received": "تم الاستلام منذ {{time}}",
+  "sent": "تم الإرسال منذ {{time}}",
+  "connected": "متصل منذ {{time}}",
+  "accept": "قبول",
+  "remove": "إزالة",
+  "connectionRemovedSuccess": "تمت إزالة الاتصال بنجاح",
+  "failedToRemoveConnection": "فشل في إزالة الاتصال: {{error}}",
+  "connectionAcceptedSuccess": "تم قبول الاتصال بنجاح",
+  "failedToAcceptConnection": "فشل في قبول الاتصال: {{error}}",
+  "addConnectionFeatureComingSoon": "ميزة إضافة الاتصال قادمة قريبًا!",
+  "addConnection": "إضافة اتصال",
+  "pending": "قيد الانتظار"
+}

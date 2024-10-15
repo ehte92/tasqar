@@ -1,18 +1,21 @@
 'use client';
 
 import React from 'react';
+
 import { useMutation, useQueryClient } from '@tanstack/react-query';
 import { useSession } from 'next-auth/react';
-import { Skeleton } from '@/components/ui/skeleton';
 import { toast } from 'sonner';
-import { ConnectionCard } from './connection-card';
+
 import {
   Card,
   CardContent,
   CardFooter,
   CardHeader,
 } from '@/components/ui/card';
+import { Skeleton } from '@/components/ui/skeleton';
 import { useConnections } from '@/services/connection-service';
+
+import { ConnectionCard } from './connection-card';
 
 async function removeConnection(connectionId: string): Promise<void> {
   const response = await fetch(`/api/connections?id=${connectionId}`, {

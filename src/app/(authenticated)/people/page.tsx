@@ -1,10 +1,12 @@
 'use client';
 
 import React from 'react';
-import { PeopleList } from '@/components/people/people-list';
-import { AddConnectionDialog } from '@/components/people/add-connection-dialog';
-import { ContentLayout } from '@/components/layouts/content-layout';
+
 import { UserPlus, Users } from 'lucide-react';
+
+import { ContentLayout } from '@/components/layouts/content-layout';
+import { AddConnectionDialog } from '@/components/people/add-connection-dialog';
+import { PeopleList } from '@/components/people/people-list';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { useBackgroundSync } from '@/hooks/use-background-sync';
 

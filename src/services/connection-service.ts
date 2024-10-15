@@ -4,7 +4,7 @@ import {
   User,
   UserConnection,
 } from '@prisma/client';
-import { useQuery } from '@tanstack/react-query';
+import { useMutation, useQuery } from '@tanstack/react-query';
 
 import { ExtendedUserConnection } from '@/components/people/connection-card';
 import { CustomError } from '@/lib/custom-error';
@@ -177,5 +177,17 @@ export function useConnections(userId: string) {
     queryFn: fetchConnections,
     enabled: !!userId,
     staleTime: 5 * 60 * 1000, // 5 minutes
+  });
+}
+
+export function useRemoveConnection() {
+  return useMutation({
+    mutationFn: ({
+      userId,
+      connectionId,
+    }: {
+      userId: string;
+      connectionId: string;
+    }) => connectionService.removeConnection(userId, connectionId),
   });
 }

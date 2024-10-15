@@ -1,10 +1,15 @@
 'use client';
+
 import React from 'react';
-import { useForm } from 'react-hook-form';
+
 import { zodResolver } from '@hookform/resolvers/zod';
-import { useMutation, useQueryClient, useQuery } from '@tanstack/react-query';
-import { z } from 'zod';
+import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
+import { Loader2, UserPlus } from 'lucide-react';
+import { useForm } from 'react-hook-form';
 import { toast } from 'sonner';
+import { z } from 'zod';
+
+import { Button } from '@/components/ui/button';
 import {
   Dialog,
   DialogContent,
@@ -14,8 +19,6 @@ import {
   DialogTitle,
   DialogTrigger,
 } from '@/components/ui/dialog';
-import { Button } from '@/components/ui/button';
-import { Input } from '@/components/ui/input';
 import {
   Form,
   FormControl,
@@ -24,7 +27,7 @@ import {
   FormLabel,
   FormMessage,
 } from '@/components/ui/form';
-import { UserPlus, Loader2 } from 'lucide-react';
+import { Input } from '@/components/ui/input';
 import { useDebounce } from '@/hooks/use-debounce';
 
 const addConnectionSchema = z.object({
