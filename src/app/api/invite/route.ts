@@ -6,6 +6,8 @@ import prisma from '@/lib/db';
 import { generateToken } from '@/lib/utils';
 import { sendInvitationEmail } from '@/services/email-service';
 
+import { authOptions } from '../auth/[...nextauth]/route';
+
 const inviteSchema = z.object({
   email: z.string().email(),
 });
@@ -16,7 +18,7 @@ export async function POST(request: Request) {
     const { email } = inviteSchema.parse(body);
 
     // Get the current user's session
-    const session = await getServerSession();
+    const session = await getServerSession(authOptions);
     if (!session?.user?.id) {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
     }

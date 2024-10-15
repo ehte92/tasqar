@@ -6,6 +6,8 @@ import prisma from '@/lib/db';
 import { connectionService } from '@/services/connection-service';
 import { notificationService } from '@/services/notification-service';
 
+import { authOptions } from '../auth/[...nextauth]/route';
+
 // Schema for validating new connection requests
 const newConnectionSchema = z.object({
   email: z.string().email(),
@@ -14,7 +16,7 @@ const newConnectionSchema = z.object({
 // GET /api/connections
 export async function GET() {
   try {
-    const session = await getServerSession();
+    const session = await getServerSession(authOptions);
 
     if (!session?.user) {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
@@ -47,7 +49,7 @@ export async function GET() {
 // POST /api/connections
 export async function POST(req: Request) {
   try {
-    const session = await getServerSession();
+    const session = await getServerSession(authOptions);
 
     if (!session?.user) {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
@@ -91,7 +93,7 @@ export async function POST(req: Request) {
 // DELETE /api/connections
 export async function DELETE(req: Request) {
   try {
-    const session = await getServerSession();
+    const session = await getServerSession(authOptions);
 
     if (!session?.user) {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
