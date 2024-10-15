@@ -1,7 +1,8 @@
-import prisma from '@/lib/db';
 import { NotificationType } from '@prisma/client';
-import { Notification } from '@/types/notification';
 import { useQuery } from '@tanstack/react-query';
+
+import prisma from '@/lib/db';
+import { Notification } from '@/types/notification';
 
 export const notificationService = {
   async createNotification(

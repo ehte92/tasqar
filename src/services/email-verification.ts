@@ -1,6 +1,7 @@
-import prisma from '@/lib/db';
-import { v4 as uuidv4 } from 'uuid';
 import nodemailer from 'nodemailer';
+import { v4 as uuidv4 } from 'uuid';
+
+import prisma from '@/lib/db';
 
 export async function createVerificationToken(userId: string): Promise<string> {
   const token = uuidv4();

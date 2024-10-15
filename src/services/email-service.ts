@@ -1,4 +1,5 @@
 import nodemailer from 'nodemailer';
+
 import { CustomError } from '@/lib/custom-error';
 
 interface EmailOptions {

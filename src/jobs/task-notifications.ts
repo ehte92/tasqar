@@ -1,6 +1,7 @@
-import { PrismaClient, NotificationType } from '@prisma/client';
+import { NotificationType, PrismaClient } from '@prisma/client';
+import { isAfter, subDays } from 'date-fns';
+
 import { notificationService } from '@/services/notification-service';
-import { subDays, isAfter } from 'date-fns';
 
 const prisma = new PrismaClient();
 
