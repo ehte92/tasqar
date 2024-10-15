@@ -1,5 +1,7 @@
 import { NextResponse } from 'next/server';
+
 import prisma from '@/lib/db';
+import { connectionService } from '@/services/connection-service';
 
 export async function GET(request: Request) {
   try {
@@ -10,14 +12,37 @@ export async function GET(request: Request) {
       throw new Error('User ID is required');
     }
 
-    const completedTasks = await prisma.task.count({
-      where: { userId, status: 'DONE' },
+    const now = new Date();
+
+    const [completedTasks, pendingTasks, overdueTasks, connections] =
+      await Promise.all([
+        prisma.task.count({
+          where: { userId, status: 'DONE' },
+        }),
+        prisma.task.count({
+          where: { userId, status: { not: 'DONE' } },
+        }),
+        prisma.task.count({
+          where: {
+            userId,
+            status: { not: 'DONE' },
+            dueDate: { lt: now },
+          },
+        }),
+        connectionService
+          .getUserConnections(userId)
+          .then(
+            (connections) =>
+              connections.filter((conn) => conn.status === 'ACCEPTED').length
+          ),
+      ]);
+
+    return NextResponse.json({
+      completedTasks,
+      pendingTasks,
+      overdueTasks,
+      connections,
     });
-
-    // For simplicity, we'll just count users. In a real app, you'd implement a proper collaboration system.
-    const collaborators = await prisma.user.count();
-
-    return NextResponse.json({ completedTasks, collaborators });
   } catch (error) {
     console.error('Error fetching task stats:', error);
     return NextResponse.json(

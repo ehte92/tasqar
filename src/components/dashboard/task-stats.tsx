@@ -1,12 +1,15 @@
 'use client';
 
-import { Card, CardContent } from '@/components/ui/card';
-import { CheckCircle, Users } from 'lucide-react';
+import { AlertCircle, CheckCircle, Clock, Users } from 'lucide-react';
 import { useSession } from 'next-auth/react';
-import { useTaskStats } from '@/services/task-service';
+import { useTranslation } from 'react-i18next';
+
+import { Card, CardContent } from '@/components/ui/card';
 import { useBackgroundSync } from '@/hooks/use-background-sync';
+import { useTaskStats } from '@/services/task-service';
 
 export default function TaskStats() {
+  const { t } = useTranslation('common');
   const { data: session } = useSession();
 
   const {
@@ -19,18 +22,32 @@ export default function TaskStats() {
 
   return (
     <Card className="mb-8 shadow-lg hover:shadow-xl transition-shadow duration-300">
-      <CardContent className="grid grid-cols-1 sm:grid-cols-2 gap-6 py-6">
+      <CardContent className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-6 py-6">
         <StatItem
           icon={<CheckCircle className="h-8 w-8 text-green-500" />}
-          label="Tasks completed"
+          label={t('dashboard.completedTasks')}
           value={stats?.completedTasks}
           isLoading={isLoading}
           error={error}
         />
         <StatItem
+          icon={<Clock className="h-8 w-8 text-yellow-500" />}
+          label={t('dashboard.pendingTasks')}
+          value={stats?.pendingTasks}
+          isLoading={isLoading}
+          error={error}
+        />
+        <StatItem
+          icon={<AlertCircle className="h-8 w-8 text-red-500" />}
+          label={t('dashboard.overdueTasks')}
+          value={stats?.overdueTasks}
+          isLoading={isLoading}
+          error={error}
+        />
+        <StatItem
           icon={<Users className="h-8 w-8 text-blue-500" />}
-          label="Collaborators"
-          value={stats?.collaborators}
+          label={t('dashboard.connections')}
+          value={stats?.connections}
           isLoading={isLoading}
           error={error}
         />
@@ -61,7 +78,7 @@ function StatItem({ icon, label, value, isLoading, error }: StatItemProps) {
           <p className="text-sm text-red-500">Error loading stats</p>
         ) : (
           <p className="text-3xl font-bold text-gray-900 dark:text-gray-100">
-            {value || 0}
+            {value ?? 0}
           </p>
         )}
       </div>

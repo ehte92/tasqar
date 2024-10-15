@@ -2,17 +2,6 @@ import { useQuery } from '@tanstack/react-query';
 
 import { Task, TaskPriority, TaskStatus } from '@/types/task';
 
-type CreateTaskInput = {
-  title: string;
-  description?: string | null;
-  status?: TaskStatus;
-  priority?: TaskPriority;
-  dueDate?: string | null;
-  userId: string;
-  projectId?: string | null;
-  assigneeId?: string | null;
-};
-
 export async function fetchTasks(userId: string): Promise<Task[]> {
   const response = await fetch(
     `/api/tasks?userId=${userId}&assigneeId=${userId}`
