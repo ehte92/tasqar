@@ -5,6 +5,7 @@ import { SessionProvider } from 'next-auth/react';
 import { useState } from 'react';
 import { ThemeProvider } from './theme-provider';
 import { TooltipProvider } from './ui/tooltip';
+import '@/lib/i18n/client';
 
 export function Providers({ children }: { children: React.ReactNode }) {
   const [queryClient] = useState(() => new QueryClient());
