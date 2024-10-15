@@ -1,9 +1,9 @@
-import NextAuth, { NextAuthOptions, User } from 'next-auth';
-import CredentialsProvider from 'next-auth/providers/credentials';
 import { PrismaAdapter } from '@next-auth/prisma-adapter';
 import { PrismaClient } from '@prisma/client';
 import { compare } from 'bcrypt';
+import NextAuth, { NextAuthOptions, User } from 'next-auth';
 import { JWT } from 'next-auth/jwt';
+import CredentialsProvider from 'next-auth/providers/credentials';
 
 const prisma = new PrismaClient();
 

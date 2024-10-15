@@ -1,4 +1,5 @@
 import { NextResponse } from 'next/server';
+
 import { verifyEmail } from '@/services/email-verification';
 
 export async function GET(req: Request) {

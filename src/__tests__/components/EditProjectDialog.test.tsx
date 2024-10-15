@@ -1,9 +1,11 @@
 import React from 'react';
-import { render, screen, fireEvent, waitFor } from '@testing-library/react';
-import { EditTaskDialog } from '@/components/tasks/edit-task-dialog';
-import { TaskStatus, TaskPriority } from '@/types/task';
-import { SessionProvider } from 'next-auth/react';
+
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
+import { fireEvent, render, screen, waitFor } from '@testing-library/react';
+import { SessionProvider } from 'next-auth/react';
+
+import { EditTaskDialog } from '@/components/tasks/edit-task-dialog';
+import { TaskPriority, TaskStatus } from '@/types/task';
 
 // Mock the necessary modules
 jest.mock('next-auth/react', () => ({

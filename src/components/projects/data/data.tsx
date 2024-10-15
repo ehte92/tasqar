@@ -1,8 +1,8 @@
 import {
-  PlayIcon,
-  PauseIcon,
   CheckIcon,
   ClipboardIcon,
+  PauseIcon,
+  PlayIcon,
 } from '@radix-ui/react-icons';
 
 import { ProjectStatus } from '@/types/project';

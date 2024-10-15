@@ -1,9 +1,10 @@
+import { NotificationType } from '@prisma/client';
 import { NextResponse } from 'next/server';
 import { z } from 'zod';
+
 import prisma from '@/lib/db';
-import { TaskStatus, TaskPriority } from '@/types/task';
 import { notificationService } from '@/services/notification-service';
-import { NotificationType } from '@prisma/client';
+import { TaskPriority, TaskStatus } from '@/types/task';
 
 const taskSchema = z.object({
   id: z.string().cuid('Invalid task ID'),

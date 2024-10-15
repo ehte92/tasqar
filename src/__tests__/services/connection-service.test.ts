@@ -1,7 +1,8 @@
-import { connectionService } from '@/services/connection-service';
-import { PrismaClient, UserConnection, ConnectionStatus } from '@prisma/client';
-import { CustomError } from '@/lib/custom-error';
+import { ConnectionStatus, PrismaClient, UserConnection } from '@prisma/client';
 import { MockProxy, mockDeep } from 'jest-mock-extended';
+
+import { CustomError } from '@/lib/custom-error';
+import { connectionService } from '@/services/connection-service';
 
 // Mock PrismaClient
 jest.mock('@/lib/prisma', () => ({

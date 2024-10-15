@@ -1,7 +1,7 @@
 import React, { useCallback, useMemo, useRef, useState } from 'react';
 
 import { AnimatePresence, motion } from 'framer-motion';
-import { Calendar, ChevronRight, Plus } from 'lucide-react';
+import { Calendar, ChevronRight, Plus, X } from 'lucide-react';
 import { useSession } from 'next-auth/react';
 import { useTranslation } from 'react-i18next';
 
@@ -83,8 +83,8 @@ export function CreateTaskInline({ onCreateTask }: CreateTaskInlineProps) {
           variant="outline"
           size="icon"
           className={cn(
-            'transition-colors duration-200',
-            dueDate && 'text-blue-500 border-blue-500'
+            'transition-all duration-200',
+            dueDate && 'text-blue-500 border-blue-500 hover:bg-blue-50'
           )}
         >
           <Calendar className="h-4 w-4" />
@@ -129,15 +129,15 @@ export function CreateTaskInline({ onCreateTask }: CreateTaskInlineProps) {
     <AnimatePresence mode="wait">
       {!isCreating ? (
         <motion.div
-          initial={{ opacity: 0 }}
-          animate={{ opacity: 1 }}
-          exit={{ opacity: 0 }}
+          initial={{ opacity: 0, y: 10 }}
+          animate={{ opacity: 1, y: 0 }}
+          exit={{ opacity: 0, y: -10 }}
           transition={{ duration: 0.2 }}
         >
           <Button
             onClick={handleCreate}
             variant="ghost"
-            className="w-full justify-start text-muted-foreground hover:text-foreground transition-colors duration-200"
+            className="w-full justify-start text-muted-foreground hover:text-foreground hover:bg-accent transition-all duration-200"
           >
             <Plus className="mr-2 h-4 w-4" />
             {t('task:createTask')}
@@ -146,11 +146,11 @@ export function CreateTaskInline({ onCreateTask }: CreateTaskInlineProps) {
       ) : (
         <motion.div
           ref={containerRef}
-          initial={{ opacity: 0, y: -10 }}
-          animate={{ opacity: 1, y: 0 }}
-          exit={{ opacity: 0, y: -10 }}
-          transition={{ duration: 0.2 }}
-          className="flex items-center space-x-2 bg-card p-2 rounded-md shadow-sm"
+          initial={{ opacity: 0, y: -10, height: 0 }}
+          animate={{ opacity: 1, y: 0, height: 'auto' }}
+          exit={{ opacity: 0, y: 10, height: 0 }}
+          transition={{ duration: 0.3, ease: 'easeInOut' }}
+          className="flex items-center space-x-2 bg-card p-2 rounded-md shadow-sm border border-input"
         >
           <Input
             ref={inputRef}
@@ -158,7 +158,7 @@ export function CreateTaskInline({ onCreateTask }: CreateTaskInlineProps) {
             onChange={(e) => setTitle(e.target.value)}
             onKeyDown={handleKeyDown}
             placeholder={t('task:writeTaskName')}
-            className="flex-grow"
+            className="flex-grow transition-all duration-200 focus:ring-2 focus:ring-offset-2 focus:ring-blue-500"
           />
           <Popover>
             {calendarTrigger}
@@ -168,9 +168,17 @@ export function CreateTaskInline({ onCreateTask }: CreateTaskInlineProps) {
             variant="ghost"
             size="icon"
             onClick={handleOpenDialog}
-            className="text-muted-foreground hover:text-foreground transition-colors duration-200"
+            className="text-muted-foreground hover:text-foreground hover:bg-accent transition-all duration-200"
           >
             <ChevronRight className="h-4 w-4" />
+          </Button>
+          <Button
+            variant="ghost"
+            size="icon"
+            onClick={resetForm}
+            className="text-muted-foreground hover:text-destructive hover:bg-destructive/10 transition-all duration-200"
+          >
+            <X className="h-4 w-4" />
           </Button>
           {isDialogOpen && (
             <CreateTaskDialog

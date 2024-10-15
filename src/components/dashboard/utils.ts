@@ -1,6 +1,8 @@
 import { Active, DataRef, Over } from '@dnd-kit/core';
-import { Column } from './kanban-board';
+
 import { Task } from '@/types/task';
+
+import { Column } from './kanban-board';
 
 export interface ColumnDragData {
   type: 'Column';

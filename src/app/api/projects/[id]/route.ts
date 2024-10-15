@@ -1,8 +1,9 @@
-import { NextRequest, NextResponse } from 'next/server';
 import { getServerSession } from 'next-auth/next';
+import { NextRequest, NextResponse } from 'next/server';
+import { z } from 'zod';
+
 import { authOptions } from '@/app/api/auth/[...nextauth]/route';
 import prisma from '@/lib/db';
-import { z } from 'zod';
 
 const updateProjectSchema = z.object({
   title: z.string().min(1).max(100),

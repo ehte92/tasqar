@@ -1,13 +1,14 @@
+import fetchMock from 'jest-fetch-mock';
+
 import {
-  fetchProjects,
   createProject,
-  updateProject,
   deleteProject,
-  reorderProjects,
   fetchProjectById,
+  fetchProjects,
+  reorderProjects,
+  updateProject,
 } from '@/services/project-service';
 import { Project, ProjectStatus } from '@/types/project';
-import fetchMock from 'jest-fetch-mock';
 
 describe('Project Service', () => {
   beforeEach(() => {

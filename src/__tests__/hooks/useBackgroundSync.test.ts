@@ -1,6 +1,7 @@
-import { renderHook, act } from '@testing-library/react-hooks';
-import { useBackgroundSync } from '@/hooks/use-background-sync';
 import { useQueryClient } from '@tanstack/react-query';
+import { act, renderHook } from '@testing-library/react-hooks';
+
+import { useBackgroundSync } from '@/hooks/use-background-sync';
 
 // Mock the useQueryClient hook
 jest.mock('@tanstack/react-query', () => ({

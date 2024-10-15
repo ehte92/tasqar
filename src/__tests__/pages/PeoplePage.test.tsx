@@ -1,7 +1,9 @@
 import React from 'react';
-import { render, screen, waitFor } from '@testing-library/react';
+
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
+import { render, screen, waitFor } from '@testing-library/react';
 import { SessionProvider } from 'next-auth/react';
+
 import PeoplePage from '@/app/(authenticated)/people/page';
 
 // Mock the components and hooks

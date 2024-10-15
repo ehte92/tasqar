@@ -1,10 +1,15 @@
 import React from 'react';
+
+import '@testing-library/jest-dom';
 import { render, screen } from '@testing-library/react';
-import '@testing-library/jest-dom'; // Add this import
+
+// Add this import
 import { ProjectCard } from '@/components/projects/project-card';
 import { Project } from '@/types/project';
-import { Task, TaskStatus, TaskPriority } from '@/types/task';
-import { ProjectStatus } from '@/types/project'; // Implied import for ProjectStatus enum
+import { ProjectStatus } from '@/types/project';
+import { Task, TaskPriority, TaskStatus } from '@/types/task';
+
+// Implied import for ProjectStatus enum
 
 describe('ProjectCard', () => {
   const mockTasks: Task[] = [

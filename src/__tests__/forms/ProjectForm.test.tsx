@@ -1,9 +1,11 @@
 import React from 'react';
-import { render, screen, fireEvent, waitFor } from '@testing-library/react';
-import { ProjectForm } from '@/components/projects/project-form';
-import { ProjectStatus } from '@/types/project';
-import { createProject, updateProject } from '@/services/project-service';
+
+import { fireEvent, render, screen, waitFor } from '@testing-library/react';
 import { toast } from 'sonner';
+
+import { ProjectForm } from '@/components/projects/project-form';
+import { createProject, updateProject } from '@/services/project-service';
+import { ProjectStatus } from '@/types/project';
 
 // Mock the dependencies
 jest.mock('@/services/project-service', () => ({

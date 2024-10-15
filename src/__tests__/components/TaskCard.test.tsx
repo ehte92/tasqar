@@ -1,7 +1,9 @@
 import React from 'react';
+
 import { render, screen } from '@testing-library/react';
+
 import { TaskCard } from '@/components/dashboard/task-card';
-import { Task, TaskStatus, TaskPriority } from '@/types/task';
+import { Task, TaskPriority, TaskStatus } from '@/types/task';
 
 // Mock the Framer Motion component
 jest.mock('framer-motion', () => ({

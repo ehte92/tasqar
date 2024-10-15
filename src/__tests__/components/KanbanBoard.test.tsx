@@ -1,11 +1,13 @@
 import React from 'react';
-import { render, screen, waitFor } from '@testing-library/react';
+
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
-import { SessionProvider } from 'next-auth/react';
-import KanbanBoard from '@/components/dashboard/kanban-board';
-import * as taskService from '@/services/task-service';
-import * as projectService from '@/services/project-service';
+import { render, screen, waitFor } from '@testing-library/react';
 import { Session } from 'next-auth';
+import { SessionProvider } from 'next-auth/react';
+
+import KanbanBoard from '@/components/dashboard/kanban-board';
+import * as projectService from '@/services/project-service';
+import * as taskService from '@/services/task-service';
 
 // Mock the services
 jest.mock('@/services/task-service');

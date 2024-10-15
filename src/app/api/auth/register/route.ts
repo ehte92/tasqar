@@ -1,5 +1,6 @@
-import { NextResponse } from 'next/server';
 import { hash } from 'bcrypt';
+import { NextResponse } from 'next/server';
+
 import prisma from '@/lib/db';
 import {
   createVerificationToken,

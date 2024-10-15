@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { connectionService } from '@/services/connection-service';
+
 import { CustomError } from '@/lib/custom-error';
+import { connectionService } from '@/services/connection-service';
 
 export async function GET(request: NextRequest) {
   const email = request.nextUrl.searchParams.get('email');

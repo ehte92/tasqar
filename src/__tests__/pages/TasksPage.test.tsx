@@ -1,7 +1,9 @@
 import React from 'react';
-import { render, screen, fireEvent, waitFor } from '@testing-library/react';
+
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
+import { fireEvent, render, screen, waitFor } from '@testing-library/react';
 import { SessionProvider } from 'next-auth/react';
+
 import TasksPage from '@/app/(authenticated)/tasks/page';
 import * as taskService from '@/services/task-service';
 

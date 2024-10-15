@@ -1,6 +1,7 @@
-import { emailService } from '@/services/email-service';
 import nodemailer from 'nodemailer';
+
 import { CustomError } from '@/lib/custom-error';
+import { emailService } from '@/services/email-service';
 
 jest.mock('nodemailer');
 

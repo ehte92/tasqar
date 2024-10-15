@@ -1,12 +1,13 @@
-import {
-  fetchTasks,
-  createTask,
-  updateTask,
-  deleteTask,
-  reorderTasks,
-} from '@/services/task-service';
-import { Task, TaskStatus, TaskPriority } from '@/types/task';
 import fetchMock from 'jest-fetch-mock';
+
+import {
+  createTask,
+  deleteTask,
+  fetchTasks,
+  reorderTasks,
+  updateTask,
+} from '@/services/task-service';
+import { Task, TaskPriority, TaskStatus } from '@/types/task';
 
 describe('Task Service', () => {
   beforeEach(() => {

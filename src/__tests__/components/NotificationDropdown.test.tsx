@@ -1,8 +1,10 @@
 import React from 'react';
-import { render, screen, fireEvent, waitFor } from '@testing-library/react';
-import { NotificationDropdown } from '@/components/notifications/notification-dropdown';
+
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
+import { fireEvent, render, screen, waitFor } from '@testing-library/react';
 import { SessionProvider } from 'next-auth/react';
+
+import { NotificationDropdown } from '@/components/notifications/notification-dropdown';
 import * as notificationService from '@/services/notification-service';
 
 // Mock the next-auth/react module

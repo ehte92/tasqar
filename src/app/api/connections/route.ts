@@ -1,10 +1,12 @@
-import { NextResponse } from 'next/server';
 import { getServerSession } from 'next-auth/next';
+import { NextResponse } from 'next/server';
 import { z } from 'zod';
-import { authOptions } from '../auth/[...nextauth]/route';
+
 import prisma from '@/lib/db';
 import { connectionService } from '@/services/connection-service';
 import { notificationService } from '@/services/notification-service';
+
+import { authOptions } from '../auth/[...nextauth]/route';
 
 // Schema for validating new connection requests
 const newConnectionSchema = z.object({

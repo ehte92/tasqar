@@ -1,9 +1,11 @@
+import { getServerSession } from 'next-auth';
 import { NextResponse } from 'next/server';
+import { z } from 'zod';
+
 import prisma from '@/lib/db';
 import { generateToken } from '@/lib/utils';
 import { sendInvitationEmail } from '@/services/email-service';
-import { z } from 'zod';
-import { getServerSession } from 'next-auth';
+
 import { authOptions } from '../auth/[...nextauth]/route';
 
 const inviteSchema = z.object({

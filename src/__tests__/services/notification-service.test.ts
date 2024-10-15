@@ -1,7 +1,8 @@
-import { notificationService } from '@/services/notification-service';
-import { PrismaClient, NotificationType } from '@prisma/client';
+import { NotificationType, PrismaClient } from '@prisma/client';
 import { DeepMockProxy, mockDeep } from 'jest-mock-extended';
+
 import { CustomError } from '@/lib/custom-error';
+import { notificationService } from '@/services/notification-service';
 
 // Mock PrismaClient
 jest.mock('@/lib/db', () => ({
