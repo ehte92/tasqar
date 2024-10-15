@@ -1,21 +1,21 @@
 'use client';
 
-import Link from 'next/link';
-import { signOut } from 'next-auth/react';
 import { Ellipsis, LogOut } from 'lucide-react';
+import { signOut } from 'next-auth/react';
+import Link from 'next/link';
 import { usePathname } from 'next/navigation';
 
-import { cn } from '@/lib/utils';
-import { getMenuList } from '@/lib/menu-list';
+import { CollapseMenuButton } from '@/components/layouts/collapse-menu-button';
 import { Button } from '@/components/ui/button';
 import { ScrollArea } from '@/components/ui/scroll-area';
-import { CollapseMenuButton } from '@/components/layouts/collapse-menu-button';
 import {
   Tooltip,
-  TooltipTrigger,
   TooltipContent,
   TooltipProvider,
+  TooltipTrigger,
 } from '@/components/ui/tooltip';
+import { getMenuList } from '@/lib/menu-list';
+import { cn } from '@/lib/utils';
 
 interface MenuProps {
   isOpen: boolean | undefined;

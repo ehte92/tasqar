@@ -1,10 +1,10 @@
 import {
-  Users,
-  Settings,
-  SquarePen,
+  Briefcase,
   LayoutGrid,
   LucideIcon,
-  Briefcase,
+  Settings,
+  SquarePen,
+  Users,
 } from 'lucide-react';
 
 type Submenu = {
