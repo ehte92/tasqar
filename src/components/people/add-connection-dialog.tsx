@@ -4,8 +4,10 @@ import React from 'react';
 
 import { zodResolver } from '@hookform/resolvers/zod';
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
+import { AnimatePresence, motion } from 'framer-motion';
 import { Loader2, UserPlus } from 'lucide-react';
 import { useForm } from 'react-hook-form';
+import { useTranslation } from 'react-i18next';
 import { toast } from 'sonner';
 import { z } from 'zod';
 
@@ -29,6 +31,11 @@ import {
 } from '@/components/ui/form';
 import { Input } from '@/components/ui/input';
 import { useDebounce } from '@/hooks/use-debounce';
+import {
+  addConnection,
+  checkUserExists,
+  inviteUser,
+} from '@/lib/api/connections';
 
 const addConnectionSchema = z.object({
   email: z.string().email('Invalid email address'),
@@ -36,45 +43,10 @@ const addConnectionSchema = z.object({
 
 type FormData = z.infer<typeof addConnectionSchema>;
 
-async function addConnection(email: string): Promise<void> {
-  const response = await fetch('/api/connections', {
-    method: 'POST',
-    headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify({ email }),
-  });
-
-  if (!response.ok) {
-    const errorData = await response.json();
-    throw new Error(errorData.error || 'Failed to add connection');
-  }
-}
-
-async function checkUserExists(email: string): Promise<boolean> {
-  const response = await fetch(
-    `/api/users/exists?email=${encodeURIComponent(email)}`
-  );
-  if (!response.ok) {
-    throw new Error('Failed to check user existence');
-  }
-  return response.json();
-}
-
-async function inviteUser(email: string): Promise<void> {
-  const response = await fetch('/api/invite', {
-    method: 'POST',
-    headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify({ email }),
-  });
-
-  if (!response.ok) {
-    const errorData = await response.json();
-    throw new Error(errorData.error || 'Failed to send invitation');
-  }
-}
-
 export function AddConnectionDialog() {
   const [isOpen, setIsOpen] = React.useState(false);
   const queryClient = useQueryClient();
+  const { t } = useTranslation('connection');
 
   const form = useForm<FormData>({
     resolver: zodResolver(addConnectionSchema),
@@ -96,24 +68,24 @@ export function AddConnectionDialog() {
     mutationFn: (data: FormData) => addConnection(data.email),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['connections'] });
-      toast.success('Connection request sent successfully');
+      toast.success(t('connectionRequestSentSuccess'));
       setIsOpen(false);
       form.reset();
     },
     onError: (error: Error) => {
-      toast.error(`Failed to add connection: ${error.message}`);
+      toast.error(t('failedToAddConnection', { error: error.message }));
     },
   });
 
   const inviteUserMutation = useMutation({
     mutationFn: (email: string) => inviteUser(email),
     onSuccess: () => {
-      toast.success('Invitation sent successfully');
+      toast.success(t('invitationSentSuccess'));
       setIsOpen(false);
       form.reset();
     },
     onError: (error: Error) => {
-      toast.error(`Failed to send invitation: ${error.message}`);
+      toast.error(t('failedToSendInvitation', { error: error.message }));
     },
   });
 
@@ -130,15 +102,13 @@ export function AddConnectionDialog() {
       <DialogTrigger asChild>
         <Button>
           <UserPlus className="mr-2 h-4 w-4" />
-          Add Connection
+          {t('addConnection')}
         </Button>
       </DialogTrigger>
       <DialogContent className="sm:max-w-[425px]">
         <DialogHeader>
-          <DialogTitle>Add New Connection</DialogTitle>
-          <DialogDescription>
-            Enter the email address of the person you want to connect with.
-          </DialogDescription>
+          <DialogTitle>{t('addNewConnection')}</DialogTitle>
+          <DialogDescription>{t('addConnectionDescription')}</DialogDescription>
         </DialogHeader>
         <Form {...form}>
           <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
@@ -147,24 +117,36 @@ export function AddConnectionDialog() {
               name="email"
               render={({ field }) => (
                 <FormItem>
-                  <FormLabel>Email</FormLabel>
+                  <FormLabel>{t('email')}</FormLabel>
                   <FormControl>
-                    <Input placeholder="email@example.com" {...field} />
+                    <Input placeholder={t('emailPlaceholder')} {...field} />
                   </FormControl>
-                  {isCheckingUser && (
-                    <p className="text-sm text-gray-500">Checking user...</p>
-                  )}
-                  {!isCheckingUser && debouncedEmail && (
-                    <p
-                      className={`text-sm ${
-                        userExists ? 'text-green-500' : 'text-yellow-500'
-                      }`}
-                    >
-                      {userExists
-                        ? 'User found'
-                        : 'User not found. You can invite them.'}
-                    </p>
-                  )}
+                  <AnimatePresence mode="wait">
+                    {isCheckingUser && (
+                      <motion.p
+                        key="checking"
+                        initial={{ opacity: 0, y: -10 }}
+                        animate={{ opacity: 1, y: 0 }}
+                        exit={{ opacity: 0, y: -10 }}
+                        className="text-sm text-gray-500"
+                      >
+                        {t('checkingUser')}
+                      </motion.p>
+                    )}
+                    {!isCheckingUser && debouncedEmail && (
+                      <motion.p
+                        key={userExists ? 'found' : 'not-found'}
+                        initial={{ opacity: 0, y: -10 }}
+                        animate={{ opacity: 1, y: 0 }}
+                        exit={{ opacity: 0, y: -10 }}
+                        className={`text-sm ${
+                          userExists ? 'text-green-500' : 'text-yellow-500'
+                        }`}
+                      >
+                        {userExists ? t('userFound') : t('userNotFound')}
+                      </motion.p>
+                    )}
+                  </AnimatePresence>
                   <FormMessage />
                 </FormItem>
               )}
@@ -180,14 +162,22 @@ export function AddConnectionDialog() {
               >
                 {addConnectionMutation.isPending ||
                 inviteUserMutation.isPending ? (
-                  <>
+                  <motion.div
+                    initial={{ opacity: 0 }}
+                    animate={{ opacity: 1 }}
+                    className="flex items-center"
+                  >
                     <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                    {userExists ? 'Sending Request...' : 'Inviting...'}
-                  </>
-                ) : userExists ? (
-                  'Send Request'
+                    {userExists ? t('sendingRequest') : t('inviting')}
+                  </motion.div>
                 ) : (
-                  'Invite User'
+                  <motion.span
+                    key={userExists ? 'send' : 'invite'}
+                    initial={{ opacity: 0 }}
+                    animate={{ opacity: 1 }}
+                  >
+                    {userExists ? t('sendRequest') : t('inviteUser')}
+                  </motion.span>
                 )}
               </Button>
             </DialogFooter>
