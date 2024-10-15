@@ -1,35 +1,19 @@
 'use client';
 
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
-import { useForm } from 'react-hook-form';
-import { zodResolver } from '@hookform/resolvers/zod';
-import {
-  Dialog,
-  DialogContent,
-  DialogHeader,
-  DialogTitle,
-} from '@/components/ui/dialog';
-import { Button } from '@/components/ui/button';
-import { Input } from '@/components/ui/input';
-import { Task, TaskPriority, TaskStatus } from '@/types/task';
-import { AnimatePresence, motion } from 'framer-motion';
-import { VisuallyHidden } from '../ui/visually-hidden';
-import { useProjects } from '@/services/project-service';
-import { useSession } from 'next-auth/react';
-import { useConnections } from '@/services/connection-service';
-import { toast } from 'sonner';
+
+import { Content } from '@tiptap/react';
 import {
   differenceInDays,
-  isThisYear,
-  isYesterday,
-  isTomorrow,
-  isToday,
-  isFuture,
   format,
+  isFuture,
   isPast,
+  isThisYear,
+  isToday,
+  isTomorrow,
+  isYesterday,
 } from 'date-fns';
-import { Content } from '@tiptap/react';
-import { cn } from '@/lib/utils';
+import { AnimatePresence, motion } from 'framer-motion';
 import {
   CalendarIcon,
   Check,
@@ -39,18 +23,30 @@ import {
   Trash2,
   X,
 } from 'lucide-react';
+import { useSession } from 'next-auth/react';
+import { toast } from 'sonner';
+
+import { Button } from '@/components/ui/button';
+import { Dialog, DialogContent, DialogTitle } from '@/components/ui/dialog';
+import { Input } from '@/components/ui/input';
+import { cn } from '@/lib/utils';
+import { useConnections } from '@/services/connection-service';
+import { useProjects } from '@/services/project-service';
+import { Task, TaskPriority, TaskStatus } from '@/types/task';
+
+import { MinimalTiptapEditor } from '../minimal-tiptap';
+import { Avatar, AvatarFallback, AvatarImage } from '../ui/avatar';
+import { Badge } from '../ui/badge';
+import { Calendar } from '../ui/calendar';
+import { Popover, PopoverContent, PopoverTrigger } from '../ui/popover';
 import {
   Select,
-  SelectItem,
   SelectContent,
+  SelectItem,
   SelectTrigger,
   SelectValue,
 } from '../ui/select';
-import { Avatar, AvatarFallback, AvatarImage } from '../ui/avatar';
-import { MinimalTiptapEditor } from '../minimal-tiptap';
-import { Popover, PopoverContent, PopoverTrigger } from '../ui/popover';
-import { Badge } from '../ui/badge';
-import { Calendar } from '../ui/calendar';
+import { VisuallyHidden } from '../ui/visually-hidden';
 
 interface EditTaskDialogProps {
   task: Task;

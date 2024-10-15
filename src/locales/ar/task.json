@@ -1,5 +1,6 @@
 {
   "createNewTask": "إنشاء مهمة جديدة",
+  "addTask": "إضافة مهمة",
   "completed": "مكتملة",
   "markComplete": "وضع علامة كمكتملة",
   "taskName": "اسم المهمة",
@@ -9,6 +10,7 @@
   "noDueDate": "لا يوجد تاريخ استحقاق",
   "today": "اليوم",
   "tomorrow": "غدًا",
+  "yesterday": "أمس",
   "clearDueDate": "مسح تاريخ الاستحقاق",
   "project": "المشروع",
   "selectProject": "اختر مشروعًا",
@@ -19,10 +21,44 @@
     "select": "اختر الأولوية",
     "low": "منخفضة",
     "medium": "متوسطة",
-    "high": "عالية"
+    "high": "عالية",
+    "none": "بدون أولوية"
   },
   "description": "الوصف",
   "descriptionPlaceholder": "اكتب وصفك هنا...",
   "createTask": "إنشاء المهمة",
-  "writeTaskName": "اكتب اسم المهمة"
+  "writeTaskName": "اكتب اسم المهمة",
+  "taskDialog": {
+    "title": "تفاصيل المهمة",
+    "deleteConfirmation": "سيتم حذف هذه المهمة نهائيًا.",
+    "taskNamePlaceholder": "اسم المهمة",
+    "assignee": "المسؤول",
+    "selectAssignee": "اختر المسؤول",
+    "dueDate": "تاريخ الاستحقاق",
+    "projects": "المشاريع",
+    "selectProject": "اختر مشروعًا",
+    "noProject": "لا يوجد مشروع",
+    "noProjectsFound": "لم يتم العثور على مشاريع",
+    "priority": "الأولوية",
+    "selectPriority": "اختر الأولوية",
+    "description": "الوصف",
+    "descriptionPlaceholder": "اكتب وصفك هنا..."
+  },
+  "taskStatus": {
+    "label": "الحالة",
+    "completed": "مكتملة",
+    "markComplete": "وضع علامة كمكتملة",
+    "overdue": "متأخرة",
+    "upcoming": "قادمة",
+    "todo": "للتنفيذ",
+    "in_progress": "قيد التنفيذ",
+    "done": "منجزة"
+  },
+  "myTasks": "مهامي",
+  "taskCreatedSuccess": "تم إنشاء المهمة بنجاح",
+  "taskCreatedError": "فشل في إنشاء المهمة",
+  "taskDeletedSuccess": "تم حذف المهمة بنجاح",
+  "taskDeletedError": "فشل في حذف المهمة",
+  "taskUpdatedSuccess": "تم تحديث المهمة بنجاح",
+  "taskUpdatedError": "فشل في تحديث المهمة"
 }

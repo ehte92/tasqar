@@ -85,6 +85,53 @@
     "completedTasks": "Completed Tasks",
     "pendingTasks": "Pending Tasks",
     "overdueTasks": "Overdue Tasks",
-    "connections": "Connections"
+    "connections": "Connections",
+    "myTasks": "My Tasks",
+    "projectOverview": "Project Overview",
+    "people": "People",
+    "peopleFeatureComingSoon": "People feature coming soon...",
+    "taskCreatedSuccess": "Task created successfully",
+    "taskCreatedError": "Failed to create task",
+    "taskDeletedSuccess": "Task deleted successfully",
+    "taskDeletedError": "Failed to delete task"
+  },
+  "user": "User",
+  "errorLoadingConnections": "Error loading connections: {{error}}",
+  "loading": "Loading...",
+  "error": "Error",
+  "success": "Success",
+  "moveColumn": "Move column: {{columnTitle}}",
+  "scrollToTop": "Scroll to top",
+  "you": "You",
+  "cancel": "Cancel",
+  "delete": "Delete",
+  "update": "Update",
+  "updating": "Updating...",
+  "loadingProjects": "Loading projects...",
+  "pagination": {
+    "rowsSelected": "{{selected}} of {{total}} row(s) selected.",
+    "rowsPerPage": "Rows per page",
+    "pageInfo": "Page {{current}} of {{total}}",
+    "goToFirstPage": "Go to first page",
+    "goToPreviousPage": "Go to previous page",
+    "goToNextPage": "Go to next page",
+    "goToLastPage": "Go to last page"
+  },
+  "filter": {
+    "selected": "{{count}} selected",
+    "noResults": "No results found.",
+    "clearFilters": "Clear filters"
+  },
+  "dataTable": {
+    "view": "View",
+    "toggleColumns": "Toggle columns",
+    "columns": {
+      "select": "Select",
+      "title": "Title",
+      "dueDate": "Due Date",
+      "status": "Status",
+      "priority": "Priority",
+      "actions": "Actions"
+    }
   }
 }

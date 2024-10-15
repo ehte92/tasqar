@@ -1,17 +1,13 @@
 'use client';
 
 import { useState } from 'react';
-import { DotsHorizontalIcon } from '@radix-ui/react-icons';
-import { Row } from '@tanstack/react-table';
 
-import { Button } from '@/components/ui/button';
-import {
-  DropdownMenu,
-  DropdownMenuContent,
-  DropdownMenuItem,
-  DropdownMenuSeparator,
-  DropdownMenuTrigger,
-} from '@/components/ui/dropdown-menu';
+import { DotsHorizontalIcon } from '@radix-ui/react-icons';
+import { useMutation, useQueryClient } from '@tanstack/react-query';
+import { Row } from '@tanstack/react-table';
+import { useSession } from 'next-auth/react';
+import { toast } from 'sonner';
+
 import {
   AlertDialog,
   AlertDialogAction,
@@ -22,12 +18,18 @@ import {
   AlertDialogHeader,
   AlertDialogTitle,
 } from '@/components/ui/alert-dialog';
-import { Task } from '@/types/task';
-import { useMutation, useQueryClient } from '@tanstack/react-query';
+import { Button } from '@/components/ui/button';
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuSeparator,
+  DropdownMenuTrigger,
+} from '@/components/ui/dropdown-menu';
 import { deleteTask, updateTask } from '@/services/task-service';
-import { useSession } from 'next-auth/react';
+import { Task } from '@/types/task';
+
 import { EditTaskDialog } from './edit-task-dialog';
-import { toast } from 'sonner';
 
 interface DataTableRowActionsProps<TData> {
   row: Row<TData>;

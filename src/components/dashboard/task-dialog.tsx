@@ -1,14 +1,47 @@
 import React, {
-  useState,
+  useCallback,
   useEffect,
   useMemo,
-  useCallback,
   useRef,
+  useState,
 } from 'react';
-import { Task, TaskStatus, TaskPriority } from '@/types/task';
-import { Dialog, DialogContent, DialogTitle } from '@/components/ui/dialog';
+
+import { Content } from '@tiptap/react';
+import {
+  differenceInDays,
+  format,
+  isFuture,
+  isPast,
+  isThisYear,
+  isToday,
+  isTomorrow,
+  isYesterday,
+} from 'date-fns';
+import { AnimatePresence, motion } from 'framer-motion';
+import {
+  CalendarIcon,
+  Check,
+  Flag,
+  Loader2,
+  Paperclip,
+  Trash2,
+  X,
+} from 'lucide-react';
+import { useSession } from 'next-auth/react';
+import { useTranslation } from 'react-i18next';
+import { toast } from 'sonner';
+
+import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
+import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
+import { Calendar } from '@/components/ui/calendar';
+import { Dialog, DialogContent, DialogTitle } from '@/components/ui/dialog';
 import { Input } from '@/components/ui/input';
+import {
+  Popover,
+  PopoverContent,
+  PopoverTrigger,
+} from '@/components/ui/popover';
 import {
   Select,
   SelectContent,
@@ -16,42 +49,13 @@ import {
   SelectTrigger,
   SelectValue,
 } from '@/components/ui/select';
-import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
-import { useSession } from 'next-auth/react';
-import {
-  CalendarIcon,
-  X,
-  Paperclip,
-  Trash2,
-  Check,
-  Flag,
-  Loader2,
-} from 'lucide-react';
-import {
-  Popover,
-  PopoverContent,
-  PopoverTrigger,
-} from '@/components/ui/popover';
-import { Calendar } from '@/components/ui/calendar';
-import {
-  format,
-  isToday,
-  isTomorrow,
-  isYesterday,
-  isThisYear,
-  differenceInDays,
-  isPast,
-  isFuture,
-} from 'date-fns';
-import { cn } from '@/lib/utils';
-import { MinimalTiptapEditor } from '../minimal-tiptap';
-import { useProjects } from '@/services/project-service';
-import { motion, AnimatePresence } from 'framer-motion';
-import { Badge } from '@/components/ui/badge';
 import { VisuallyHidden } from '@/components/ui/visually-hidden';
-import { Content } from '@tiptap/react';
-import { toast } from 'sonner';
+import { cn } from '@/lib/utils';
 import { useConnections } from '@/services/connection-service';
+import { useProjects } from '@/services/project-service';
+import { Task, TaskPriority, TaskStatus } from '@/types/task';
+
+import { MinimalTiptapEditor } from '../minimal-tiptap';
 
 interface TaskDialogProps {
   task: Task;
@@ -68,6 +72,7 @@ export function TaskDialog({
   onUpdateTask,
   onDeleteTask,
 }: TaskDialogProps) {
+  const { t } = useTranslation(['common', 'task']);
   const [editedTask, setEditedTask] = useState<Task>(task);
   const [isCalendarOpen, setIsCalendarOpen] = useState(false);
   const [isDeleting, setIsDeleting] = useState(false);
@@ -151,11 +156,23 @@ export function TaskDialog({
 
   const priorityOptions = useMemo(
     () => [
-      { value: TaskPriority.LOW, label: 'Low', color: 'bg-blue-500' },
-      { value: TaskPriority.MEDIUM, label: 'Medium', color: 'bg-yellow-500' },
-      { value: TaskPriority.HIGH, label: 'High', color: 'bg-red-500' },
+      {
+        value: TaskPriority.LOW,
+        label: t('task:priority.low'),
+        color: 'bg-blue-500',
+      },
+      {
+        value: TaskPriority.MEDIUM,
+        label: t('task:priority.medium'),
+        color: 'bg-yellow-500',
+      },
+      {
+        value: TaskPriority.HIGH,
+        label: t('task:priority.high'),
+        color: 'bg-red-500',
+      },
     ],
-    []
+    [t]
   );
 
   const memoizedDueDateButton = useMemo(() => {
@@ -167,10 +184,10 @@ export function TaskDialog({
     const isIncomplete = editedTask.status !== TaskStatus.DONE;
 
     const dateText = (() => {
-      if (!dueDate) return 'No due date';
-      if (isToday(dueDate)) return 'Today';
-      if (isTomorrow(dueDate)) return 'Tomorrow';
-      if (isYesterday(dueDate)) return 'Yesterday';
+      if (!dueDate) return t('task:dueDate.noDueDate');
+      if (isToday(dueDate)) return t('task:dueDate.today');
+      if (isTomorrow(dueDate)) return t('task:dueDate.tomorrow');
+      if (isYesterday(dueDate)) return t('task:dueDate.yesterday');
       if (diffInDays !== null && diffInDays > 0 && diffInDays < 7)
         return format(dueDate, 'EEEE');
       if (isThisYear(dueDate)) return format(dueDate, 'MMM dd');
@@ -200,7 +217,7 @@ export function TaskDialog({
         {dateText}
       </Button>
     );
-  }, [editedTask.dueDate, editedTask.status]);
+  }, [editedTask.dueDate, editedTask.status, t]);
 
   const handleDescriptionChange = useCallback((value: Content) => {
     descriptionRef.current =
@@ -277,7 +294,7 @@ export function TaskDialog({
         hideCloseButton
       >
         <VisuallyHidden>
-          <DialogTitle>Task Details</DialogTitle>
+          <DialogTitle>{t('task:taskDialog.title')}</DialogTitle>
         </VisuallyHidden>
         <AnimatePresence mode="wait">
           {isDeleting ? (
@@ -291,15 +308,15 @@ export function TaskDialog({
             >
               <div className="bg-red-100 p-4 rounded-md">
                 <h2 className="text-lg font-semibold text-red-800">
-                  This task will be deleted permanently.
+                  {t('task:taskDialog.deleteConfirmation')}
                 </h2>
               </div>
               <div className="flex justify-end space-x-2">
                 <Button variant="outline" onClick={cancelDelete}>
-                  Cancel
+                  {t('common:cancel')}
                 </Button>
                 <Button variant="destructive" onClick={confirmDeleteTask}>
-                  Delete
+                  {t('common:delete')}
                 </Button>
               </div>
             </motion.div>
@@ -331,8 +348,8 @@ export function TaskDialog({
                     <Check className="mr-1 h-4 w-4" />
                   )}
                   {editedTask.status === TaskStatus.DONE
-                    ? 'Completed'
-                    : 'Mark complete'}
+                    ? t('task:taskStatus.completed')
+                    : t('task:taskStatus.markComplete')}
                 </Button>
                 <div className="flex space-x-1">
                   <Button variant="ghost" size="icon">
@@ -355,7 +372,7 @@ export function TaskDialog({
                 name="title"
                 value={editedTask.title}
                 onChange={handleChange}
-                placeholder="Task name"
+                placeholder={t('task:taskDialog.taskNamePlaceholder')}
                 className={cn(
                   'text-2xl font-semibold px-0 focus-visible:ring-0',
                   'border-transparent hover:border-input transition-colors duration-200',
@@ -364,15 +381,19 @@ export function TaskDialog({
               />
               <div className="space-y-4">
                 <div className="flex items-center space-x-2">
-                  <span className="w-20 text-sm font-medium">Assignee</span>
+                  <span className="w-20 text-sm font-medium">
+                    {t('task:taskDialog.assignee')}
+                  </span>
                   <Select
                     value={editedTask.assigneeId || ''}
                     onValueChange={handleAssigneeChange}
                   >
                     <SelectTrigger className="w-[200px] border-none hover:bg-accent">
-                      <SelectValue placeholder="Select assignee">
+                      <SelectValue
+                        placeholder={t('task:taskDialog.selectAssignee')}
+                      >
                         {isConnectionsLoading ? (
-                          'Loading...'
+                          t('common:loading')
                         ) : assigneeDetails ? (
                           <div className="flex items-center">
                             <Avatar className="h-6 w-6 mr-2">
@@ -384,7 +405,7 @@ export function TaskDialog({
                             <span>{assigneeDetails.name}</span>
                           </div>
                         ) : (
-                          'Select assignee'
+                          t('task:taskDialog.selectAssignee')
                         )}
                       </SelectValue>
                     </SelectTrigger>
@@ -397,7 +418,9 @@ export function TaskDialog({
                               {session?.user?.name?.[0]}
                             </AvatarFallback>
                           </Avatar>
-                          <span>{session?.user?.name} (You)</span>
+                          <span>
+                            {session?.user?.name} ({t('common:you')})
+                          </span>
                         </div>
                       </SelectItem>
                       {connections.map((connection) => {
@@ -423,7 +446,9 @@ export function TaskDialog({
                   </Select>
                 </div>
                 <div className="flex items-center space-x-2">
-                  <span className="w-20 text-sm font-medium">Due date</span>
+                  <span className="w-20 text-sm font-medium">
+                    {t('task:taskDialog.dueDate')}
+                  </span>
                   <Popover
                     open={isCalendarOpen}
                     onOpenChange={setIsCalendarOpen}
@@ -450,7 +475,7 @@ export function TaskDialog({
                           size="sm"
                           onClick={clearDueDate}
                         >
-                          Clear due date
+                          {t('task:taskDialog.clearDueDate')}
                         </Button>
                       </div>
                     </PopoverContent>
@@ -467,31 +492,37 @@ export function TaskDialog({
                   )}
                 </div>
                 <div className="flex items-center space-x-2">
-                  <span className="w-20 text-sm font-medium">Projects</span>
+                  <span className="w-20 text-sm font-medium">
+                    {t('task:taskDialog.projects')}
+                  </span>
                   <Select
                     value={editedTask.projectId || 'no_project'}
                     onValueChange={handleProjectChange}
                   >
                     <SelectTrigger className="w-[200px] border-none hover:bg-accent">
-                      <SelectValue placeholder="Select a project">
+                      <SelectValue
+                        placeholder={t('task:taskDialog.selectProject')}
+                      >
                         {editedTask.projectId
                           ? projects.find((p) => p.id === editedTask.projectId)
                               ?.title
-                          : 'No project'}
+                          : t('task:taskDialog.noProject')}
                       </SelectValue>
                     </SelectTrigger>
                     <SelectContent>
                       {isProjectsLoading ? (
                         <SelectItem value="loading">
-                          Loading projects...
+                          {t('common:loadingProjects')}
                         </SelectItem>
                       ) : projects.length === 0 ? (
                         <SelectItem value="no_projects">
-                          No projects found
+                          {t('task:taskDialog.noProjectsFound')}
                         </SelectItem>
                       ) : (
                         <>
-                          <SelectItem value="no_project">No project</SelectItem>
+                          <SelectItem value="no_project">
+                            {t('task:taskDialog.noProject')}
+                          </SelectItem>
                           {projects.map((project) => (
                             <SelectItem key={project.id} value={project.id}>
                               {project.title}
@@ -503,16 +534,20 @@ export function TaskDialog({
                   </Select>
                 </div>
                 <div className="flex items-center space-x-2">
-                  <span className="w-20 text-sm font-medium">Priority</span>
+                  <span className="w-20 text-sm font-medium">
+                    {t('task:taskDialog.priority')}
+                  </span>
                   <Select
                     value={editedTask.priority}
                     onValueChange={handlePriorityChange}
                   >
                     <SelectTrigger className="w-[200px] border-none hover:bg-accent">
-                      <SelectValue placeholder="Select priority">
+                      <SelectValue
+                        placeholder={t('task:taskDialog.selectPriority')}
+                      >
                         {priorityOptions.find(
                           (option) => option.value === editedTask.priority
-                        )?.label || 'Select priority'}
+                        )?.label || t('task:taskDialog.selectPriority')}
                       </SelectValue>
                     </SelectTrigger>
                     <SelectContent>
@@ -534,7 +569,9 @@ export function TaskDialog({
                 </div>
               </div>
               <div className="space-y-2">
-                <span className="text-sm font-medium">Description</span>
+                <span className="text-sm font-medium">
+                  {t('task:taskDialog.description')}
+                </span>
                 <MinimalTiptapEditor
                   value={descriptionRef.current}
                   onChange={handleDescriptionChange}
@@ -545,7 +582,7 @@ export function TaskDialog({
                   )}
                   editorContentClassName="p-5"
                   output="html"
-                  placeholder="Type your description here..."
+                  placeholder={t('task:taskDialog.descriptionPlaceholder')}
                   editable={true}
                   editorClassName="focus:outline-none"
                 />
@@ -556,7 +593,7 @@ export function TaskDialog({
                   onClick={handleCancelEdit}
                   disabled={isUpdating}
                 >
-                  Cancel
+                  {t('common:cancel')}
                 </Button>
                 <Button
                   variant="default"
@@ -566,10 +603,10 @@ export function TaskDialog({
                   {isUpdating ? (
                     <>
                       <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                      Updating...
+                      {t('common:updating')}
                     </>
                   ) : (
-                    'Update'
+                    t('common:update')
                   )}
                 </Button>
               </div>

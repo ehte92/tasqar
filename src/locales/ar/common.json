@@ -85,6 +85,52 @@
     "completedTasks": "المهام المكتملة",
     "pendingTasks": "المهام المعلقة",
     "overdueTasks": "المهام المتأخرة",
-    "connections": "الاتصالات"
+    "connections": "الاتصالات",
+    "myTasks": "مهامي",
+    "projectOverview": "نظرة عامة على المشروع",
+    "people": "الأشخاص",
+    "peopleFeatureComingSoon": "ميزة الأشخاص قادمة قريبًا...",
+    "taskCreatedSuccess": "تم إنشاء المهمة بنجاح",
+    "taskCreatedError": "فشل في إنشاء المهمة",
+    "taskDeletedSuccess": "تم حذف المهمة بنجاح",
+    "taskDeletedError": "فشل في حذف المهمة"
+  },
+  "user": "المستخدم",
+  "moveColumn": "نقل العمود: {{columnTitle}}",
+  "scrollToTop": "التمرير إلى الأعلى",
+  "you": "أنت",
+  "loading": "جاري التحميل...",
+  "error": "خطأ",
+  "success": "نجاح",
+  "cancel": "إلغاء",
+  "delete": "حذف",
+  "update": "تحديث",
+  "updating": "جاري التحديث...",
+  "loadingProjects": "جاري تحميل المشاريع...",
+  "pagination": {
+    "rowsSelected": "تم تحديد {{selected}} من {{total}} صف.",
+    "rowsPerPage": "الصفوف لكل صفحة",
+    "pageInfo": "الصفحة {{current}} من {{total}}",
+    "goToFirstPage": "الذهاب إلى الصفحة الأولى",
+    "goToPreviousPage": "الذهاب إلى الصفحة السابقة",
+    "goToNextPage": "الذهاب إلى الصفحة التالية",
+    "goToLastPage": "الذهاب إلى الصفحة الأخيرة"
+  },
+  "filter": {
+    "selected": "{{count}} محدد",
+    "noResults": "لم يتم العثور على نتائج.",
+    "clearFilters": "مسح الفلاتر"
+  },
+  "dataTable": {
+    "view": "عرض",
+    "toggleColumns": "تبديل الأعمدة",
+    "columns": {
+      "select": "اختيار",
+      "title": "العنوان",
+      "dueDate": "تاريخ الاستحقاق",
+      "status": "الحالة",
+      "priority": "الأولوية",
+      "actions": "الإجراءات"
+    }
   }
 }

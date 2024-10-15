@@ -1,9 +1,13 @@
-import React, { useRef, useState, useCallback, useEffect } from 'react';
+import React, { useCallback, useEffect, useRef, useState } from 'react';
+
 import { useSortable } from '@dnd-kit/sortable';
 import { CSS } from '@dnd-kit/utilities';
-import { Card, CardContent, CardHeader } from '@/components/ui/card';
+import { ArrowUp, GripVertical } from 'lucide-react';
+import { useTranslation } from 'react-i18next';
+
 import { Button } from '@/components/ui/button';
-import { GripVertical, ArrowUp } from 'lucide-react';
+import { Card, CardContent, CardHeader } from '@/components/ui/card';
+
 import { Column } from './kanban-board';
 
 interface BoardColumnProps {
@@ -15,6 +19,8 @@ export const BoardColumn = React.memo(function BoardColumn({
   column,
   children,
 }: BoardColumnProps) {
+  const { t } = useTranslation('common');
+
   const {
     attributes,
     listeners,
@@ -59,6 +65,19 @@ export const BoardColumn = React.memo(function BoardColumn({
     }
   }, [handleScroll]);
 
+  const getColumnTitle = (columnId: string) => {
+    switch (columnId) {
+      case 'tasks':
+        return t('dashboard.myTasks');
+      case 'projects':
+        return t('dashboard.projectOverview');
+      case 'people':
+        return t('dashboard.people');
+      default:
+        return columnId;
+    }
+  };
+
   return (
     <Card
       ref={setNodeRef}
@@ -74,10 +93,12 @@ export const BoardColumn = React.memo(function BoardColumn({
           {...listeners}
           className="p-1 text-muted-foreground hover:text-primary -ml-2 h-auto cursor-grab relative"
         >
-          <span className="sr-only">{`Move column: ${column.title}`}</span>
+          <span className="sr-only">
+            {t('moveColumn', { columnTitle: getColumnTitle(column.id) })}
+          </span>
           <GripVertical className="h-5 w-5" />
         </Button>
-        <span className="ml-2 text-lg">{column.title}</span>
+        <span className="ml-2 text-lg">{getColumnTitle(column.id)}</span>
       </CardHeader>
       <CardContent
         ref={contentRef}
@@ -95,7 +116,7 @@ export const BoardColumn = React.memo(function BoardColumn({
             onClick={scrollToTop}
           >
             <ArrowUp className="h-4 w-4" />
-            <span className="sr-only">Scroll to top</span>
+            <span className="sr-only">{t('scrollToTop')}</span>
           </Button>
         )}
       </CardContent>

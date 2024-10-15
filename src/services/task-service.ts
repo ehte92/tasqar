@@ -1,6 +1,6 @@
 import { useQuery } from '@tanstack/react-query';
 
-import { Task, TaskPriority, TaskStatus } from '@/types/task';
+import { Task, TaskStatus } from '@/types/task';
 
 export async function fetchTasks(userId: string): Promise<Task[]> {
   const response = await fetch(

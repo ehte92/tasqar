@@ -1,17 +1,13 @@
 'use client';
 
 import { useState } from 'react';
-import { DotsHorizontalIcon } from '@radix-ui/react-icons';
-import { Row } from '@tanstack/react-table';
 
-import { Button } from '@/components/ui/button';
-import {
-  DropdownMenu,
-  DropdownMenuContent,
-  DropdownMenuItem,
-  DropdownMenuSeparator,
-  DropdownMenuTrigger,
-} from '@/components/ui/dropdown-menu';
+import { DotsHorizontalIcon } from '@radix-ui/react-icons';
+import { useQueryClient } from '@tanstack/react-query';
+import { Row } from '@tanstack/react-table';
+import dynamic from 'next/dynamic';
+import { toast } from 'sonner';
+
 import {
   AlertDialog,
   AlertDialogAction,
@@ -22,11 +18,16 @@ import {
   AlertDialogHeader,
   AlertDialogTitle,
 } from '@/components/ui/alert-dialog';
-import { Project } from '@/types/project';
-import dynamic from 'next/dynamic';
-import { toast } from 'sonner';
-import { useQueryClient } from '@tanstack/react-query';
+import { Button } from '@/components/ui/button';
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuSeparator,
+  DropdownMenuTrigger,
+} from '@/components/ui/dropdown-menu';
 import { useDeleteProject } from '@/hooks/use-delete-project';
+import { Project } from '@/types/project';
 
 const EditProjectDialog = dynamic(
   () => import('@/components/dashboard/edit-project-dialog'),

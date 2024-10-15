@@ -1,36 +1,41 @@
 import React, { useMemo, useState } from 'react';
-import { createPortal } from 'react-dom';
+
 import {
   DndContext,
   DragEndEvent,
   DragOverEvent,
   DragOverlay,
   DragStartEvent,
+  KeyboardSensor,
+  MouseSensor,
+  TouchSensor,
   useSensor,
   useSensors,
-  KeyboardSensor,
-  TouchSensor,
-  MouseSensor,
 } from '@dnd-kit/core';
 import { SortableContext, arrayMove } from '@dnd-kit/sortable';
 import { useMutation, useQueryClient } from '@tanstack/react-query';
+import { useSession } from 'next-auth/react';
+import { createPortal } from 'react-dom';
+import { useTranslation } from 'react-i18next';
+import { toast } from 'sonner';
+
+import { useBackgroundSync } from '@/hooks/use-background-sync';
+import { useProjects } from '@/services/project-service';
 import {
   createTask,
-  updateTask,
   deleteTask,
+  updateTask,
   useTasks,
 } from '@/services/task-service';
-import { useProjects } from '@/services/project-service';
-import { TaskCard } from './task-card';
+import { Task, TaskPriority, TaskStatus } from '@/types/task';
+
 import { BoardColumn } from './board-column';
-import { ProjectOverview, ProjectOverviewProps } from './project-overview';
-import { hasDraggableData } from './utils';
-import { coordinateGetter } from './multipleContainersKeyboardPreset';
-import { useSession } from 'next-auth/react';
-import { Task, TaskStatus, TaskPriority } from '@/types/task';
-import { toast } from 'sonner';
 import { CreateTaskInline } from './create-task-inline';
-import { useBackgroundSync } from '@/hooks/use-background-sync';
+import { coordinateGetter } from './multipleContainersKeyboardPreset';
+import { PeopleOverview } from './people-overview';
+import { ProjectOverview, ProjectOverviewProps } from './project-overview';
+import { TaskCard } from './task-card';
+import { hasDraggableData } from './utils';
 
 export type ColumnId = 'tasks' | 'projects' | 'people';
 
@@ -39,23 +44,22 @@ export interface Column {
   title: string;
 }
 
-const defaultCols: Column[] = [
-  {
-    id: 'tasks',
-    title: 'My Tasks',
-  },
-  {
-    id: 'projects',
-    title: 'Project Overview',
-  },
-  {
-    id: 'people',
-    title: 'People',
-  },
-];
-
 export default function KanbanBoard() {
-  const [columns, setColumns] = useState<Column[]>(defaultCols);
+  const { t } = useTranslation('common');
+  const [columns, setColumns] = useState<Column[]>([
+    {
+      id: 'tasks',
+      title: t('dashboard.myTasks'),
+    },
+    {
+      id: 'projects',
+      title: t('dashboard.projectOverview'),
+    },
+    {
+      id: 'people',
+      title: t('dashboard.people'),
+    },
+  ]);
   const columnsId = useMemo(() => columns.map((col) => col.id), [columns]);
 
   const [activeColumn, setActiveColumn] = useState<Column | null>(null);
@@ -98,10 +102,10 @@ export default function KanbanBoard() {
         ['tasks', session?.user?.id],
         (oldTasks = []) => [...oldTasks, newTask]
       );
-      toast.success('Task created successfully');
+      toast.success(t('dashboard.taskCreatedSuccess'));
     },
     onError: (error) => {
-      toast.error('Failed to create task');
+      toast.error(t('dashboard.taskCreatedError'));
       console.error('Error creating task:', error);
     },
   });
@@ -173,10 +177,10 @@ export default function KanbanBoard() {
         ['tasks', session?.user?.id],
         context?.previousTasks
       );
-      toast.error('Failed to delete task');
+      toast.error(t('dashboard.taskDeletedError'));
     },
     onSuccess: () => {
-      toast.success('Task deleted successfully');
+      toast.success(t('dashboard.taskDeletedSuccess'));
     },
     onSettled: () => {
       queryClient.invalidateQueries({ queryKey: ['tasks', session?.user?.id] });
@@ -303,7 +307,7 @@ export default function KanbanBoard() {
                   projects={projects as ProjectOverviewProps['projects']}
                 />
               )}
-              {col.id === 'people' && <div>People feature coming soon...</div>}
+              {col.id === 'people' && <PeopleOverview />}
             </BoardColumn>
           ))}
         </SortableContext>
@@ -328,9 +332,7 @@ export default function KanbanBoard() {
                     projects={projects as ProjectOverviewProps['projects']}
                   />
                 )}
-                {activeColumn.id === 'people' && (
-                  <div>People feature coming soon...</div>
-                )}
+                {activeColumn.id === 'people' && <PeopleOverview />}
               </BoardColumn>
             )}
             {activeTask && (

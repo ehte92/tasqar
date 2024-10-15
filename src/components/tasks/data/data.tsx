@@ -1,13 +1,13 @@
 import {
+  ArrowDownIcon,
+  ArrowRightIcon,
+  ArrowUpIcon,
+  CheckCircledIcon,
   CircleIcon,
   StopwatchIcon,
-  CheckCircledIcon,
-  ArrowUpIcon,
-  ArrowRightIcon,
-  ArrowDownIcon,
 } from '@radix-ui/react-icons';
 
-import { TaskStatus, TaskPriority } from '@/types/task';
+import { TaskPriority, TaskStatus } from '@/types/task';
 
 export const statuses = [
   {

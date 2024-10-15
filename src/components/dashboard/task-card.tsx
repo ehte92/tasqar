@@ -1,33 +1,37 @@
-import React, { useState, useMemo, forwardRef } from 'react';
+import React, { forwardRef, useMemo, useState } from 'react';
+
 import { useSortable } from '@dnd-kit/sortable';
 import { CSS } from '@dnd-kit/utilities';
-import { Task, TaskStatus, TaskPriority } from '@/types/task';
 import {
-  GripVertical,
-  Calendar,
-  CheckCircle,
-  Clock,
-  AlertCircle,
-  Flag,
-} from 'lucide-react';
-import {
+  differenceInDays,
   format,
+  isFuture,
+  isPast,
   isToday,
   isTomorrow,
   isYesterday,
-  isPast,
-  isFuture,
-  differenceInDays,
 } from 'date-fns';
-import { cn } from '@/lib/utils';
-import dynamic from 'next/dynamic';
 import { motion } from 'framer-motion';
+import {
+  AlertCircle,
+  Calendar,
+  CheckCircle,
+  Clock,
+  Flag,
+  GripVertical,
+} from 'lucide-react';
+import dynamic from 'next/dynamic';
+import { useTranslation } from 'react-i18next';
+
 import {
   Tooltip,
   TooltipContent,
   TooltipProvider,
   TooltipTrigger,
 } from '@/components/ui/tooltip';
+import { cn } from '@/lib/utils';
+import { Task, TaskPriority, TaskStatus } from '@/types/task';
+
 import { LoadingSpinner } from '../ui/loading-spinner';
 
 const TaskDialog = dynamic(
@@ -46,6 +50,7 @@ export interface TaskCardProps {
 
 export const TaskCard = forwardRef<HTMLDivElement, TaskCardProps>(
   ({ task, onUpdateTask, onDeleteTask }, ref) => {
+    const { t } = useTranslation('task');
     const [isDialogOpen, setIsDialogOpen] = useState(false);
     const [isHovered, setIsHovered] = useState(false);
 
@@ -71,10 +76,10 @@ export const TaskCard = forwardRef<HTMLDivElement, TaskCardProps>(
     const { statusStyles, statusInfo, priorityInfo } = useMemo(
       () => ({
         statusStyles: getStatusStyles(task),
-        statusInfo: getStatusInfo(task),
-        priorityInfo: getPriorityInfo(task.priority),
+        statusInfo: getStatusInfo(task, t),
+        priorityInfo: getPriorityInfo(task.priority, t),
       }),
-      [task]
+      [task, t]
     );
 
     const StatusIcon = statusInfo.icon;
@@ -130,12 +135,12 @@ export const TaskCard = forwardRef<HTMLDivElement, TaskCardProps>(
               <span>{statusInfo.label}</span>
               <span>•</span>
               <Flag size={14} className={priorityInfo.color} />
-              <span>{priorityInfo.label} Priority</span>
+              <span>{priorityInfo.label}</span>
             </div>
             {task.dueDate && (
               <div className="mt-2 text-xs text-gray-600 dark:text-gray-300 flex items-center space-x-1">
                 <Calendar size={14} />
-                <span>{formatDueDate(new Date(task.dueDate))}</span>
+                <span>{formatDueDate(new Date(task.dueDate), t)}</span>
               </div>
             )}
           </div>
@@ -176,42 +181,58 @@ function getStatusStyles(task: Task) {
   return 'bg-gray-50 dark:bg-gray-800/50 border-gray-200 dark:border-gray-700';
 }
 
-function getStatusInfo(task: Task) {
+function getStatusInfo(task: Task, t: (key: string) => string) {
   if (task.status === TaskStatus.DONE) {
-    return { icon: CheckCircle, color: 'text-green-500', label: 'Completed' };
+    return {
+      icon: CheckCircle,
+      color: 'text-green-500',
+      label: t('taskStatus.completed'),
+    };
   }
   if (task.dueDate) {
     const dueDate = new Date(task.dueDate);
     if (isPast(dueDate) && !isToday(dueDate)) {
-      return { icon: AlertCircle, color: 'text-red-500', label: 'Overdue' };
+      return {
+        icon: AlertCircle,
+        color: 'text-red-500',
+        label: t('taskStatus.overdue'),
+      };
     }
     if (isToday(dueDate)) {
-      return { icon: Clock, color: 'text-yellow-500', label: 'Due Today' };
+      return {
+        icon: Clock,
+        color: 'text-yellow-500',
+        label: t('dueDate.today'),
+      };
     }
     if (isFuture(dueDate)) {
-      return { icon: Calendar, color: 'text-blue-500', label: 'Upcoming' };
+      return {
+        icon: Calendar,
+        color: 'text-blue-500',
+        label: t('taskStatus.upcoming'),
+      };
     }
   }
-  return { icon: Clock, color: 'text-gray-400', label: 'No Due Date' };
+  return { icon: Clock, color: 'text-gray-400', label: t('dueDate.noDueDate') };
 }
 
-function getPriorityInfo(priority: TaskPriority) {
+function getPriorityInfo(priority: TaskPriority, t: (key: string) => string) {
   switch (priority) {
     case TaskPriority.HIGH:
-      return { color: 'text-red-500', label: 'High' };
+      return { color: 'text-red-500', label: t('priority.high') };
     case TaskPriority.MEDIUM:
-      return { color: 'text-yellow-500', label: 'Medium' };
+      return { color: 'text-yellow-500', label: t('priority.medium') };
     case TaskPriority.LOW:
-      return { color: 'text-green-500', label: 'Low' };
+      return { color: 'text-green-500', label: t('priority.low') };
     default:
-      return { color: 'text-gray-400', label: 'None' };
+      return { color: 'text-gray-400', label: t('priority.none') };
   }
 }
 
-function formatDueDate(date: Date) {
-  if (isToday(date)) return 'Today';
-  if (isTomorrow(date)) return 'Tomorrow';
-  if (isYesterday(date)) return 'Yesterday';
+function formatDueDate(date: Date, t: (key: string) => string) {
+  if (isToday(date)) return t('dueDate.today');
+  if (isTomorrow(date)) return t('dueDate.tomorrow');
+  if (isYesterday(date)) return t('dueDate.yesterday');
   const diffDays = differenceInDays(date, new Date());
   if (diffDays > -7 && diffDays < 7) return format(date, 'EEEE');
   return format(date, 'MMM d');

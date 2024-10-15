@@ -1,5 +1,6 @@
 {
   "createNewTask": "Create New Task",
+  "addTask": "Add task",
   "completed": "Completed",
   "markComplete": "Mark complete",
   "taskName": "Task name",
@@ -9,6 +10,7 @@
   "noDueDate": "No due date",
   "today": "Today",
   "tomorrow": "Tomorrow",
+  "yesterday": "Yesterday",
   "clearDueDate": "Clear due date",
   "project": "Project",
   "selectProject": "Select a project",
@@ -19,10 +21,44 @@
     "select": "Select priority",
     "low": "Low",
     "medium": "Medium",
-    "high": "High"
+    "high": "High",
+    "none": "None"
   },
   "description": "Description",
   "descriptionPlaceholder": "Type your description here...",
   "createTask": "Create task",
-  "writeTaskName": "Write a task name"
+  "writeTaskName": "Write a task name",
+  "taskDialog": {
+    "title": "Task Details",
+    "deleteConfirmation": "This task will be deleted permanently.",
+    "taskNamePlaceholder": "Task name",
+    "assignee": "Assignee",
+    "selectAssignee": "Select assignee",
+    "dueDate": "Due date",
+    "projects": "Projects",
+    "selectProject": "Select a project",
+    "noProject": "No project",
+    "noProjectsFound": "No projects found",
+    "priority": "Priority",
+    "selectPriority": "Select priority",
+    "description": "Description",
+    "descriptionPlaceholder": "Type your description here..."
+  },
+  "taskStatus": {
+    "label": "Status",
+    "completed": "Completed",
+    "markComplete": "Mark complete",
+    "overdue": "Overdue",
+    "upcoming": "Upcoming",
+    "todo": "To Do",
+    "in_progress": "In Progress",
+    "done": "Done"
+  },
+  "myTasks": "My Tasks",
+  "taskCreatedSuccess": "Task created successfully",
+  "taskCreatedError": "Failed to create task",
+  "taskDeletedSuccess": "Task deleted successfully",
+  "taskDeletedError": "Failed to delete task",
+  "taskUpdatedSuccess": "Task updated successfully",
+  "taskUpdatedError": "Failed to update task"
 }
