@@ -1,8 +1,9 @@
 'use client';
 
+import { CalendarIcon } from '@radix-ui/react-icons';
 import { format } from 'date-fns';
 import { useSession } from 'next-auth/react';
-import { CalendarIcon } from '@radix-ui/react-icons';
+import { useTranslation } from 'react-i18next';
 
 type Greeting = 'morning' | 'afternoon' | 'evening';
 
@@ -14,10 +15,12 @@ const getGreeting = (): Greeting => {
 };
 
 export default function DashboardGreeting() {
+  const { t } = useTranslation('common');
   const { data: session } = useSession();
   const currentDate = new Date();
   const greeting = getGreeting();
-  const firstName = session?.user?.name?.split(' ')[0] ?? 'User';
+  const firstName =
+    session?.user?.name?.split(' ')[0] ?? t('dashboard.greeting.defaultUser');
 
   return (
     <div className="bg-gradient-to-r from-blue-500 to-purple-600 text-white rounded-lg p-6 shadow-lg">
@@ -32,7 +35,9 @@ export default function DashboardGreeting() {
           {format(currentDate, 'yyyy')}
         </div>
       </div>
-      <h1 className="text-4xl font-bold mb-2">Good {greeting},</h1>
+      <h1 className="text-4xl font-bold mb-2">
+        {t(`dashboard.greeting.${greeting}`, { firstName })}
+      </h1>
       <p className="text-2xl font-semibold text-blue-100">{firstName}</p>
     </div>
   );
