@@ -4,11 +4,9 @@ import { z } from 'zod';
 
 import prisma from '@/lib/db';
 
-import { authOptions } from '../auth/[...nextauth]/route';
-
 export async function GET(request: Request) {
   try {
-    const session = await getServerSession(authOptions);
+    const session = await getServerSession();
 
     if (!session?.user) {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
@@ -36,7 +34,7 @@ const markAsReadSchema = z.object({
 
 export async function PUT(request: Request) {
   try {
-    const session = await getServerSession(authOptions);
+    const session = await getServerSession();
 
     if (!session?.user) {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });

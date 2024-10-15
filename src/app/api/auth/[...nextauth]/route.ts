@@ -7,7 +7,7 @@ import CredentialsProvider from 'next-auth/providers/credentials';
 
 const prisma = new PrismaClient();
 
-export const authOptions: NextAuthOptions = {
+const handler = NextAuth({
   adapter: PrismaAdapter(prisma),
   providers: [
     CredentialsProvider({
@@ -71,8 +71,6 @@ export const authOptions: NextAuthOptions = {
   session: {
     strategy: 'jwt',
   },
-};
-
-const handler = NextAuth(authOptions);
+} as NextAuthOptions);
 
 export { handler as GET, handler as POST };

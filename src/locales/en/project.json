@@ -1,5 +1,16 @@
 {
-  "createProject": "Create Project",
+  "createProject": {
+    "title": "Create Project",
+    "description": "Set up a new project to organize your tasks.",
+    "titleLabel": "Project Title",
+    "titlePlaceholder": "Enter project title",
+    "descriptionLabel": "Description",
+    "descriptionPlaceholder": "Enter project description",
+    "submit": "Create Project",
+    "submitting": "Creating...",
+    "success": "Project created successfully",
+    "error": "Failed to create project"
+  },
   "editProject": "Edit Project",
   "projectTitle": "Project Title",
   "description": "Description",

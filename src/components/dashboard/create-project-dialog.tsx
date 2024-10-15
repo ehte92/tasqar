@@ -2,6 +2,8 @@ import React from 'react';
 
 import { zodResolver } from '@hookform/resolvers/zod';
 import { useQueryClient } from '@tanstack/react-query';
+import { AnimatePresence, motion } from 'framer-motion';
+import { Loader2 } from 'lucide-react';
 import { useSession } from 'next-auth/react';
 import { useForm } from 'react-hook-form';
 import { useTranslation } from 'react-i18next';
@@ -32,6 +34,12 @@ const projectSchema = z.object({
 });
 
 type ProjectFormData = z.infer<typeof projectSchema>;
+
+const fadeInOut = {
+  initial: { opacity: 0 },
+  animate: { opacity: 1 },
+  exit: { opacity: 0 },
+};
 
 export default function CreateProjectDialog({
   isOpen,
@@ -68,60 +76,102 @@ export default function CreateProjectDialog({
   };
 
   return (
-    <Dialog open={isOpen} onOpenChange={onClose}>
-      <DialogContent className="sm:max-w-[425px]">
-        <DialogHeader>
-          <DialogTitle>{t('project:createProject.title')}</DialogTitle>
-          <DialogDescription>
-            {t('project:createProject.description')}
-          </DialogDescription>
-        </DialogHeader>
-        <form onSubmit={handleSubmit(onSubmit)} className="space-y-4">
-          <div className="space-y-2">
-            <Label htmlFor="title">
-              {t('project:createProject.titleLabel')}
-            </Label>
-            <Input
-              id="title"
-              {...register('title')}
-              placeholder={t('project:createProject.titlePlaceholder')}
-            />
-            {errors.title && (
-              <p className="text-sm text-red-500">{errors.title.message}</p>
-            )}
-          </div>
-          <div className="space-y-2">
-            <Label htmlFor="description">
-              {t('project:createProject.descriptionLabel')}
-            </Label>
-            <Textarea
-              id="description"
-              {...register('description')}
-              placeholder={t('project:createProject.descriptionPlaceholder')}
-              rows={3}
-            />
-            {errors.description && (
-              <p className="text-sm text-red-500">
-                {errors.description.message}
-              </p>
-            )}
-          </div>
-          <div className="flex justify-end">
-            <Button type="submit" disabled={isCreating}>
-              {isCreating ? (
-                <>
-                  <span className="mr-2">
-                    {t('project:createProject.submitting')}
-                  </span>
-                  <span className="animate-spin">⏳</span>
-                </>
-              ) : (
-                t('project:createProject.submit')
-              )}
-            </Button>
-          </div>
-        </form>
-      </DialogContent>
-    </Dialog>
+    <AnimatePresence>
+      {isOpen && (
+        <Dialog open={isOpen} onOpenChange={onClose}>
+          <DialogContent className="sm:max-w-[425px]">
+            <motion.div
+              initial="initial"
+              animate="animate"
+              exit="exit"
+              variants={fadeInOut}
+            >
+              <DialogHeader>
+                <DialogTitle>{t('project:createProject.title')}</DialogTitle>
+                <DialogDescription>
+                  {t('project:createProject.description')}
+                </DialogDescription>
+              </DialogHeader>
+              <form onSubmit={handleSubmit(onSubmit)} className="space-y-4">
+                <motion.div
+                  className="space-y-2"
+                  initial={{ y: 20, opacity: 0 }}
+                  animate={{ y: 0, opacity: 1 }}
+                  transition={{ delay: 0.1 }}
+                >
+                  <Label htmlFor="title">
+                    {t('project:createProject.titleLabel')}
+                  </Label>
+                  <Input
+                    id="title"
+                    {...register('title')}
+                    placeholder={t('project:createProject.titlePlaceholder')}
+                    className="transition-all duration-200 focus:ring-2 focus:ring-primary"
+                  />
+                  {errors.title && (
+                    <motion.p
+                      className="text-sm text-red-500"
+                      initial={{ opacity: 0 }}
+                      animate={{ opacity: 1 }}
+                    >
+                      {errors.title.message}
+                    </motion.p>
+                  )}
+                </motion.div>
+                <motion.div
+                  className="space-y-2"
+                  initial={{ y: 20, opacity: 0 }}
+                  animate={{ y: 0, opacity: 1 }}
+                  transition={{ delay: 0.2 }}
+                >
+                  <Label htmlFor="description">
+                    {t('project:createProject.descriptionLabel')}
+                  </Label>
+                  <Textarea
+                    id="description"
+                    {...register('description')}
+                    placeholder={t(
+                      'project:createProject.descriptionPlaceholder'
+                    )}
+                    rows={3}
+                    className="transition-all duration-200 focus:ring-2 focus:ring-primary"
+                  />
+                  {errors.description && (
+                    <motion.p
+                      className="text-sm text-red-500"
+                      initial={{ opacity: 0 }}
+                      animate={{ opacity: 1 }}
+                    >
+                      {errors.description.message}
+                    </motion.p>
+                  )}
+                </motion.div>
+                <motion.div
+                  className="flex justify-end"
+                  initial={{ y: 20, opacity: 0 }}
+                  animate={{ y: 0, opacity: 1 }}
+                  transition={{ delay: 0.3 }}
+                >
+                  <Button
+                    type="submit"
+                    disabled={isCreating}
+                    className="transition-all duration-200 hover:bg-primary-dark"
+                  >
+                    {isCreating ? (
+                      <>
+                        <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                        {t('project:createProject.submitting')}
+                      </>
+                    ) : (
+                      t('project:createProject.submit')
+                    )}
+                  </Button>
+                </motion.div>
+              </form>
+            </motion.div>
+          </DialogContent>
+        </Dialog>
+      )}
+    </AnimatePresence>
   );
 }
