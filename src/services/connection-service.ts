@@ -1,12 +1,13 @@
 import {
+  ConnectionStatus,
   PrismaClient,
   User,
   UserConnection,
-  ConnectionStatus,
 } from '@prisma/client';
-import { CustomError } from '@/lib/custom-error';
-import { ExtendedUserConnection } from '@/components/people/connection-card';
 import { useQuery } from '@tanstack/react-query';
+
+import { ExtendedUserConnection } from '@/components/people/connection-card';
+import { CustomError } from '@/lib/custom-error';
 
 const prisma = new PrismaClient();
 

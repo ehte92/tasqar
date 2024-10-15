@@ -1,6 +1,7 @@
 'use client';
 
 import dynamic from 'next/dynamic';
+import { useTranslation } from 'react-i18next';
 
 import { ContentLayout } from '@/components/layouts/content-layout';
 import { LoadingSpinner } from '@/components/ui/loading-spinner';
@@ -24,16 +25,24 @@ const KanbanBoard = dynamic(
 );
 
 export default function DashboardPage() {
+  const { t } = useTranslation('common');
+
   return (
-    <ContentLayout title="Dashboard">
+    <ContentLayout title={t('dashboard.title')}>
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <section className="mb-8">
           <DashboardGreeting />
         </section>
         <section>
+          <h2 className="text-2xl font-semibold mb-4">
+            {t('dashboard.taskStats')}
+          </h2>
           <TaskStats />
         </section>
         <section className="mt-8">
+          <h2 className="text-2xl font-semibold mb-4">
+            {t('dashboard.kanbanBoard')}
+          </h2>
           <KanbanBoard />
         </section>
       </div>
