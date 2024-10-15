@@ -1,14 +1,25 @@
 'use client';
 
-import { useRouter } from 'next/navigation';
-import { signIn } from 'next-auth/react';
-import { motion } from 'framer-motion';
-import { toast } from 'sonner';
-import { z } from 'zod';
-import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { useMutation } from '@tanstack/react-query';
+import { motion } from 'framer-motion';
+import { signIn } from 'next-auth/react';
+import Link from 'next/link';
+import { useRouter } from 'next/navigation';
+import { useForm } from 'react-hook-form';
+import { useTranslation } from 'react-i18next';
+import { toast } from 'sonner';
+import { z } from 'zod';
+
 import { Button } from '@/components/ui/button';
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardFooter,
+  CardHeader,
+  CardTitle,
+} from '@/components/ui/card';
 import {
   Form,
   FormControl,
@@ -17,17 +28,8 @@ import {
   FormLabel,
   FormMessage,
 } from '@/components/ui/form';
-import { Input } from '@/components/ui/input';
-import {
-  Card,
-  CardContent,
-  CardHeader,
-  CardTitle,
-  CardDescription,
-  CardFooter,
-} from '@/components/ui/card';
 import { Icons } from '@/components/ui/icons';
-import Link from 'next/link';
+import { Input } from '@/components/ui/input';
 
 const loginSchema = z.object({
   email: z.string().email('Invalid email address'),
@@ -38,6 +40,7 @@ type LoginFormValues = z.infer<typeof loginSchema>;
 
 const LoginForm = () => {
   const router = useRouter();
+  const { t } = useTranslation('common');
 
   const form = useForm<LoginFormValues>({
     resolver: zodResolver(loginSchema),
@@ -60,11 +63,11 @@ const LoginForm = () => {
       return result;
     },
     onSuccess: () => {
-      toast.success('Login successful!');
+      toast.success(t('login.success'));
       router.push('/dashboard');
     },
     onError: (error: Error) => {
-      toast.error(error.message || 'An unexpected error occurred');
+      toast.error(t('login.error', { error: error.message }));
     },
   });
 
@@ -82,10 +85,10 @@ const LoginForm = () => {
         <Card className="border-0 shadow-lg">
           <CardHeader className="space-y-1">
             <CardTitle className="text-3xl font-bold text-center">
-              Welcome Back
+              {t('login.title')}
             </CardTitle>
             <CardDescription className="text-center text-gray-500">
-              Log in to your Tasqar account
+              {t('login.description')}
             </CardDescription>
           </CardHeader>
           <CardContent>
@@ -99,9 +102,12 @@ const LoginForm = () => {
                   name="email"
                   render={({ field }) => (
                     <FormItem>
-                      <FormLabel>Email</FormLabel>
+                      <FormLabel>{t('login.emailLabel')}</FormLabel>
                       <FormControl>
-                        <Input placeholder="john@example.com" {...field} />
+                        <Input
+                          placeholder={t('login.emailPlaceholder')}
+                          {...field}
+                        />
                       </FormControl>
                       <FormMessage />
                     </FormItem>
@@ -112,11 +118,11 @@ const LoginForm = () => {
                   name="password"
                   render={({ field }) => (
                     <FormItem>
-                      <FormLabel>Password</FormLabel>
+                      <FormLabel>{t('login.passwordLabel')}</FormLabel>
                       <FormControl>
                         <Input
                           type="password"
-                          placeholder="••••••••"
+                          placeholder={t('login.passwordPlaceholder')}
                           {...field}
                         />
                       </FormControl>
@@ -132,10 +138,10 @@ const LoginForm = () => {
                   {loginMutation.isPending ? (
                     <>
                       <Icons.spinner className="mr-2 h-4 w-4 animate-spin" />
-                      Logging in...
+                      {t('login.submitting')}
                     </>
                   ) : (
-                    'Log In'
+                    t('login.submit')
                   )}
                 </Button>
               </form>
@@ -143,9 +149,9 @@ const LoginForm = () => {
           </CardContent>
           <CardFooter className="flex flex-col space-y-4">
             <p className="text-center text-sm text-gray-600 mt-4">
-              Don&apos;t have an account?{' '}
+              {t('login.noAccount')}{' '}
               <Link href="/register" className="text-blue-600 hover:underline">
-                Sign up
+                {t('login.signUp')}
               </Link>
             </p>
           </CardFooter>

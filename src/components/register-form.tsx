@@ -1,13 +1,24 @@
 'use client';
 
-import { useRouter } from 'next/navigation';
-import { motion } from 'framer-motion';
-import { toast } from 'sonner';
-import { z } from 'zod';
-import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { useMutation } from '@tanstack/react-query';
+import { motion } from 'framer-motion';
+import Link from 'next/link';
+import { useRouter } from 'next/navigation';
+import { useForm } from 'react-hook-form';
+import { useTranslation } from 'react-i18next';
+import { toast } from 'sonner';
+import { z } from 'zod';
+
 import { Button } from '@/components/ui/button';
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardFooter,
+  CardHeader,
+  CardTitle,
+} from '@/components/ui/card';
 import {
   Form,
   FormControl,
@@ -16,17 +27,9 @@ import {
   FormLabel,
   FormMessage,
 } from '@/components/ui/form';
-import { Input } from '@/components/ui/input';
-import {
-  Card,
-  CardContent,
-  CardHeader,
-  CardTitle,
-  CardDescription,
-  CardFooter,
-} from '@/components/ui/card';
 import { Icons } from '@/components/ui/icons';
-import Link from 'next/link';
+import { Input } from '@/components/ui/input';
+import { registerUser } from '@/lib/api/auth';
 
 const registerSchema = z.object({
   name: z.string().min(2, 'Name must be at least 2 characters'),
@@ -34,7 +37,7 @@ const registerSchema = z.object({
   password: z.string().min(8, 'Password must be at least 8 characters'),
 });
 
-type RegisterFormValues = z.infer<typeof registerSchema>;
+export type RegisterFormValues = z.infer<typeof registerSchema>;
 
 interface RegisterFormProps {
   initialEmail?: string | null;
@@ -42,6 +45,7 @@ interface RegisterFormProps {
 
 const RegisterForm: React.FC<RegisterFormProps> = ({ initialEmail }) => {
   const router = useRouter();
+  const { t } = useTranslation('common');
 
   const form = useForm<RegisterFormValues>({
     resolver: zodResolver(registerSchema),
@@ -53,24 +57,16 @@ const RegisterForm: React.FC<RegisterFormProps> = ({ initialEmail }) => {
   });
 
   const registerMutation = useMutation({
-    mutationFn: async (values: RegisterFormValues) => {
-      const response = await fetch('/api/auth/register', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(values),
-      });
-      if (!response.ok) {
-        const errorData = await response.json();
-        throw new Error(errorData.error || 'Registration failed');
-      }
-      return response.json();
-    },
+    mutationFn: registerUser,
     onSuccess: (data) => {
-      toast.success(data.message || 'Registration successful!');
+      toast.success(t('registration.success') || 'Registration successful!');
       setTimeout(() => router.push('/login'), 3000);
     },
     onError: (error: Error) => {
-      toast.error(error.message || 'An unexpected error occurred');
+      toast.error(
+        t('registration.error', { error: error.message }) ||
+          'An unexpected error occurred'
+      );
     },
   });
 
@@ -88,10 +84,10 @@ const RegisterForm: React.FC<RegisterFormProps> = ({ initialEmail }) => {
         <Card className="border-0 shadow-lg">
           <CardHeader className="space-y-1">
             <CardTitle className="text-3xl font-bold text-center">
-              Complete Your Registration
+              {t('registration.title')}
             </CardTitle>
             <CardDescription className="text-center text-gray-500">
-              Set up your account to start using Tasqar.
+              {t('registration.description')}
             </CardDescription>
           </CardHeader>
           <CardContent>
@@ -105,9 +101,12 @@ const RegisterForm: React.FC<RegisterFormProps> = ({ initialEmail }) => {
                   name="name"
                   render={({ field }) => (
                     <FormItem>
-                      <FormLabel>Name</FormLabel>
+                      <FormLabel>{t('registration.nameLabel')}</FormLabel>
                       <FormControl>
-                        <Input placeholder="John Doe" {...field} />
+                        <Input
+                          placeholder={t('registration.namePlaceholder')}
+                          {...field}
+                        />
                       </FormControl>
                       <FormMessage />
                     </FormItem>
@@ -118,10 +117,10 @@ const RegisterForm: React.FC<RegisterFormProps> = ({ initialEmail }) => {
                   name="email"
                   render={({ field }) => (
                     <FormItem>
-                      <FormLabel>Email</FormLabel>
+                      <FormLabel>{t('registration.emailLabel')}</FormLabel>
                       <FormControl>
                         <Input
-                          placeholder="john@example.com"
+                          placeholder={t('registration.emailPlaceholder')}
                           {...field}
                           disabled={!!initialEmail}
                         />
@@ -135,11 +134,11 @@ const RegisterForm: React.FC<RegisterFormProps> = ({ initialEmail }) => {
                   name="password"
                   render={({ field }) => (
                     <FormItem>
-                      <FormLabel>Password</FormLabel>
+                      <FormLabel>{t('registration.passwordLabel')}</FormLabel>
                       <FormControl>
                         <Input
                           type="password"
-                          placeholder="••••••••"
+                          placeholder={t('registration.passwordPlaceholder')}
                           {...field}
                         />
                       </FormControl>
@@ -155,10 +154,10 @@ const RegisterForm: React.FC<RegisterFormProps> = ({ initialEmail }) => {
                   {registerMutation.isPending ? (
                     <>
                       <Icons.spinner className="mr-2 h-4 w-4 animate-spin" />
-                      Registering...
+                      {t('registration.submitting')}
                     </>
                   ) : (
-                    'Create Account'
+                    t('registration.submit')
                   )}
                 </Button>
               </form>
@@ -166,9 +165,9 @@ const RegisterForm: React.FC<RegisterFormProps> = ({ initialEmail }) => {
           </CardContent>
           <CardFooter className="flex flex-col space-y-4">
             <p className="text-center text-sm text-gray-600 mt-4">
-              Already have an account?{' '}
+              {t('registration.haveAccount')}{' '}
               <Link href="/login" className="text-blue-600 hover:underline">
-                Log in
+                {t('registration.login')}
               </Link>
             </p>
           </CardFooter>

@@ -1,59 +1,59 @@
 'use client';
 
-import { useRouter, useSearchParams } from 'next/navigation';
-import { motion } from 'framer-motion';
+import { useEffect } from 'react';
+
 import { useQuery } from '@tanstack/react-query';
+import { motion } from 'framer-motion';
+import Link from 'next/link';
+import { useRouter, useSearchParams } from 'next/navigation';
+import { useTranslation } from 'react-i18next';
+
+import { Button } from '@/components/ui/button';
 import {
   Card,
   CardContent,
+  CardDescription,
   CardHeader,
   CardTitle,
-  CardDescription,
 } from '@/components/ui/card';
-import { Button } from '@/components/ui/button';
 import { Icons } from '@/components/ui/icons';
-import Link from 'next/link';
-import { useEffect } from 'react';
+import { verifyEmail } from '@/lib/api/auth';
 
-const verifyEmail = async (token: string) => {
-  const response = await fetch(`/api/auth/verify-email?token=${token}`);
-  if (!response.ok) {
-    throw new Error('Email verification failed');
-  }
-  return response.json();
+const containerVariants = {
+  hidden: { opacity: 0, y: 20 },
+  visible: { opacity: 1, y: 0, transition: { duration: 0.5 } },
+};
+
+const iconVariants = {
+  hidden: { scale: 0 },
+  visible: {
+    scale: 1,
+    transition: { delay: 0.2, type: 'spring', stiffness: 200 },
+  },
 };
 
 export default function VerifyEmail() {
   const router = useRouter();
   const searchParams = useSearchParams();
+  const { t } = useTranslation('common');
   const token = searchParams.get('token');
 
   const { data, error, isLoading, isSuccess, isError } = useQuery({
     queryKey: ['verifyEmail', token],
     queryFn: () =>
-      token ? verifyEmail(token) : Promise.reject('No token provided'),
+      token
+        ? verifyEmail(token)
+        : Promise.reject(new Error(t('verifyEmail.noToken'))),
     enabled: !!token,
     retry: false,
   });
 
   useEffect(() => {
-    if (data) {
-      setTimeout(() => router.push('/login'), 5000);
+    if (isSuccess) {
+      const timer = setTimeout(() => router.push('/login'), 5000);
+      return () => clearTimeout(timer);
     }
-  }, [data, router]);
-
-  const containerVariants = {
-    hidden: { opacity: 0, y: 20 },
-    visible: { opacity: 1, y: 0, transition: { duration: 0.5 } },
-  };
-
-  const iconVariants = {
-    hidden: { scale: 0 },
-    visible: {
-      scale: 1,
-      transition: { delay: 0.2, type: 'spring', stiffness: 200 },
-    },
-  };
+  }, [isSuccess, router]);
 
   return (
     <div className="container mx-auto px-4 py-16 flex items-center justify-center min-h-screen">
@@ -66,12 +66,12 @@ export default function VerifyEmail() {
         <Card className="border-0 shadow-lg">
           <CardHeader className="space-y-1">
             <CardTitle className="text-3xl font-bold text-center">
-              Email Verification
+              {t('verifyEmail.title')}
             </CardTitle>
             <CardDescription className="text-center text-gray-500">
               {isLoading
-                ? 'Verifying your email...'
-                : 'Thank you for verifying your email'}
+                ? t('verifyEmail.verifying')
+                : t('verifyEmail.thankYou')}
             </CardDescription>
           </CardHeader>
           <CardContent className="flex flex-col items-center space-y-4">
@@ -90,33 +90,31 @@ export default function VerifyEmail() {
             {isSuccess && (
               <div className="text-center">
                 <p className="text-lg font-semibold text-green-600 mb-2">
-                  Email Verified Successfully!
+                  {t('verifyEmail.success')}
                 </p>
-                <p className="text-gray-600">
-                  You will be redirected to the login page shortly.
-                </p>
+                <p className="text-gray-600">{t('verifyEmail.redirecting')}</p>
               </div>
             )}
 
             {isError && (
               <div className="text-center">
                 <p className="text-lg font-semibold text-red-600 mb-2">
-                  Email Verification Failed
+                  {t('verifyEmail.error')}
                 </p>
                 <p className="text-gray-600 mb-4">
                   {error instanceof Error
                     ? error.message
-                    : 'There was an error verifying your email. Please try again or contact support.'}
+                    : t('verifyEmail.genericError')}
                 </p>
                 <Button asChild>
-                  <Link href="/support">Contact Support</Link>
+                  <Link href="/support">{t('verifyEmail.contactSupport')}</Link>
                 </Button>
               </div>
             )}
 
             {!isLoading && (
               <Button asChild variant="outline" className="mt-4">
-                <Link href="/login">Go to Login</Link>
+                <Link href="/login">{t('verifyEmail.goToLogin')}</Link>
               </Button>
             )}
           </CardContent>

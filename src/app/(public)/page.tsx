@@ -1,11 +1,14 @@
 'use client';
 
-import Link from 'next/link';
+import React from 'react';
+
 import { motion } from 'framer-motion';
+import { ArrowRight, BarChart, CheckSquare, UserPlus } from 'lucide-react';
+import Link from 'next/link';
+import { useTranslation } from 'react-i18next';
+
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { CheckSquare, UserPlus, BarChart, ArrowRight } from 'lucide-react';
-import React from 'react';
 
 const Icons = {
   tasks: CheckSquare,
@@ -15,6 +18,26 @@ const Icons = {
 };
 
 export default function Home() {
+  const { t } = useTranslation('landing');
+
+  const features = [
+    {
+      title: t('features.taskManagement.title'),
+      description: t('features.taskManagement.description'),
+      icon: Icons.tasks,
+    },
+    {
+      title: t('features.teamCollaboration.title'),
+      description: t('features.teamCollaboration.description'),
+      icon: Icons.users,
+    },
+    {
+      title: t('features.analyticsInsights.title'),
+      description: t('features.analyticsInsights.description'),
+      icon: Icons.barChart,
+    },
+  ];
+
   return (
     <div className="container mx-auto px-4 py-16 min-h-screen flex flex-col justify-center items-center relative z-0">
       <motion.div
@@ -24,14 +47,13 @@ export default function Home() {
         className="text-center mb-16"
       >
         <h1 className="text-6xl font-extrabold text-gray-900 dark:text-white mb-6">
-          Welcome to{' '}
+          {t('welcome')}{' '}
           <span className="text-blue-600 bg-clip-text text-transparent bg-gradient-to-r from-blue-500 to-purple-500">
-            Tasqar
+            {t('appName')}
           </span>
         </h1>
         <p className="text-xl text-gray-600 dark:text-gray-300 max-w-2xl mx-auto mb-8">
-          Collaborate on tasks efficiently and boost your team&apos;s
-          productivity with our intuitive task management platform.
+          {t('description')}
         </p>
         <motion.div
           initial={{ opacity: 0, y: 20 }}
@@ -41,11 +63,11 @@ export default function Home() {
         >
           <Button asChild size="lg" className="bg-blue-600 hover:bg-blue-700">
             <Link href="/register" className="flex items-center">
-              Get Started <Icons.arrowRight className="ml-2 h-4 w-4" />
+              {t('getStarted')} <Icons.arrowRight className="ml-2 h-4 w-4" />
             </Link>
           </Button>
           <Button asChild variant="outline" size="lg">
-            <Link href="/login">Login</Link>
+            <Link href="/login">{t('login')}</Link>
           </Button>
         </motion.div>
       </motion.div>
@@ -83,38 +105,12 @@ export default function Home() {
         transition={{ duration: 0.5, delay: 0.6 }}
         className="w-full max-w-4xl bg-gradient-to-r from-blue-500 to-purple-500 rounded-lg p-8 text-white text-center"
       >
-        <h2 className="text-3xl font-bold mb-4">
-          Ready to boost your productivity?
-        </h2>
-        <p className="text-lg mb-6">
-          Join thousands of teams already using Tasqar to streamline their
-          workflow.
-        </p>
+        <h2 className="text-3xl font-bold mb-4">{t('cta.title')}</h2>
+        <p className="text-lg mb-6">{t('cta.description')}</p>
         <Button asChild size="lg" variant="secondary">
-          <Link href="/register">Start Your Free Trial</Link>
+          <Link href="/register">{t('cta.button')}</Link>
         </Button>
       </motion.div>
     </div>
   );
 }
-
-const features = [
-  {
-    title: 'Task Management',
-    description:
-      'Create, assign, and track tasks with ease. Stay organized and never miss a deadline.',
-    icon: Icons.tasks,
-  },
-  {
-    title: 'Team Collaboration',
-    description:
-      'Work together seamlessly with real-time updates and communication tools.',
-    icon: Icons.users,
-  },
-  {
-    title: 'Analytics & Insights',
-    description:
-      "Gain valuable insights into your team's performance and project progress.",
-    icon: Icons.barChart,
-  },
-];
