@@ -1,24 +1,29 @@
 'use client';
 
+import { Suspense, useCallback, useState } from 'react';
+
+import { useMutation, useQueryClient } from '@tanstack/react-query';
+import { PlusIcon } from 'lucide-react';
+import { useSession } from 'next-auth/react';
+import { useTranslation } from 'react-i18next';
+import { toast } from 'sonner';
+
 import { CreateTaskDialog } from '@/components/dashboard/create-task-dialog';
 import { ContentLayout } from '@/components/layouts/content-layout';
-import { columns } from '@/components/tasks/columns';
+import { useColumns } from '@/components/tasks/columns';
 import { DataTable } from '@/components/tasks/data-table';
 import { TaskTableSkeleton } from '@/components/tasks/task-table-skeleton';
 import { Button } from '@/components/ui/button';
 import { useBackgroundSync } from '@/hooks/use-background-sync';
 import { createTask, useTasks } from '@/services/task-service';
 import { Task } from '@/types/task';
-import { useMutation, useQueryClient } from '@tanstack/react-query';
-import { PlusIcon } from 'lucide-react';
-import { useSession } from 'next-auth/react';
-import { Suspense, useCallback, useState } from 'react';
-import { toast } from 'sonner';
 
 export default function TasksPage() {
+  const { t } = useTranslation('task');
   const { data: session } = useSession();
   const [isDialogOpen, setIsDialogOpen] = useState(false);
   const queryClient = useQueryClient();
+  const columns = useColumns();
   const {
     data: tasks,
     isLoading,
@@ -34,10 +39,10 @@ export default function TasksPage() {
         ['tasks', session?.user?.id],
         (oldTasks = []) => [...oldTasks, newTask]
       );
-      toast.success('Task created successfully');
+      toast.success(t('taskCreatedSuccess'));
     },
     onError: (error) => {
-      toast.error('Failed to create task');
+      toast.error(t('taskCreatedError'));
       console.error('Error creating task:', error);
     },
   });
@@ -63,7 +68,7 @@ export default function TasksPage() {
   );
 
   return (
-    <ContentLayout title="My tasks">
+    <ContentLayout title={t('myTasks')}>
       <div className="flex justify-end items-center mb-6">
         <Button
           variant="outline"
@@ -73,7 +78,7 @@ export default function TasksPage() {
           onClick={() => setIsDialogOpen(true)}
         >
           <PlusIcon className="mr-2 h-4 w-4" />
-          Add task
+          {t('addTask')}
         </Button>
       </div>
       <Suspense fallback={<TaskTableSkeleton />}>

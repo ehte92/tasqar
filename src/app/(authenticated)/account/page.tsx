@@ -2,11 +2,13 @@
 
 import { useEffect, useRef, useState } from 'react';
 
+import { motion } from 'framer-motion';
 import { FileText, Lock, Mail, Upload, User } from 'lucide-react';
 import { useSession } from 'next-auth/react';
-import Image from 'next/image';
+import { useTranslation } from 'react-i18next';
 
 import { ContentLayout } from '@/components/layouts/content-layout';
+import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 
@@ -18,6 +20,7 @@ interface UserData {
 }
 
 export default function AccountPage() {
+  const { t } = useTranslation('account');
   const { data: session } = useSession();
   const [user, setUser] = useState<UserData | null>(null);
   const [currentPassword, setCurrentPassword] = useState('');
@@ -69,7 +72,7 @@ export default function AccountPage() {
     setPasswordError('');
 
     if (newPassword !== confirmPassword) {
-      setPasswordError("New passwords don't match");
+      setPasswordError(t('passwordsDontMatch'));
       return;
     }
 
@@ -88,7 +91,7 @@ export default function AccountPage() {
       setConfirmPassword('');
     } else {
       const data = await response.json();
-      setPasswordError(data.error || 'Failed to update password');
+      setPasswordError(data.error || t('failedToUpdatePassword'));
     }
   };
 
@@ -115,42 +118,44 @@ export default function AccountPage() {
   };
 
   if (!user) {
-    return <div>Loading...</div>;
+    return <div>{t('loading')}</div>;
   }
 
   return (
-    <ContentLayout title="Account">
-      <div className="container mx-auto py-8">
+    <ContentLayout title={t('account')}>
+      <motion.div
+        className="container mx-auto py-8"
+        initial={{ opacity: 0 }}
+        animate={{ opacity: 1 }}
+        transition={{ duration: 0.5 }}
+      >
         <div className="flex items-center justify-between mb-8">
           <div className="flex items-center space-x-4">
             <FileText className="h-6 w-6 text-gray-500 dark:text-gray-400" />
-            <h1 className="text-3xl font-bold">Account</h1>
+            <h1 className="text-3xl font-bold">{t('account')}</h1>
           </div>
         </div>
 
-        <div className="bg-white dark:bg-gray-800 shadow rounded-lg p-6 mb-6">
+        <motion.div
+          className="bg-white dark:bg-gray-800 shadow rounded-lg p-6 mb-6"
+          initial={{ y: -20, opacity: 0 }}
+          animate={{ y: 0, opacity: 1 }}
+          transition={{ duration: 0.5 }}
+        >
           <div className="flex items-center space-x-4 mb-6">
             <div className="relative">
-              {user.image ? (
-                <Image
-                  src={user.image}
-                  alt={user.name || 'User'}
-                  width={64}
-                  height={64}
-                  className="rounded-full"
-                />
-              ) : (
-                <div className="w-16 h-16 bg-gray-300 rounded-full flex items-center justify-center">
-                  <User className="h-8 w-8 text-gray-600" />
-                </div>
-              )}
-              <Button
-                size="sm"
-                className="absolute bottom-0 right-0"
+              <Avatar
+                className="h-16 w-16 border-2 border-dotted border-gray-400 cursor-pointer"
                 onClick={() => fileInputRef.current?.click()}
               >
-                <Upload className="h-4 w-4" />
-              </Button>
+                <AvatarImage
+                  src={user.image || ''}
+                  alt={user.name || t('user')}
+                />
+                <AvatarFallback>
+                  <User className="h-8 w-8 text-gray-600" />
+                </AvatarFallback>
+              </Avatar>
               <input
                 type="file"
                 ref={fileInputRef}
@@ -159,7 +164,7 @@ export default function AccountPage() {
                 onChange={handleAvatarUpload}
               />
             </div>
-            <h2 className="text-2xl font-semibold">{user.name || 'User'}</h2>
+            <h2 className="text-2xl font-semibold">{user.name || t('user')}</h2>
           </div>
           <form onSubmit={handleSubmit}>
             <div className="space-y-4">
@@ -169,7 +174,7 @@ export default function AccountPage() {
                   className="text-sm font-medium text-gray-700 dark:text-gray-200 flex items-center"
                 >
                   <User className="h-4 w-4 mr-2" />
-                  Name
+                  {t('name')}
                 </label>
                 <Input
                   type="text"
@@ -186,7 +191,7 @@ export default function AccountPage() {
                   className="text-sm font-medium text-gray-700 dark:text-gray-200 flex items-center"
                 >
                   <Mail className="h-4 w-4 mr-2" />
-                  Email
+                  {t('email')}
                 </label>
                 <Input
                   type="email"
@@ -200,14 +205,19 @@ export default function AccountPage() {
             </div>
             <div className="mt-6">
               <Button type="submit" className="w-full sm:w-auto">
-                Save Changes
+                {t('saveChanges')}
               </Button>
             </div>
           </form>
-        </div>
+        </motion.div>
 
-        <div className="bg-white dark:bg-gray-800 shadow rounded-lg p-6">
-          <h3 className="text-xl font-semibold mb-4">Change Password</h3>
+        <motion.div
+          className="bg-white dark:bg-gray-800 shadow rounded-lg p-6"
+          initial={{ y: -20, opacity: 0 }}
+          animate={{ y: 0, opacity: 1 }}
+          transition={{ duration: 0.5 }}
+        >
+          <h3 className="text-xl font-semibold mb-4">{t('changePassword')}</h3>
           <form onSubmit={handlePasswordChange}>
             <div className="space-y-4">
               <div className="space-y-2">
@@ -216,13 +226,15 @@ export default function AccountPage() {
                   className="text-sm font-medium text-gray-700 dark:text-gray-200 flex items-center"
                 >
                   <Lock className="h-4 w-4 mr-2" />
-                  Current Password
+                  {t('currentPassword')}
                 </label>
                 <Input
                   type="password"
                   id="currentPassword"
                   value={currentPassword}
-                  onChange={(e) => setCurrentPassword(e.target.value)}
+                  onChange={(e: React.ChangeEvent<HTMLInputElement>) =>
+                    setCurrentPassword(e.target.value)
+                  }
                   className="w-full"
                   required
                 />
@@ -233,13 +245,15 @@ export default function AccountPage() {
                   className="text-sm font-medium text-gray-700 dark:text-gray-200 flex items-center"
                 >
                   <Lock className="h-4 w-4 mr-2" />
-                  New Password
+                  {t('newPassword')}
                 </label>
                 <Input
                   type="password"
                   id="newPassword"
                   value={newPassword}
-                  onChange={(e) => setNewPassword(e.target.value)}
+                  onChange={(e: React.ChangeEvent<HTMLInputElement>) =>
+                    setNewPassword(e.target.value)
+                  }
                   className="w-full"
                   required
                 />
@@ -250,13 +264,15 @@ export default function AccountPage() {
                   className="text-sm font-medium text-gray-700 dark:text-gray-200 flex items-center"
                 >
                   <Lock className="h-4 w-4 mr-2" />
-                  Confirm New Password
+                  {t('confirmNewPassword')}
                 </label>
                 <Input
                   type="password"
                   id="confirmPassword"
                   value={confirmPassword}
-                  onChange={(e) => setConfirmPassword(e.target.value)}
+                  onChange={(e: React.ChangeEvent<HTMLInputElement>) =>
+                    setConfirmPassword(e.target.value)
+                  }
                   className="w-full"
                   required
                 />
@@ -267,12 +283,12 @@ export default function AccountPage() {
             )}
             <div className="mt-6">
               <Button type="submit" className="w-full sm:w-auto">
-                Change Password
+                {t('changePassword')}
               </Button>
             </div>
           </form>
-        </div>
-      </div>
+        </motion.div>
+      </motion.div>
     </ContentLayout>
   );
 }
