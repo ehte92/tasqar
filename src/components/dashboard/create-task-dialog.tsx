@@ -153,6 +153,15 @@ export function CreateTaskDialog({
     setTaskDetails((prev) => ({ ...prev, assigneeId: value }));
   }, []);
 
+  const fadeInUpVariants = {
+    hidden: { opacity: 0, y: 20 },
+    visible: { opacity: 1, y: 0 },
+  };
+
+  const staggerChildren = {
+    visible: { transition: { staggerChildren: 0.07 } },
+  };
+
   return (
     <Dialog open={isOpen} onOpenChange={onClose}>
       <DialogContent
@@ -163,45 +172,69 @@ export function CreateTaskDialog({
           <DialogTitle>{t('task:createNewTask')}</DialogTitle>
         </VisuallyHidden>
         <motion.div
-          initial={{ opacity: 0, y: 20 }}
-          animate={{ opacity: 1, y: 0 }}
-          exit={{ opacity: 0, y: 20 }}
-          transition={{ duration: 0.3 }}
+          initial="hidden"
+          animate="visible"
+          exit="hidden"
+          variants={staggerChildren}
           className="space-y-6"
         >
-          <div className="flex justify-between items-center mb-4 border-b pb-2">
+          <motion.div
+            variants={fadeInUpVariants}
+            className="flex justify-between items-center mb-4 border-b pb-2"
+          >
             <Button
               variant="outline"
               size="sm"
               className={cn(
-                'text-sm transition-colors duration-200 py-1 px-2',
+                'text-sm transition-all duration-300 py-1 px-2',
                 taskDetails.status === TaskStatus.DONE
                   ? 'bg-green-900 text-green-200 hover:bg-green-700 border-green-500'
                   : 'bg-gray-800 text-white hover:bg-green-900 hover:text-green-200 border-gray-700 hover:border-green-900'
               )}
               onClick={toggleTaskStatus}
             >
-              <Check className="mr-1 h-4 w-4" />
-              {taskDetails.status === TaskStatus.DONE
-                ? t('task:completed')
-                : t('task:markComplete')}
+              <AnimatePresence mode="wait">
+                <motion.div
+                  key={taskDetails.status}
+                  initial={{ opacity: 0, scale: 0.8 }}
+                  animate={{ opacity: 1, scale: 1 }}
+                  exit={{ opacity: 0, scale: 0.8 }}
+                  transition={{ duration: 0.2 }}
+                  className="flex items-center"
+                >
+                  <Check className="mr-1 h-4 w-4" />
+                  {taskDetails.status === TaskStatus.DONE
+                    ? t('task:completed')
+                    : t('task:markComplete')}
+                </motion.div>
+              </AnimatePresence>
             </Button>
-            <Button variant="ghost" size="icon" onClick={onClose}>
+            <Button
+              variant="ghost"
+              size="icon"
+              onClick={onClose}
+              className="hover:rotate-90 transition-transform duration-300"
+            >
               <X size={20} />
             </Button>
-          </div>
-          <Input
-            name="title"
-            value={taskDetails.title || ''}
-            onChange={handleChange}
-            placeholder={t('task:taskName')}
-            className={cn(
-              'text-2xl font-semibold px-0 focus-visible:ring-0',
-              'border-transparent hover:border-input transition-colors duration-200',
-              'rounded-md'
-            )}
-          />
-          <div className="grid grid-cols-2 gap-4">
+          </motion.div>
+          <motion.div variants={fadeInUpVariants}>
+            <Input
+              name="title"
+              value={taskDetails.title || ''}
+              onChange={handleChange}
+              placeholder={t('task:taskName')}
+              className={cn(
+                'text-2xl font-semibold px-0 focus-visible:ring-0',
+                'border-transparent hover:border-input transition-colors duration-200',
+                'rounded-md'
+              )}
+            />
+          </motion.div>
+          <motion.div
+            variants={fadeInUpVariants}
+            className="grid grid-cols-2 gap-4"
+          >
             <div className="space-y-4">
               <div className="flex items-center space-x-2">
                 <span className="w-20 text-sm font-medium">
@@ -400,8 +433,8 @@ export function CreateTaskDialog({
                 </Select>
               </div>
             </div>
-          </div>
-          <div className="space-y-2">
+          </motion.div>
+          <motion.div variants={fadeInUpVariants} className="space-y-2">
             <span className="text-sm font-medium">{t('task:description')}</span>
             <MinimalTiptapEditor
               value={taskDetails.description || ''}
@@ -421,10 +454,21 @@ export function CreateTaskDialog({
               editable={true}
               editorClassName="focus:outline-none"
             />
-          </div>
-          <div className="flex justify-end">
-            <Button onClick={handleSubmit}>{t('task:createTask')}</Button>
-          </div>
+          </motion.div>
+          <motion.div variants={fadeInUpVariants} className="flex justify-end">
+            <Button
+              onClick={handleSubmit}
+              className="relative overflow-hidden group"
+            >
+              <span className="relative z-10">{t('task:createTask')}</span>
+              <motion.div
+                className="absolute inset-0 bg-primary-600"
+                initial={{ scale: 0, opacity: 0 }}
+                whileHover={{ scale: 1, opacity: 1 }}
+                transition={{ duration: 0.3 }}
+              />
+            </Button>
+          </motion.div>
         </motion.div>
       </DialogContent>
     </Dialog>
