@@ -1,5 +1,16 @@
 {
-  "createProject": "إنشاء مشروع",
+  "createProject": {
+    "title": "إنشاء مشروع",
+    "description": "قم بإعداد مشروع جديد لتنظيم مهامك.",
+    "titleLabel": "عنوان المشروع",
+    "titlePlaceholder": "أدخل عنوان المشروع",
+    "descriptionLabel": "الوصف",
+    "descriptionPlaceholder": "أدخل وصف المشروع",
+    "submit": "إنشاء المشروع",
+    "submitting": "جاري الإنشاء...",
+    "success": "تم إنشاء المشروع بنجاح",
+    "error": "فشل في إنشاء المشروع"
+  },
   "editProject": "تعديل المشروع",
   "projectTitle": "عنوان المشروع",
   "description": "الوصف",

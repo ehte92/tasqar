@@ -202,7 +202,7 @@ function getStatusInfo(task: Task, t: (key: string) => string) {
       return {
         icon: Clock,
         color: 'text-yellow-500',
-        label: t('dueDate.today'),
+        label: t('today'),
       };
     }
     if (isFuture(dueDate)) {
@@ -213,7 +213,7 @@ function getStatusInfo(task: Task, t: (key: string) => string) {
       };
     }
   }
-  return { icon: Clock, color: 'text-gray-400', label: t('dueDate.noDueDate') };
+  return { icon: Clock, color: 'text-gray-400', label: t('noDueDate') };
 }
 
 function getPriorityInfo(priority: TaskPriority, t: (key: string) => string) {
@@ -230,9 +230,9 @@ function getPriorityInfo(priority: TaskPriority, t: (key: string) => string) {
 }
 
 function formatDueDate(date: Date, t: (key: string) => string) {
-  if (isToday(date)) return t('dueDate.today');
-  if (isTomorrow(date)) return t('dueDate.tomorrow');
-  if (isYesterday(date)) return t('dueDate.yesterday');
+  if (isToday(date)) return t('today');
+  if (isTomorrow(date)) return t('tomorrow');
+  if (isYesterday(date)) return t('yesterday');
   const diffDays = differenceInDays(date, new Date());
   if (diffDays > -7 && diffDays < 7) return format(date, 'EEEE');
   return format(date, 'MMM d');

@@ -71,35 +71,20 @@ export default function CreateProjectDialog({
     <Dialog open={isOpen} onOpenChange={onClose}>
       <DialogContent className="sm:max-w-[425px]">
         <DialogHeader>
-          <DialogTitle>{t('project:createProject.title')}</DialogTitle>
-          <DialogDescription>
-            {t('project:createProject.description')}
-          </DialogDescription>
+          <DialogTitle>{t('project:createProject')}</DialogTitle>
+          <DialogDescription>{t('project:description')}</DialogDescription>
         </DialogHeader>
         <form onSubmit={handleSubmit(onSubmit)} className="space-y-4">
           <div className="space-y-2">
-            <Label htmlFor="title">
-              {t('project:createProject.titleLabel')}
-            </Label>
-            <Input
-              id="title"
-              {...register('title')}
-              placeholder={t('project:createProject.titlePlaceholder')}
-            />
+            <Label htmlFor="title">{t('project:projectTitle')}</Label>
+            <Input id="title" {...register('title')} />
             {errors.title && (
               <p className="text-sm text-red-500">{errors.title.message}</p>
             )}
           </div>
           <div className="space-y-2">
-            <Label htmlFor="description">
-              {t('project:createProject.descriptionLabel')}
-            </Label>
-            <Textarea
-              id="description"
-              {...register('description')}
-              placeholder={t('project:createProject.descriptionPlaceholder')}
-              rows={3}
-            />
+            <Label htmlFor="description">{t('project:description')}</Label>
+            <Textarea id="description" {...register('description')} rows={3} />
             {errors.description && (
               <p className="text-sm text-red-500">
                 {errors.description.message}
@@ -110,9 +95,7 @@ export default function CreateProjectDialog({
             <Button type="submit" disabled={isCreating}>
               {isCreating ? (
                 <>
-                  <span className="mr-2">
-                    {t('project:createProject.submitting')}
-                  </span>
+                  <span className="mr-2">{t('project:submitting')}</span>
                   <span className="animate-spin">⏳</span>
                 </>
               ) : (
