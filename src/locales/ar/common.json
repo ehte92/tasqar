@@ -132,5 +132,8 @@
       "priority": "الأولوية",
       "actions": "الإجراءات"
     }
-  }
+  },
+  "taskCreatedSuccess": "تم إنشاء المهمة بنجاح",
+  "taskCreatedError": "فشل في إنشاء المهمة",
+  "error": "خطأ"
 }

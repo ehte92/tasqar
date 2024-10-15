@@ -1,5 +1,6 @@
 import 'dayjs/locale/ar';
 
+import account from './account.json';
 import common from './common.json';
 import connection from './connection.json';
 import landing from './landing.json';
@@ -14,4 +15,5 @@ export default {
   connection,
   task,
   project,
+  account,
 } as const;

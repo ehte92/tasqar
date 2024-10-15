@@ -1,0 +1,14 @@
+{
+  "account": "Account",
+  "loading": "Loading...",
+  "user": "User",
+  "name": "Name",
+  "email": "Email",
+  "saveChanges": "Save Changes",
+  "changePassword": "Change Password",
+  "currentPassword": "Current Password",
+  "newPassword": "New Password",
+  "confirmNewPassword": "Confirm New Password",
+  "passwordsDontMatch": "New passwords don't match",
+  "failedToUpdatePassword": "Failed to update password"
+}

@@ -129,6 +129,7 @@
       "select": "Select",
       "title": "Title",
       "dueDate": "Due Date",
+      "endDate": "Due Date",
       "status": "Status",
       "priority": "Priority",
       "actions": "Actions"

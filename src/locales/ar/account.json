@@ -1,0 +1,14 @@
+{
+  "account": "الحساب",
+  "loading": "جار التحميل...",
+  "user": "المستخدم",
+  "name": "الاسم",
+  "email": "البريد الإلكتروني",
+  "saveChanges": "حفظ التغييرات",
+  "changePassword": "تغيير كلمة المرور",
+  "currentPassword": "كلمة المرور الحالية",
+  "newPassword": "كلمة المرور الجديدة",
+  "confirmNewPassword": "تأكيد كلمة المرور الجديدة",
+  "passwordsDontMatch": "كلمات المرور الجديدة لا تتطابق",
+  "failedToUpdatePassword": "فشل في تحديث كلمة المرور"
+}

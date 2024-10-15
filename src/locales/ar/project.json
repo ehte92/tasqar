@@ -1,16 +1,5 @@
 {
-  "createProject": {
-    "title": "إنشاء مشروع جديد",
-    "description": "أضف مشروعًا جديدًا إلى لوحة التحكم الخاصة بك. املأ التفاصيل أدناه.",
-    "titleLabel": "العنوان",
-    "titlePlaceholder": "أدخل عنوان المشروع",
-    "descriptionLabel": "الوصف (اختياري)",
-    "descriptionPlaceholder": "أدخل وصف المشروع",
-    "submit": "إنشاء المشروع",
-    "submitting": "جاري الإنشاء...",
-    "success": "تم إنشاء المشروع بنجاح",
-    "error": "فشل في إنشاء المشروع"
-  },
+  "createProject": "إنشاء مشروع",
   "editProject": "تعديل المشروع",
   "projectTitle": "عنوان المشروع",
   "description": "الوصف",
@@ -29,10 +18,33 @@
   "errorLoadingProjects": "خطأ في تحميل المشاريع: {{error}}",
   "projectDeletedSuccess": "تم حذف المشروع بنجاح",
   "errorDeletingProject": "خطأ في حذف المشروع: {{error}}",
-  "createProject": "إنشاء مشروع",
   "deleteProjectConfirmation": "هل أنت متأكد أنك تريد حذف هذا المشروع؟",
   "deleteProjectWarning": "لا يمكن التراجع عن هذا الإجراء. سيؤدي هذا إلى حذف المشروع وجميع البيانات المرتبطة به بشكل دائم.",
-  "cancel": "إلغاء",
   "deleting": "جاري الحذف...",
-  "delete": "حذف"
+  "projects": "المشاريع",
+  "yourProjects": "مشاريعك",
+  "columns": {
+    "title": "العنوان",
+    "dueDate": "تاريخ الاستحقاق",
+    "status": "الحالة",
+    "actions": "الإجراءات"
+  },
+  "status": {
+    "ACTIVE": "نشط",
+    "PLANNED": "مخطط",
+    "ON_HOLD": "معلق",
+    "COMPLETED": "مكتمل",
+    "CANCELLED": "ملغى"
+  },
+  "projectDetails": "تفاصيل المشروع",
+  "overview": "نظرة عامة",
+  "tasks": "المهام",
+  "notFound": "لم يتم العثور على المشروع",
+  "progress": "التقدم",
+  "tasksCompleted": "تم إكمال {{completed}} من {{total}} مهمة ({{percentage}}٪)",
+  "completedTasks": "المهام المكتملة",
+  "remainingTasks": "المهام المتبقية",
+  "startDate": "تاريخ البدء",
+  "endDate": "تاريخ الانتهاء",
+  "addTask": "إضافة مهمة"
 }

@@ -1,16 +1,5 @@
 {
-  "createProject": {
-    "title": "Create New Project",
-    "description": "Add a new project to your dashboard. Fill in the details below.",
-    "titleLabel": "Title",
-    "titlePlaceholder": "Enter project title",
-    "descriptionLabel": "Description (optional)",
-    "descriptionPlaceholder": "Enter project description",
-    "submit": "Create Project",
-    "submitting": "Creating...",
-    "success": "Project created successfully",
-    "error": "Failed to create project"
-  },
+  "createProject": "Create Project",
   "editProject": "Edit Project",
   "projectTitle": "Project Title",
   "description": "Description",
@@ -29,10 +18,32 @@
   "errorLoadingProjects": "Error loading projects: {{error}}",
   "projectDeletedSuccess": "Project deleted successfully",
   "errorDeletingProject": "Error deleting project: {{error}}",
-  "createProject": "Create project",
   "deleteProjectConfirmation": "Are you sure you want to delete this project?",
   "deleteProjectWarning": "This action cannot be undone. This will permanently delete the project and all associated data.",
-  "cancel": "Cancel",
   "deleting": "Deleting...",
-  "delete": "Delete"
+  "projects": "Projects",
+  "yourProjects": "Your Projects",
+  "columns": {
+    "title": "Title",
+    "dueDate": "Due Date",
+    "status": "Status",
+    "actions": "Actions"
+  },
+  "status": {
+    "ACTIVE": "Active",
+    "PLANNED": "Planned",
+    "ON_HOLD": "On Hold",
+    "COMPLETED": "Completed"
+  },
+  "projectDetails": "Project Details",
+  "overview": "Overview",
+  "tasks": "Tasks",
+  "notFound": "Project not found",
+  "progress": "Progress",
+  "tasksCompleted": "{{completed}} of {{total}} tasks completed ({{percentage}}%)",
+  "completedTasks": "Completed Tasks",
+  "remainingTasks": "Remaining Tasks",
+  "startDate": "Start Date",
+  "endDate": "End Date",
+  "addTask": "Add Task"
 }
