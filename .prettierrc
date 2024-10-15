@@ -1,7 +1,13 @@
 {
+  "endOfLine": "lf",
   "semi": true,
-  "trailingComma": "es5",
   "singleQuote": true,
   "tabWidth": 2,
-  "useTabs": false
+  "trailingComma": "es5",
+  "arrowParens": "always",
+  "importOrder": ["^react$", "^(?!^react$|^@/|^[./]).*", "^@/(.*)$", "^[./]"],
+  "importOrderSeparation": true,
+  "importOrderSortSpecifiers": true,
+  "importOrderParserPlugins": ["jsx", "typescript"],
+  "plugins": ["@trivago/prettier-plugin-sort-imports"]
 }
