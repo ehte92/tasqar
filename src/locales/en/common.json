@@ -1,0 +1,44 @@
+{
+  "registration": {
+    "title": "Complete Your Registration",
+    "description": "Set up your account to start using Tasqar.",
+    "nameLabel": "Name",
+    "namePlaceholder": "John Doe",
+    "emailLabel": "Email",
+    "emailPlaceholder": "john@example.com",
+    "passwordLabel": "Password",
+    "passwordPlaceholder": "••••••••",
+    "submit": "Create Account",
+    "submitting": "Registering...",
+    "success": "Registration successful!",
+    "error": "Registration failed: {{error}}",
+    "haveAccount": "Already have an account?",
+    "login": "Log in"
+  },
+  "verifyEmail": {
+    "title": "Email Verification",
+    "verifying": "Verifying your email...",
+    "thankYou": "Thank you for verifying your email",
+    "success": "Email Verified Successfully!",
+    "redirecting": "You will be redirected to the login page shortly.",
+    "error": "Email Verification Failed",
+    "genericError": "There was an error verifying your email. Please try again or contact support.",
+    "contactSupport": "Contact Support",
+    "goToLogin": "Go to Login",
+    "noToken": "No token provided"
+  },
+  "login": {
+    "title": "Welcome Back",
+    "description": "Log in to your Tasqar account",
+    "emailLabel": "Email",
+    "emailPlaceholder": "john@example.com",
+    "passwordLabel": "Password",
+    "passwordPlaceholder": "••••••••",
+    "submit": "Log In",
+    "submitting": "Logging in...",
+    "success": "Login successful!",
+    "error": "Login failed: {{error}}",
+    "noAccount": "Don't have an account?",
+    "signUp": "Sign up"
+  }
+}

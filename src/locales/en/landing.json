@@ -1,0 +1,27 @@
+{
+  "welcome": "Welcome to",
+  "appName": "Tasqar",
+  "description": "Collaborate on tasks efficiently and boost your team's productivity with our intuitive task management platform.",
+  "getStarted": "Get Started",
+  "login": "Log In",
+  "features": {
+    "taskManagement": {
+      "title": "Task Management",
+      "description": "Create, assign, and track tasks with ease. Stay organized and never miss a deadline."
+    },
+    "teamCollaboration": {
+      "title": "Team Collaboration",
+      "description": "Work together seamlessly with real-time updates and communication tools."
+    },
+    "analyticsInsights": {
+      "title": "Analytics & Insights",
+      "description": "Gain valuable insights into your team's performance and project progress."
+    }
+  },
+  "cta": {
+    "title": "Ready to boost your productivity?",
+    "description": "Join thousands of teams already using Tasqar to streamline their workflow.",
+    "button": "Start Your Free Trial"
+  },
+  "allRightsReserved": "All rights reserved."
+}

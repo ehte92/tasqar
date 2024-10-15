@@ -1,0 +1,44 @@
+{
+  "registration": {
+    "title": "أكمل تسجيلك",
+    "description": "قم بإعداد حسابك لبدء استخدام تاسكار.",
+    "nameLabel": "الاسم",
+    "namePlaceholder": "جون دو",
+    "emailLabel": "البريد الإلكتروني",
+    "emailPlaceholder": "john@example.com",
+    "passwordLabel": "كلمة المرور",
+    "passwordPlaceholder": "••••••••",
+    "submit": "إنشاء الحساب",
+    "submitting": "جاري التسجيل...",
+    "success": "تم التسجيل بنجاح!",
+    "error": "فشل التسجيل: {{error}}",
+    "haveAccount": "هل لديك حساب بالفعل؟",
+    "login": "تسجيل الدخول"
+  },
+  "verifyEmail": {
+    "title": "التحقق من البريد الإلكتروني",
+    "verifying": "جاري التحقق من بريدك الإلكتروني...",
+    "thankYou": "شكرًا لتحققك من بريدك الإلكتروني",
+    "success": "تم التحقق من البريد الإلكتروني بنجاح!",
+    "redirecting": "سيتم إعادة توجيهك إلى صفحة تسجيل الدخول قريبًا.",
+    "error": "فشل التحقق من البريد الإلكتروني",
+    "genericError": "حدث خطأ أثناء التحقق من بريدك الإلكتروني. يرجى المحاولة مرة أخرى أو الاتصال بالدعم.",
+    "contactSupport": "الاتصال بالدعم",
+    "goToLogin": "الذهاب إلى تسجيل الدخول",
+    "noToken": "لم يتم توفير رمز التحقق"
+  },
+  "login": {
+    "title": "مرحبًا بعودتك",
+    "description": "سجل الدخول إلى حسابك في تاسكار",
+    "emailLabel": "البريد الإلكتروني",
+    "emailPlaceholder": "john@example.com",
+    "passwordLabel": "كلمة المرور",
+    "passwordPlaceholder": "••••••••",
+    "submit": "تسجيل الدخول",
+    "submitting": "جاري تسجيل الدخول...",
+    "success": "تم تسجيل الدخول بنجاح!",
+    "error": "فشل تسجيل الدخول: {{error}}",
+    "noAccount": "ليس لديك حساب؟",
+    "signUp": "إنشاء حساب"
+  }
+}
