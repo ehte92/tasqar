@@ -1,25 +1,30 @@
-import React, { useState, useRef, useCallback, useMemo } from 'react';
+import React, { useCallback, useMemo, useRef, useState } from 'react';
+
+import { AnimatePresence, motion } from 'framer-motion';
 import { Calendar, ChevronRight, Plus } from 'lucide-react';
+import { useSession } from 'next-auth/react';
+import { useTranslation } from 'react-i18next';
+
 import { Button } from '@/components/ui/button';
+import { Calendar as CalendarComponent } from '@/components/ui/calendar';
 import { Input } from '@/components/ui/input';
 import {
   Popover,
   PopoverContent,
   PopoverTrigger,
 } from '@/components/ui/popover';
-import { Calendar as CalendarComponent } from '@/components/ui/calendar';
-import { CreateTaskDialog } from './create-task-dialog';
-import { Task, TaskStatus } from '@/types/task';
-import { cn } from '@/lib/utils';
-import { AnimatePresence, motion } from 'framer-motion';
 import { useClickOutside } from '@/hooks/use-click-outside';
-import { useSession } from 'next-auth/react';
+import { cn } from '@/lib/utils';
+import { Task, TaskStatus } from '@/types/task';
+
+import { CreateTaskDialog } from './create-task-dialog';
 
 interface CreateTaskInlineProps {
   onCreateTask: (task: Partial<Task>) => void;
 }
 
 export function CreateTaskInline({ onCreateTask }: CreateTaskInlineProps) {
+  const { t } = useTranslation(['task', 'common']);
   const [isCreating, setIsCreating] = useState(false);
   const [title, setTitle] = useState('');
   const [dueDate, setDueDate] = useState<Date | undefined>(undefined);
@@ -135,7 +140,7 @@ export function CreateTaskInline({ onCreateTask }: CreateTaskInlineProps) {
             className="w-full justify-start text-muted-foreground hover:text-foreground transition-colors duration-200"
           >
             <Plus className="mr-2 h-4 w-4" />
-            Create task
+            {t('task:createTask')}
           </Button>
         </motion.div>
       ) : (
@@ -152,7 +157,7 @@ export function CreateTaskInline({ onCreateTask }: CreateTaskInlineProps) {
             value={title}
             onChange={(e) => setTitle(e.target.value)}
             onKeyDown={handleKeyDown}
-            placeholder="Write a task name"
+            placeholder={t('task:writeTaskName')}
             className="flex-grow"
           />
           <Popover>

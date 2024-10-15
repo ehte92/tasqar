@@ -1,0 +1,28 @@
+{
+  "createNewTask": "إنشاء مهمة جديدة",
+  "completed": "مكتملة",
+  "markComplete": "وضع علامة كمكتملة",
+  "taskName": "اسم المهمة",
+  "assignee": "المسؤول",
+  "selectAssignee": "اختر المسؤول",
+  "dueDate": "تاريخ الاستحقاق",
+  "noDueDate": "لا يوجد تاريخ استحقاق",
+  "today": "اليوم",
+  "tomorrow": "غدًا",
+  "clearDueDate": "مسح تاريخ الاستحقاق",
+  "project": "المشروع",
+  "selectProject": "اختر مشروعًا",
+  "loadingProjects": "جاري تحميل المشاريع...",
+  "noProjectsFound": "لم يتم العثور على مشاريع",
+  "priority": {
+    "label": "الأولوية",
+    "select": "اختر الأولوية",
+    "low": "منخفضة",
+    "medium": "متوسطة",
+    "high": "عالية"
+  },
+  "description": "الوصف",
+  "descriptionPlaceholder": "اكتب وصفك هنا...",
+  "createTask": "إنشاء المهمة",
+  "writeTaskName": "اكتب اسم المهمة"
+}

@@ -1,0 +1,28 @@
+{
+  "createNewTask": "Create New Task",
+  "completed": "Completed",
+  "markComplete": "Mark complete",
+  "taskName": "Task name",
+  "assignee": "Assignee",
+  "selectAssignee": "Select assignee",
+  "dueDate": "Due date",
+  "noDueDate": "No due date",
+  "today": "Today",
+  "tomorrow": "Tomorrow",
+  "clearDueDate": "Clear due date",
+  "project": "Project",
+  "selectProject": "Select a project",
+  "loadingProjects": "Loading projects...",
+  "noProjectsFound": "No projects found",
+  "priority": {
+    "label": "Priority",
+    "select": "Select priority",
+    "low": "Low",
+    "medium": "Medium",
+    "high": "High"
+  },
+  "description": "Description",
+  "descriptionPlaceholder": "Type your description here...",
+  "createTask": "Create task",
+  "writeTaskName": "Write a task name"
+}

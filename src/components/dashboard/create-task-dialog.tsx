@@ -1,7 +1,22 @@
-import React, { useState, useCallback, useMemo, useEffect } from 'react';
-import { Dialog, DialogContent, DialogTitle } from '@/components/ui/dialog';
+import React, { useCallback, useEffect, useMemo, useState } from 'react';
+
+import { format, isThisYear, isToday, isTomorrow } from 'date-fns';
+import { AnimatePresence, motion } from 'framer-motion';
+import { CalendarIcon, Check, Flag, X } from 'lucide-react';
+import { useSession } from 'next-auth/react';
+import { useTranslation } from 'react-i18next';
+
+import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
+import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
+import { Calendar } from '@/components/ui/calendar';
+import { Dialog, DialogContent, DialogTitle } from '@/components/ui/dialog';
 import { Input } from '@/components/ui/input';
+import {
+  Popover,
+  PopoverContent,
+  PopoverTrigger,
+} from '@/components/ui/popover';
 import {
   Select,
   SelectContent,
@@ -9,24 +24,13 @@ import {
   SelectTrigger,
   SelectValue,
 } from '@/components/ui/select';
-import { Task, TaskStatus, TaskPriority } from '@/types/task';
-import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
-import { useSession } from 'next-auth/react';
-import { CalendarIcon, X, Check, Flag } from 'lucide-react';
-import {
-  Popover,
-  PopoverContent,
-  PopoverTrigger,
-} from '@/components/ui/popover';
-import { Calendar } from '@/components/ui/calendar';
-import { format, isToday, isTomorrow, isThisYear } from 'date-fns';
-import { cn } from '@/lib/utils';
-import { MinimalTiptapEditor } from '../minimal-tiptap';
-import { useProjects } from '@/services/project-service';
-import { Badge } from '@/components/ui/badge';
 import { VisuallyHidden } from '@/components/ui/visually-hidden';
-import { motion, AnimatePresence } from 'framer-motion';
+import { cn } from '@/lib/utils';
 import { useConnections } from '@/services/connection-service';
+import { useProjects } from '@/services/project-service';
+import { Task, TaskPriority, TaskStatus } from '@/types/task';
+
+import { MinimalTiptapEditor } from '../minimal-tiptap';
 
 interface CreateTaskDialogProps {
   isOpen: boolean;
@@ -41,6 +45,7 @@ export function CreateTaskDialog({
   onCreateTask,
   initialData,
 }: CreateTaskDialogProps) {
+  const { t } = useTranslation(['common', 'task']);
   const [taskDetails, setTaskDetails] = useState<Partial<Task>>(
     initialData || {}
   );
@@ -96,33 +101,33 @@ export function CreateTaskDialog({
     () => [
       {
         value: TaskPriority.LOW,
-        label: 'Low',
+        label: t('task:priority.low'),
         color: 'bg-blue-500',
         icon: '🔽',
       },
       {
         value: TaskPriority.MEDIUM,
-        label: 'Medium',
+        label: t('task:priority.medium'),
         color: 'bg-yellow-500',
         icon: '➡️',
       },
       {
         value: TaskPriority.HIGH,
-        label: 'High',
+        label: t('task:priority.high'),
         color: 'bg-red-500',
         icon: '🔼',
       },
     ],
-    []
+    [t]
   );
 
   const memoizedDueDateButton = useMemo(() => {
     const dueDate = taskDetails.dueDate ? new Date(taskDetails.dueDate) : null;
 
     const dateText = (() => {
-      if (!dueDate) return 'No due date';
-      if (isToday(dueDate)) return 'Today';
-      if (isTomorrow(dueDate)) return 'Tomorrow';
+      if (!dueDate) return t('task:noDueDate');
+      if (isToday(dueDate)) return t('task:today');
+      if (isTomorrow(dueDate)) return t('task:tomorrow');
       if (isThisYear(dueDate)) return format(dueDate, 'MMM dd');
       return format(dueDate, 'MMM dd, yyyy');
     })();
@@ -137,7 +142,7 @@ export function CreateTaskDialog({
         {dateText}
       </Button>
     );
-  }, [taskDetails.dueDate]);
+  }, [taskDetails.dueDate, t]);
 
   const handleSubmit = () => {
     onCreateTask(taskDetails);
@@ -155,7 +160,7 @@ export function CreateTaskDialog({
         hideCloseButton
       >
         <VisuallyHidden>
-          <DialogTitle>Create New Task</DialogTitle>
+          <DialogTitle>{t('task:createNewTask')}</DialogTitle>
         </VisuallyHidden>
         <motion.div
           initial={{ opacity: 0, y: 20 }}
@@ -178,8 +183,8 @@ export function CreateTaskDialog({
             >
               <Check className="mr-1 h-4 w-4" />
               {taskDetails.status === TaskStatus.DONE
-                ? 'Completed'
-                : 'Mark complete'}
+                ? t('task:completed')
+                : t('task:markComplete')}
             </Button>
             <Button variant="ghost" size="icon" onClick={onClose}>
               <X size={20} />
@@ -189,7 +194,7 @@ export function CreateTaskDialog({
             name="title"
             value={taskDetails.title || ''}
             onChange={handleChange}
-            placeholder="Task name"
+            placeholder={t('task:taskName')}
             className={cn(
               'text-2xl font-semibold px-0 focus-visible:ring-0',
               'border-transparent hover:border-input transition-colors duration-200',
@@ -199,15 +204,17 @@ export function CreateTaskDialog({
           <div className="grid grid-cols-2 gap-4">
             <div className="space-y-4">
               <div className="flex items-center space-x-2">
-                <span className="w-20 text-sm font-medium">Assignee</span>
+                <span className="w-20 text-sm font-medium">
+                  {t('task:assignee')}
+                </span>
                 <Select
                   value={taskDetails.assigneeId || session?.user?.id || ''}
                   onValueChange={handleAssigneeChange}
                 >
                   <SelectTrigger className="w-full border-none hover:bg-accent">
-                    <SelectValue placeholder="Select assignee">
+                    <SelectValue placeholder={t('task:selectAssignee')}>
                       {isConnectionsLoading ? (
-                        'Loading...'
+                        t('common:loading')
                       ) : (
                         <div className="flex items-center">
                           <Avatar className="h-6 w-6 mr-2">
@@ -241,7 +248,7 @@ export function CreateTaskDialog({
                                 c.receiver.id === taskDetails.assigneeId
                             )?.sender.name ||
                               session?.user?.name ||
-                              'Select assignee'}
+                              t('task:selectAssignee')}
                           </span>
                         </div>
                       )}
@@ -256,7 +263,9 @@ export function CreateTaskDialog({
                             {session?.user?.name?.[0]}
                           </AvatarFallback>
                         </Avatar>
-                        <span>{session?.user?.name} (You)</span>
+                        <span>
+                          {session?.user?.name} ({t('common:you')})
+                        </span>
                       </div>
                     </SelectItem>
                     {connections.map((connection) => {
@@ -280,7 +289,9 @@ export function CreateTaskDialog({
                 </Select>
               </div>
               <div className="flex items-center space-x-2">
-                <span className="w-20 text-sm font-medium">Due date</span>
+                <span className="w-20 text-sm font-medium">
+                  {t('task:dueDate')}
+                </span>
                 <Popover open={isCalendarOpen} onOpenChange={setIsCalendarOpen}>
                   <PopoverTrigger asChild>
                     {memoizedDueDateButton}
@@ -298,7 +309,7 @@ export function CreateTaskDialog({
                     />
                     <div className="p-2 border-t">
                       <Button variant="ghost" size="sm" onClick={clearDueDate}>
-                        Clear due date
+                        {t('task:clearDueDate')}
                       </Button>
                     </div>
                   </PopoverContent>
@@ -326,23 +337,25 @@ export function CreateTaskDialog({
             </div>
             <div className="space-y-4">
               <div className="flex items-center space-x-2">
-                <span className="w-20 text-sm font-medium">Project</span>
+                <span className="w-20 text-sm font-medium">
+                  {t('task:project')}
+                </span>
                 <Select
                   value={taskDetails.projectId || ''}
                   onValueChange={handleProjectChange}
                   disabled={!!taskDetails.projectId}
                 >
                   <SelectTrigger className="w-full border-none hover:bg-accent">
-                    <SelectValue placeholder="Select a project" />
+                    <SelectValue placeholder={t('task:selectProject')} />
                   </SelectTrigger>
                   <SelectContent>
                     {isProjectsLoading ? (
                       <SelectItem value="loading">
-                        Loading projects...
+                        {t('task:loadingProjects')}
                       </SelectItem>
                     ) : projects.length === 0 ? (
                       <SelectItem value="no_projects">
-                        No projects found
+                        {t('task:noProjectsFound')}
                       </SelectItem>
                     ) : (
                       projects.map((project) => (
@@ -355,16 +368,18 @@ export function CreateTaskDialog({
                 </Select>
               </div>
               <div className="flex items-center space-x-2">
-                <span className="w-20 text-sm font-medium">Priority</span>
+                <span className="w-20 text-sm font-medium">
+                  {t('task:priority.label')}
+                </span>
                 <Select
                   value={taskDetails.priority || TaskPriority.MEDIUM}
                   onValueChange={handlePriorityChange}
                 >
                   <SelectTrigger className="w-full border-none hover:bg-accent">
-                    <SelectValue placeholder="Select priority">
+                    <SelectValue placeholder={t('task:priority.select')}>
                       {priorityOptions.find(
                         (option) => option.value === taskDetails.priority
-                      )?.label || 'Select priority'}
+                      )?.label || t('task:priority.select')}
                     </SelectValue>
                   </SelectTrigger>
                   <SelectContent>
@@ -387,7 +402,7 @@ export function CreateTaskDialog({
             </div>
           </div>
           <div className="space-y-2">
-            <span className="text-sm font-medium">Description</span>
+            <span className="text-sm font-medium">{t('task:description')}</span>
             <MinimalTiptapEditor
               value={taskDetails.description || ''}
               onChange={(value) =>
@@ -402,13 +417,13 @@ export function CreateTaskDialog({
               )}
               editorContentClassName="p-5"
               output="html"
-              placeholder="Type your description here..."
+              placeholder={t('task:descriptionPlaceholder')}
               editable={true}
               editorClassName="focus:outline-none"
             />
           </div>
           <div className="flex justify-end">
-            <Button onClick={handleSubmit}>Create Task</Button>
+            <Button onClick={handleSubmit}>{t('task:createTask')}</Button>
           </div>
         </motion.div>
       </DialogContent>
