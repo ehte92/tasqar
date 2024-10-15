@@ -40,5 +40,10 @@
     "error": "Login failed: {{error}}",
     "noAccount": "Don't have an account?",
     "signUp": "Sign up"
-  }
+  },
+  "invalidInvitationLink": "Invalid invitation link",
+  "invalidOrExpiredInvitation": "Invalid or expired invitation. Please request a new invitation.",
+  "errorValidatingInvitation": "An error occurred while validating the invitation",
+  "validatingInvitation": "Validating invitation...",
+  "completeYourRegistration": "Complete Your Registration"
 }

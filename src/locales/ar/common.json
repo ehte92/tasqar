@@ -40,5 +40,10 @@
     "error": "فشل تسجيل الدخول: {{error}}",
     "noAccount": "ليس لديك حساب؟",
     "signUp": "إنشاء حساب"
-  }
+  },
+  "invalidInvitationLink": "رابط دعوة غير صالح",
+  "invalidOrExpiredInvitation": "دعوة غير صالحة أو منتهية الصلاحية. يرجى طلب دعوة جديدة.",
+  "errorValidatingInvitation": "حدث خطأ أثناء التحقق من صحة الدعوة",
+  "validatingInvitation": "جارٍ التحقق من صحة الدعوة...",
+  "completeYourRegistration": "أكمل تسجيلك"
 }

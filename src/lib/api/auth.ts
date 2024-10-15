@@ -23,3 +23,33 @@ export async function verifyEmail(token: string): Promise<any> {
   }
   return response.json();
 }
+
+export async function validateInvitationToken(token: string): Promise<{
+  isValid: boolean;
+  email: string | null;
+  error: string | null;
+}> {
+  try {
+    const response = await fetch(
+      `/api/invite/validate?token=${encodeURIComponent(token)}`
+    );
+    const data = await response.json();
+
+    if (response.ok) {
+      return { isValid: true, email: data.email, error: null };
+    } else {
+      return {
+        isValid: false,
+        email: null,
+        error: data.error || 'Invalid or expired invitation',
+      };
+    }
+  } catch (error) {
+    console.error('Error validating token:', error);
+    return {
+      isValid: false,
+      email: null,
+      error: 'An error occurred while validating the invitation',
+    };
+  }
+}

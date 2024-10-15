@@ -1,67 +1,79 @@
 'use client';
 
 import { useEffect, useState } from 'react';
+
 import { useSearchParams } from 'next/navigation';
+import { useTranslation } from 'react-i18next';
 import { toast } from 'sonner';
+
 import RegisterForm from '@/components/register-form';
+import { ErrorMessage } from '@/components/ui/error-message';
+import { LoadingSpinner } from '@/components/ui/loading-spinner';
+import { validateInvitationToken } from '@/lib/api/auth';
 
 export default function AcceptInvitationPage() {
+  const { t } = useTranslation('common');
   const searchParams = useSearchParams();
-  const [isValidToken, setIsValidToken] = useState<boolean | null>(null);
-  const [email, setEmail] = useState<string | null>(null);
-  const [error, setError] = useState<string | null>(null);
+  const [validationState, setValidationState] = useState<{
+    isValid: boolean | null;
+    email: string | null;
+    error: string | null;
+  }>({
+    isValid: null,
+    email: null,
+    error: null,
+  });
 
   useEffect(() => {
     const token = searchParams.get('token');
     if (!token) {
-      setError('Invalid invitation link');
-      setIsValidToken(false);
+      setValidationState({
+        isValid: false,
+        email: null,
+        error: t('invalidInvitationLink'),
+      });
       return;
     }
 
     const validateToken = async () => {
       try {
-        const response = await fetch(
-          `/api/invite/validate?token=${encodeURIComponent(token)}`
-        );
-        const data = await response.json();
-
-        if (response.ok) {
-          setIsValidToken(true);
-          setEmail(data.email);
-        } else {
-          setError(data.error || 'Invalid or expired invitation');
-          setIsValidToken(false);
+        const { isValid, email, error } = await validateInvitationToken(token);
+        setValidationState({ isValid, email, error });
+        if (!isValid) {
+          toast.error(error || t('invalidOrExpiredInvitation'));
         }
       } catch (error) {
         console.error('Error validating token:', error);
-        setError('An error occurred while validating the invitation');
-        setIsValidToken(false);
+        setValidationState({
+          isValid: false,
+          email: null,
+          error: t('errorValidatingInvitation'),
+        });
+        toast.error(t('errorValidatingInvitation'));
       }
     };
 
     validateToken();
-  }, [searchParams]);
+  }, [searchParams, t]);
 
-  if (isValidToken === null) {
-    return <div>Validating invitation...</div>;
+  if (validationState.isValid === null) {
+    return <LoadingSpinner message={t('validatingInvitation')} />;
   }
 
-  if (isValidToken === false) {
+  if (validationState.isValid === false) {
     return (
-      <div className="text-center text-red-600">
-        {error ||
-          'Invalid or expired invitation. Please request a new invitation.'}
-      </div>
+      <ErrorMessage
+        message={validationState.error || t('invalidOrExpiredInvitation')}
+      />
     );
   }
 
   return (
-    <div>
-      <h1 className="text-2xl font-bold mb-4 text-center">
-        Complete Your Registration
+    <div className="container mx-auto px-4 py-8">
+      <h1 className="text-2xl font-bold mb-6 text-center">
+        {t('completeYourRegistration')}
       </h1>
-      <RegisterForm initialEmail={email} />
+      <RegisterForm initialEmail={validationState.email} />
     </div>
   );
 }
