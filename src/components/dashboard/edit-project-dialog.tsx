@@ -1,17 +1,22 @@
 import React from 'react';
-import { useForm } from 'react-hook-form';
+
 import { zodResolver } from '@hookform/resolvers/zod';
-import { z } from 'zod';
 import { useMutation, useQueryClient } from '@tanstack/react-query';
+import { format, parseISO } from 'date-fns';
+import { CalendarIcon } from 'lucide-react';
+import { useForm } from 'react-hook-form';
+import { useTranslation } from 'react-i18next';
+import { toast } from 'sonner';
+import { z } from 'zod';
+
+import { Button } from '@/components/ui/button';
+import { Calendar } from '@/components/ui/calendar';
 import {
   Dialog,
   DialogContent,
   DialogHeader,
   DialogTitle,
 } from '@/components/ui/dialog';
-import { Button } from '@/components/ui/button';
-import { Input } from '@/components/ui/input';
-import { Textarea } from '@/components/ui/textarea';
 import {
   Form,
   FormControl,
@@ -20,17 +25,15 @@ import {
   FormLabel,
   FormMessage,
 } from '@/components/ui/form';
-import { Project } from '@/types/project';
-import { updateProject } from '@/services/project-service';
-import { toast } from 'sonner';
-import { CalendarIcon } from 'lucide-react';
-import { Calendar } from '@/components/ui/calendar';
+import { Input } from '@/components/ui/input';
 import {
   Popover,
   PopoverContent,
   PopoverTrigger,
 } from '@/components/ui/popover';
-import { format, parseISO } from 'date-fns';
+import { Textarea } from '@/components/ui/textarea';
+import { updateProject } from '@/services/project-service';
+import { Project } from '@/types/project';
 
 const formSchema = z.object({
   title: z
@@ -57,6 +60,7 @@ export default function EditProjectDialog({
   isOpen,
   onClose,
 }: EditProjectDialogProps) {
+  const { t } = useTranslation('project');
   const queryClient = useQueryClient();
 
   const form = useForm<FormData>({
@@ -70,7 +74,6 @@ export default function EditProjectDialog({
 
   const mutation = useMutation({
     mutationFn: (data: FormData) => {
-      // Convert Date to ISO string before sending to the server
       const formattedData = {
         ...data,
         endDate: data.endDate ? data.endDate.toISOString() : undefined,
@@ -79,11 +82,11 @@ export default function EditProjectDialog({
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['projects'] });
-      toast.success('Project updated successfully');
+      toast.success(t('projectUpdatedSuccess'));
       onClose();
     },
     onError: (error) => {
-      toast.error(`Failed to update project: ${(error as Error).message}`);
+      toast.error(t('projectUpdateError', { error: (error as Error).message }));
     },
   });
 
@@ -95,7 +98,9 @@ export default function EditProjectDialog({
     <Dialog open={isOpen} onOpenChange={onClose}>
       <DialogContent className="sm:max-w-[500px]">
         <DialogHeader>
-          <DialogTitle className="text-2xl font-bold">Edit Project</DialogTitle>
+          <DialogTitle className="text-2xl font-bold">
+            {t('editProject')}
+          </DialogTitle>
         </DialogHeader>
         <Form {...form}>
           <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6">
@@ -105,7 +110,7 @@ export default function EditProjectDialog({
               render={({ field }) => (
                 <FormItem>
                   <FormLabel className="text-sm font-medium">
-                    Project Title
+                    {t('projectTitle')}
                   </FormLabel>
                   <FormControl>
                     <Input {...field} className="w-full" />
@@ -120,7 +125,7 @@ export default function EditProjectDialog({
               render={({ field }) => (
                 <FormItem>
                   <FormLabel className="text-sm font-medium">
-                    Description
+                    {t('description')}
                   </FormLabel>
                   <FormControl>
                     <Textarea {...field} className="w-full min-h-[100px]" />
@@ -134,7 +139,7 @@ export default function EditProjectDialog({
               name="endDate"
               render={({ field }) => (
                 <FormItem className="flex flex-col">
-                  <FormLabel>Due Date</FormLabel>
+                  <FormLabel>{t('dueDate')}</FormLabel>
                   <Popover>
                     <PopoverTrigger asChild>
                       <FormControl>
@@ -147,7 +152,7 @@ export default function EditProjectDialog({
                           {field.value ? (
                             format(field.value, 'PPP')
                           ) : (
-                            <span>Pick a date</span>
+                            <span>{t('pickDate')}</span>
                           )}
                           <CalendarIcon className="ml-auto h-4 w-4 opacity-50" />
                         </Button>
@@ -170,21 +175,29 @@ export default function EditProjectDialog({
               )}
             />
             <div className="text-sm text-muted-foreground space-y-1">
-              <p>Project Owner: {project.user?.name || 'Unknown'}</p>
-              <p>Created: {format(new Date(project.createdAt), 'PPP')}</p>
+              <p>
+                {t('projectOwner', {
+                  owner: project.user?.name || t('unknown'),
+                })}
+              </p>
+              <p>
+                {t('created', {
+                  date: format(new Date(project.createdAt), 'PPP'),
+                })}
+              </p>
             </div>
             <div className="flex justify-end space-x-2 pt-4">
               <Button type="button" variant="outline" onClick={onClose}>
-                Cancel
+                {t('cancel')}
               </Button>
               <Button type="submit" disabled={mutation.isPending}>
                 {mutation.isPending ? (
                   <>
-                    <span className="mr-2">Updating...</span>
+                    <span className="mr-2">{t('updating')}</span>
                     <span className="animate-spin">⏳</span>
                   </>
                 ) : (
-                  'Update Project'
+                  t('updateProject')
                 )}
               </Button>
             </div>

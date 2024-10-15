@@ -1,20 +1,13 @@
 import React from 'react';
-import { format } from 'date-fns';
+
 import { useQueryClient } from '@tanstack/react-query';
-import { Button } from '@/components/ui/button';
-import { Plus, FileText, MoreHorizontal } from 'lucide-react';
-import { Project } from '@/types/project';
-import { useProjects } from '@/services/project-service';
-import { toast } from 'sonner';
-import dynamic from 'next/dynamic';
+import { format } from 'date-fns';
+import { FileText, MoreHorizontal, Plus } from 'lucide-react';
 import { useSession } from 'next-auth/react';
-import {
-  DropdownMenu,
-  DropdownMenuContent,
-  DropdownMenuItem,
-  DropdownMenuTrigger,
-} from '@/components/ui/dropdown-menu';
-import { useDeleteProject } from '@/hooks/use-delete-project';
+import dynamic from 'next/dynamic';
+import { useTranslation } from 'react-i18next';
+import { toast } from 'sonner';
+
 import {
   AlertDialog,
   AlertDialogAction,
@@ -25,6 +18,16 @@ import {
   AlertDialogHeader,
   AlertDialogTitle,
 } from '@/components/ui/alert-dialog';
+import { Button } from '@/components/ui/button';
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+} from '@/components/ui/dropdown-menu';
+import { useDeleteProject } from '@/hooks/use-delete-project';
+import { useProjects } from '@/services/project-service';
+import { Project } from '@/types/project';
 
 const CreateProjectDialog = dynamic(() => import('./create-project-dialog'), {
   ssr: false,
@@ -49,45 +52,50 @@ const ProjectCard = ({
   project: Project;
   onEdit: (project: Project) => void;
   onDelete: (projectId: string) => void;
-}) => (
-  <div className="flex items-center space-x-3 p-2 hover:bg-gray-50 dark:hover:bg-gray-800 rounded-md transition-colors duration-200">
-    <div className="flex-shrink-0 w-10 h-10 bg-gray-100 dark:bg-gray-800 rounded-md flex items-center justify-center">
-      <FileText className="h-5 w-5 text-gray-500 dark:text-gray-400" />
+}) => {
+  const { t } = useTranslation('project');
+
+  return (
+    <div className="flex items-center space-x-3 p-2 hover:bg-gray-50 dark:hover:bg-gray-800 rounded-md transition-colors duration-200">
+      <div className="flex-shrink-0 w-10 h-10 bg-gray-100 dark:bg-gray-800 rounded-md flex items-center justify-center">
+        <FileText className="h-5 w-5 text-gray-500 dark:text-gray-400" />
+      </div>
+      <div className="flex-grow min-w-0">
+        <h3 className="text-sm font-medium text-gray-900 dark:text-gray-100 truncate">
+          {project.title}
+        </h3>
+        <p className="text-xs text-gray-500 dark:text-gray-400">
+          {format(new Date(project.createdAt), 'MMM d, yyyy')}
+        </p>
+      </div>
+      <DropdownMenu>
+        <DropdownMenuTrigger>
+          <Button variant="ghost" size="icon">
+            <MoreHorizontal className="h-4 w-4" />
+          </Button>
+        </DropdownMenuTrigger>
+        <DropdownMenuContent>
+          <DropdownMenuItem onClick={() => onEdit(project)}>
+            {t('editProjectDetails')}
+          </DropdownMenuItem>
+          <DropdownMenuItem
+            onClick={() => onDelete(project.id)}
+            className="text-red-600 dark:text-red-400"
+          >
+            {t('delete')}
+          </DropdownMenuItem>
+        </DropdownMenuContent>
+      </DropdownMenu>
     </div>
-    <div className="flex-grow min-w-0">
-      <h3 className="text-sm font-medium text-gray-900 dark:text-gray-100 truncate">
-        {project.title}
-      </h3>
-      <p className="text-xs text-gray-500 dark:text-gray-400">
-        {format(new Date(project.createdAt), 'MMM d, yyyy')}
-      </p>
-    </div>
-    <DropdownMenu>
-      <DropdownMenuTrigger>
-        <Button variant="ghost" size="icon">
-          <MoreHorizontal className="h-4 w-4" />
-        </Button>
-      </DropdownMenuTrigger>
-      <DropdownMenuContent>
-        <DropdownMenuItem onClick={() => onEdit(project)}>
-          Edit Project Details
-        </DropdownMenuItem>
-        <DropdownMenuItem
-          onClick={() => onDelete(project.id)}
-          className="text-red-600 dark:text-red-400"
-        >
-          Delete
-        </DropdownMenuItem>
-      </DropdownMenuContent>
-    </DropdownMenu>
-  </div>
-);
+  );
+};
 
 export interface ProjectOverviewProps {
   projects: Project[];
 }
 
 export function ProjectOverview({ projects }: ProjectOverviewProps) {
+  const { t } = useTranslation('project');
   const [isCreateDialogOpen, setIsCreateDialogOpen] = React.useState(false);
   const [editingProject, setEditingProject] = React.useState<Project | null>(
     null
@@ -109,9 +117,11 @@ export function ProjectOverview({ projects }: ProjectOverviewProps) {
 
   React.useEffect(() => {
     if (isError) {
-      toast.error(`Error loading projects: ${(error as Error).message}`);
+      toast.error(
+        t('errorLoadingProjects', { error: (error as Error).message })
+      );
     }
-  }, [isError, error]);
+  }, [isError, error, t]);
 
   const handleEditProject = (project: Project) => {
     setEditingProject(project);
@@ -125,12 +135,14 @@ export function ProjectOverview({ projects }: ProjectOverviewProps) {
     if (deletingProjectId) {
       deleteProject(deletingProjectId, {
         onSuccess: () => {
-          toast.success('Project deleted successfully');
+          toast.success(t('projectDeletedSuccess'));
           queryClient.invalidateQueries({ queryKey: ['projects'] });
           setDeletingProjectId(null);
         },
         onError: (error) => {
-          toast.error(`Error deleting project: ${(error as Error).message}`);
+          toast.error(
+            t('errorDeletingProject', { error: (error as Error).message })
+          );
           setDeletingProjectId(null);
         },
       });
@@ -149,7 +161,7 @@ export function ProjectOverview({ projects }: ProjectOverviewProps) {
             onClick={() => setIsCreateDialogOpen(true)}
           >
             <Plus className="mr-2 h-5 w-5" />
-            <span className="font-normal">Create project</span>
+            <span className="font-normal">{t('createProject')}</span>
           </Button>
           {projectsData?.map((project) => (
             <ProjectCard
@@ -179,20 +191,19 @@ export function ProjectOverview({ projects }: ProjectOverviewProps) {
         <AlertDialogContent>
           <AlertDialogHeader>
             <AlertDialogTitle>
-              Are you sure you want to delete this project?
+              {t('deleteProjectConfirmation')}
             </AlertDialogTitle>
             <AlertDialogDescription>
-              This action cannot be undone. This will permanently delete the
-              project and all associated data.
+              {t('deleteProjectWarning')}
             </AlertDialogDescription>
           </AlertDialogHeader>
           <AlertDialogFooter>
-            <AlertDialogCancel>Cancel</AlertDialogCancel>
+            <AlertDialogCancel>{t('cancel')}</AlertDialogCancel>
             <AlertDialogAction
               onClick={confirmDelete}
               className="bg-red-600 hover:bg-red-700"
             >
-              {isDeleting ? 'Deleting...' : 'Delete'}
+              {isDeleting ? t('deleting') : t('delete')}
             </AlertDialogAction>
           </AlertDialogFooter>
         </AlertDialogContent>
