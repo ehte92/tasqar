@@ -1,4 +1,5 @@
 import { useEffect, useRef } from 'react';
+
 import { useQueryClient } from '@tanstack/react-query';
 
 export function useBackgroundSync(queryKey: string[], interval: number) {

@@ -1,4 +1,5 @@
 import { useEffect, useState } from 'react';
+
 import { StoreApi, UseBoundStore } from 'zustand';
 
 type ExtractState<S> = S extends { getState: () => infer T } ? T : never;
