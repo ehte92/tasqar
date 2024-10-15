@@ -1,12 +1,13 @@
 import {
-  Twitter,
-  Facebook,
-  Instagram,
-  Github,
-  Box,
   AlertCircle,
+  Box,
   Check,
+  Facebook,
+  Github,
+  Instagram,
+  Languages,
   Loader2,
+  Twitter,
 } from 'lucide-react';
 
 export const Icons = {
@@ -19,4 +20,5 @@ export const Icons = {
   alertCircle: AlertCircle,
   check: Check,
   spinner: Loader2,
+  languages: Languages,
 };
