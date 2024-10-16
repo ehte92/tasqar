@@ -1,6 +1,6 @@
 'use client';
 
-import { useEffect } from 'react';
+import { Suspense, useEffect } from 'react';
 
 import { useQuery } from '@tanstack/react-query';
 import { motion } from 'framer-motion';
@@ -56,70 +56,76 @@ export default function VerifyEmail() {
   }, [isSuccess, router]);
 
   return (
-    <div className="container mx-auto px-4 py-16 flex items-center justify-center min-h-screen">
-      <motion.div
-        variants={containerVariants}
-        initial="hidden"
-        animate="visible"
-        className="w-full max-w-md"
-      >
-        <Card className="border-0 shadow-lg">
-          <CardHeader className="space-y-1">
-            <CardTitle className="text-3xl font-bold text-center">
-              {t('verifyEmail.title')}
-            </CardTitle>
-            <CardDescription className="text-center text-gray-500">
-              {isLoading
-                ? t('verifyEmail.verifying')
-                : t('verifyEmail.thankYou')}
-            </CardDescription>
-          </CardHeader>
-          <CardContent className="flex flex-col items-center space-y-4">
-            <motion.div variants={iconVariants}>
-              {isLoading && (
-                <Icons.spinner className="h-16 w-16 text-blue-500 animate-spin" />
-              )}
+    <Suspense fallback={<div>Loading...</div>}>
+      <div className="container mx-auto px-4 py-16 flex items-center justify-center min-h-screen">
+        <motion.div
+          variants={containerVariants}
+          initial="hidden"
+          animate="visible"
+          className="w-full max-w-md"
+        >
+          <Card className="border-0 shadow-lg">
+            <CardHeader className="space-y-1">
+              <CardTitle className="text-3xl font-bold text-center">
+                {t('verifyEmail.title')}
+              </CardTitle>
+              <CardDescription className="text-center text-gray-500">
+                {isLoading
+                  ? t('verifyEmail.verifying')
+                  : t('verifyEmail.thankYou')}
+              </CardDescription>
+            </CardHeader>
+            <CardContent className="flex flex-col items-center space-y-4">
+              <motion.div variants={iconVariants}>
+                {isLoading && (
+                  <Icons.spinner className="h-16 w-16 text-blue-500 animate-spin" />
+                )}
+                {isSuccess && (
+                  <Icons.check className="h-16 w-16 text-green-500" />
+                )}
+                {isError && (
+                  <Icons.alertCircle className="h-16 w-16 text-red-500" />
+                )}
+              </motion.div>
+
               {isSuccess && (
-                <Icons.check className="h-16 w-16 text-green-500" />
+                <div className="text-center">
+                  <p className="text-lg font-semibold text-green-600 mb-2">
+                    {t('verifyEmail.success')}
+                  </p>
+                  <p className="text-gray-600">
+                    {t('verifyEmail.redirecting')}
+                  </p>
+                </div>
               )}
+
               {isError && (
-                <Icons.alertCircle className="h-16 w-16 text-red-500" />
+                <div className="text-center">
+                  <p className="text-lg font-semibold text-red-600 mb-2">
+                    {t('verifyEmail.error')}
+                  </p>
+                  <p className="text-gray-600 mb-4">
+                    {error instanceof Error
+                      ? error.message
+                      : t('verifyEmail.genericError')}
+                  </p>
+                  <Button asChild>
+                    <Link href="/support">
+                      {t('verifyEmail.contactSupport')}
+                    </Link>
+                  </Button>
+                </div>
               )}
-            </motion.div>
 
-            {isSuccess && (
-              <div className="text-center">
-                <p className="text-lg font-semibold text-green-600 mb-2">
-                  {t('verifyEmail.success')}
-                </p>
-                <p className="text-gray-600">{t('verifyEmail.redirecting')}</p>
-              </div>
-            )}
-
-            {isError && (
-              <div className="text-center">
-                <p className="text-lg font-semibold text-red-600 mb-2">
-                  {t('verifyEmail.error')}
-                </p>
-                <p className="text-gray-600 mb-4">
-                  {error instanceof Error
-                    ? error.message
-                    : t('verifyEmail.genericError')}
-                </p>
-                <Button asChild>
-                  <Link href="/support">{t('verifyEmail.contactSupport')}</Link>
+              {!isLoading && (
+                <Button asChild variant="outline" className="mt-4">
+                  <Link href="/login">{t('verifyEmail.goToLogin')}</Link>
                 </Button>
-              </div>
-            )}
-
-            {!isLoading && (
-              <Button asChild variant="outline" className="mt-4">
-                <Link href="/login">{t('verifyEmail.goToLogin')}</Link>
-              </Button>
-            )}
-          </CardContent>
-        </Card>
-      </motion.div>
-    </div>
+              )}
+            </CardContent>
+          </Card>
+        </motion.div>
+      </div>
+    </Suspense>
   );
 }
