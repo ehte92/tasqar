@@ -1,11 +1,13 @@
 import { getServerSession } from 'next-auth';
-import { NextResponse } from 'next/server';
+import { NextRequest, NextResponse } from 'next/server';
 import { z } from 'zod';
 
 import { authOptions } from '@/lib/auth';
 import prisma from '@/lib/db';
 
-export async function GET(request: Request) {
+export const dynamic = 'force-dynamic';
+
+export async function GET(request: NextRequest) {
   try {
     const session = await getServerSession(authOptions);
 
@@ -33,7 +35,7 @@ const markAsReadSchema = z.object({
   ids: z.array(z.string().cuid()),
 });
 
-export async function PUT(request: Request) {
+export async function PUT(request: NextRequest) {
   try {
     const session = await getServerSession(authOptions);
 
