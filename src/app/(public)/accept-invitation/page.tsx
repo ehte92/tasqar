@@ -1,77 +1,15 @@
 'use client';
 
-import { Suspense, useEffect, useState } from 'react';
+import { Suspense } from 'react';
 
-import { useSearchParams } from 'next/navigation';
-import { useTranslation } from 'react-i18next';
-import { toast } from 'sonner';
-
-import { validateInvitationToken } from '@//lib/api/auth';
-import RegisterForm from '@/components/register-form';
-import { ErrorMessage } from '@/components/ui/error-message';
 import { LoadingSpinner } from '@/components/ui/loading-spinner';
 
+import { AcceptInvitationForm } from './accept-invitation-form';
+
 export default function AcceptInvitationPage() {
-  const { t } = useTranslation('common');
-  const searchParams = useSearchParams();
-  const [validationState, setValidationState] = useState<{
-    isValid: boolean | null;
-    email: string | null;
-    error: string | null;
-  }>({
-    isValid: null,
-    email: null,
-    error: null,
-  });
-
-  useEffect(() => {
-    const token = searchParams.get('token');
-    if (!token) {
-      setValidationState({
-        isValid: false,
-        email: null,
-        error: t('invalidInvitationLink'),
-      });
-      return;
-    }
-
-    const validateToken = async () => {
-      try {
-        const { isValid, email, error } = await validateInvitationToken(token);
-        setValidationState({ isValid, email, error });
-        if (!isValid) {
-          toast.error(error || t('invalidOrExpiredInvitation'));
-        }
-      } catch (error) {
-        console.error('Error validating token:', error);
-        setValidationState({
-          isValid: false,
-          email: null,
-          error: t('errorValidatingInvitation'),
-        });
-        toast.error(t('errorValidatingInvitation'));
-      }
-    };
-
-    validateToken();
-  }, [searchParams, t]);
-
   return (
-    <Suspense fallback={<LoadingSpinner message={t('validatingInvitation')} />}>
-      {validationState.isValid === null ? (
-        <LoadingSpinner message={t('validatingInvitation')} />
-      ) : validationState.isValid === false ? (
-        <ErrorMessage
-          message={validationState.error || t('invalidOrExpiredInvitation')}
-        />
-      ) : (
-        <div className="container mx-auto px-4 py-8">
-          <h1 className="text-2xl font-bold mb-6 text-center">
-            {t('completeYourRegistration')}
-          </h1>
-          <RegisterForm initialEmail={validationState.email} />
-        </div>
-      )}
+    <Suspense fallback={<LoadingSpinner message="Loading..." />}>
+      <AcceptInvitationForm />
     </Suspense>
   );
 }
