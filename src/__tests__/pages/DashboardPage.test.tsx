@@ -36,13 +36,8 @@ describe('DashboardPage', () => {
     const sections = screen.getAllByRole('region');
     expect(sections).toHaveLength(3);
 
-    // Check if DashboardGreeting is rendered
-    expect(screen.getByText('Mocked Component')).toBeInTheDocument();
-
-    // Check if TaskStats is rendered
-    expect(screen.getByText('Mocked Component')).toBeInTheDocument();
-
-    // Check if KanbanBoard is rendered
-    expect(screen.getByText('Mocked Component')).toBeInTheDocument();
+    // Check if all mocked components are rendered
+    const mockedComponents = screen.getAllByText('Mocked Component');
+    expect(mockedComponents).toHaveLength(3);
   });
 });

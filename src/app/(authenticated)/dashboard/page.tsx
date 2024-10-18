@@ -29,23 +29,23 @@ export default function DashboardPage() {
 
   return (
     <ContentLayout title={t('dashboard.title')}>
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-        <section className="mb-8">
+      <main role="main" className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+        <section role="region" className="mb-8">
           <DashboardGreeting />
         </section>
-        <section>
+        <section role="region">
           <h2 className="text-2xl font-semibold mb-4">
             {t('dashboard.taskStats')}
           </h2>
           <TaskStats />
         </section>
-        <section className="mt-8">
+        <section role="region" className="mt-8">
           <h2 className="text-2xl font-semibold mb-4">
             {t('dashboard.kanbanBoard')}
           </h2>
           <KanbanBoard />
         </section>
-      </div>
+      </main>
     </ContentLayout>
   );
 }
