@@ -1,57 +1,37 @@
 # Use Node.js 20 Alpine as the base image
 FROM node:20-alpine AS base
-
-# Install dependencies only when needed
-FROM base AS deps
+# Check https://github.com/nodejs/docker-node/tree/b4117f9333da4138b03a546ec926ef50a31506c3#nodealpine to understand why libc6-compat might be needed.
 RUN apk add --no-cache libc6-compat
-WORKDIR /app
-
+RUN apk add --no-cache git
 # Enable Corepack for Yarn version management
 RUN corepack enable
-
-# Copy package.json and yarn.lock
-COPY package.json yarn.lock .yarnrc.yml ./
-
-# Install dependencies
-RUN yarn install --immutable
-
-# Rebuild the source code only when needed
-FROM base AS builder
 WORKDIR /app
-
-# Enable Corepack for Yarn version management
-RUN corepack enable
-
-COPY --from=deps /app/node_modules ./node_modules
 COPY . .
 
-# Set environment variables
-ENV NEXT_TELEMETRY_DISABLED=1
-ENV NODE_ENV=production
-
-# Build the application
+FROM base AS build
+# Install dependencies
+RUN yarn install --frozen-lockfile
+# Building as a production application
+ENV NODE_ENV production
 RUN yarn build
 
-# Production image, copy all the files and run next
 FROM base AS runner
 WORKDIR /app
-
-# Set environment variables
-ENV NODE_ENV=production
-ENV NEXT_TELEMETRY_DISABLED=1
-
 RUN addgroup --system --gid 1001 nodejs
 RUN adduser --system --uid 1001 nextjs
-
-# Copy necessary files from builder
-COPY --from=builder /app/public ./public
-COPY --from=builder /app/.next/standalone ./
-COPY --from=builder /app/.next/static ./.next/static
+RUN mkdir .next
+RUN chown nextjs:nodejs .next
+COPY --from=build /app/node_modules /app/node_modules
+COPY --from=build /app/.next /app/.next
 
 USER nextjs
+WORKDIR /app
 
 EXPOSE 3000
 
-ENV PORT=3000
+ENV PORT 3000
 
-CMD ["node", "server.js"]
+# Learn more here: https://nextjs.org/telemetry
+ENV NEXT_TELEMETRY_DISABLED 1
+
+CMD ["yarn", "start"]
